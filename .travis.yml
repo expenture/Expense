@@ -1,0 +1,15 @@
+language:
+  - ruby
+rvm:
+  - 2.3.0
+sudo: false
+cache: bundler
+before_install:
+  - "echo 'gem: --no-document' > ~/.gemrc"
+  - export DATABASE_URL=postgres://postgres@localhost/database
+install:
+  - travis_retry bin/setup
+script: bin/rspec
+services:
+  - postgresql
+  - redis-server
