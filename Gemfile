@@ -33,9 +33,18 @@ gem 'awesome_print', :require => false
 gem 'hirb', :require => false
 gem 'hirb-unicode', :require => false
 
+# Model factory and tools
+gem 'factory_girl_rails'
+gem 'faker'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
+  # RSpec
+  gem 'rspec-rails'
+  gem 'shoulda-matchers', require: false
+  gem 'rspec-its', require: false
+  gem 'simplecov', require: false
 end
 
 group :development do
