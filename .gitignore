@@ -22,3 +22,6 @@
 
 # Ignore .env file
 .env
+
+# Ignore Coverage reoprt
+coverage
