@@ -42,6 +42,7 @@ group :development, :test do
   gem 'byebug'
   # RSpec
   gem 'rspec-rails'
+  gem 'spring-commands-rspec'
   gem 'shoulda-matchers', require: false
   gem 'rspec-its', require: false
   gem 'simplecov', require: false
