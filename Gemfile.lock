@@ -41,8 +41,10 @@ GEM
       minitest (~> 5.1)
       tzinfo (~> 1.1)
     arel (7.0.0)
+    awesome_print (1.6.1)
     builder (3.2.2)
     byebug (8.2.2)
+    coderay (1.1.0)
     concurrent-ruby (1.0.0)
     dotenv (2.1.0)
     dotenv-rails (2.1.0)
@@ -51,6 +53,10 @@ GEM
     erubis (2.7.0)
     globalid (0.3.6)
       activesupport (>= 4.1.0)
+    hirb (0.7.3)
+    hirb-unicode (0.0.5)
+      hirb (~> 0.5)
+      unicode-display_width (~> 0.1.1)
     i18n (0.7.0)
     json (1.8.3)
     loofah (2.0.3)
@@ -65,6 +71,15 @@ GEM
     nokogiri (1.6.7.2)
       mini_portile2 (~> 2.0.0.rc2)
     pg (0.18.4)
+    pry (0.10.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
+    pry-byebug (3.3.0)
+      byebug (~> 8.0)
+      pry (~> 0.10)
+    pry-rails (0.3.4)
+      pry (>= 0.9.10)
     puma (2.16.0)
     rack (2.0.0.alpha)
       json
@@ -97,7 +112,9 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rake (10.5.0)
+    rb-readline (0.5.3)
     redis (3.2.2)
+    slop (3.6.0)
     spring (1.6.3)
     sprockets (3.5.2)
       concurrent-ruby (~> 1.0)
@@ -111,6 +128,7 @@ GEM
     thread_safe (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
+    unicode-display_width (0.1.1)
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
@@ -119,11 +137,17 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  awesome_print
   byebug
   dotenv-rails
+  hirb
+  hirb-unicode
   pg
+  pry-byebug
+  pry-rails
   puma
   rails (>= 5.0.0.beta2, < 5.1)
+  rb-readline
   redis (~> 3.0)
   spring
   sqlite3
