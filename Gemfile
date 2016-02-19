@@ -47,6 +47,8 @@ group :development, :test do
   gem 'rspec-its', require: false
   gem 'simplecov', require: false
   gem 'coveralls', require: false
+  gem 'webmock'
+  gem 'timecop'
 end
 
 group :development do
