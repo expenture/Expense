@@ -1,24 +1,19 @@
-## README
+# Expense
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+An expense managing application to make life more easier and free. This is the backend API server written on top of the [Ruby on Rails](http://rubyonrails.org) framework.
 
-Things you may want to cover:
 
-* Ruby version
+## Development Setup
 
-* System dependencies
+Just run:
 
-* Configuration
+```bash
+$ bin/setup
+```
 
-* Database creation
+You may want to change the app's default environment variables, which lays in `.env`.
 
-* Database initialization
 
-* How to run the test suite
+## Deploy
 
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+This application is designed under The [Twelve-Factor](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
