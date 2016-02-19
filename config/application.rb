@@ -28,5 +28,20 @@ module Expense
     config.api_only = true
 
     config.action_mailer.delivery_method = (ENV['MAILER_DELIVERY_METHOD'].presence || :letter_opener).to_sym
+
+    case ENV['LOGGER']
+    when 'stdout'
+      require 'rails_stdout_logging/rails'
+      config.logger = RailsStdoutLogging::Rails.heroku_stdout_logger
+    when 'remote'
+      # Send logs to a remote server
+      if !ENV['REMOTE_LOGGER_HOST'].blank? && !ENV['REMOTE_LOGGER_PORT'].blank?
+        app_name = ENV['APP_NAME'] || Rails.application.class.parent_name
+        config.logger = \
+          RemoteSyslogLogger.new(ENV['REMOTE_LOGGER_HOST'], ENV['REMOTE_LOGGER_PORT'],
+                                 local_hostname: "#{Socket.gethostname}".gsub(' ', '_'),
+                                 program: ('rails-' + Rails.application.class.parent_name.underscore))
+      end
+    end
   end
 end

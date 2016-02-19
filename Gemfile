@@ -37,6 +37,10 @@ gem 'hirb-unicode', :require => false
 gem 'factory_girl_rails'
 gem 'faker'
 
+# Logger
+gem 'remote_syslog_logger'
+gem 'rails_stdout_logging', :require => false
+
 # Monitoring
 gem 'newrelic_rpm'
 
