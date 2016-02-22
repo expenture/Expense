@@ -13,17 +13,23 @@ gem 'pg'
 # Use Puma as the app server
 gem 'puma'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-# gem 'jbuilder', '~> 2.0'
+gem 'jbuilder', '~> 2.4'
 # Action Cable dependencies for the Redis adapter
 gem 'redis', '~> 3.0'
-# Use ActiveModel has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
 # gem 'rack-cors'
+
+# HTTP client
+gem 'rest-client'
+
+# User authentication
+gem 'devise', '~> 4.0.0.rc1'
+gem 'doorkeeper', github: 'ashishtajane/doorkeeper', branch: 'fix_issue_774'
+gem 'omniauth-facebook'
 
 # Use Pry as the Rails console
 gem 'rb-readline'
@@ -52,9 +58,10 @@ group :development, :test do
   gem 'spring-commands-rspec'
   gem 'shoulda-matchers', require: false
   gem 'rspec-its', require: false
+  gem 'email_spec'
   gem 'simplecov', require: false
   gem 'coveralls', require: false
-  gem 'webmock'
+  gem 'webmock', require: false
   gem 'timecop'
 end
 
