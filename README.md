@@ -2,6 +2,24 @@
 
 An expense managing application to make life more easier and free. This is the backend API server written on top of the [Ruby on Rails](http://rubyonrails.org) framework.
 
+**Table of Contents**
+
+- [Development Setup](#development-setup)
+- [Deploy](#deploy)
+- [API](#api)
+  - [User Registration](#user-registration)
+  - [User Authentication (OAuth)](#user-authentication)
+    - [Resource Owner Password Credentials Grant Flow](#resource-owner-password-credentials-grant-flow)
+      - [Using Email and Password](#using-email-and-password)
+      - [Using an Facebook Access Token](#using-an-facebook-access-token)
+    - [Using The Refresh Token](#using-the-refresh-token)
+- [Architecture](#architecture)
+  - [Specs](#specs)
+    - [Module Specs](#module-specs)
+    - [Request Specs](#request-specs)
+    - [Feature Specs](#feature-specs)
+  - [Backing Services](#backing-services)
+
 
 ## Development Setup
 
@@ -11,7 +29,7 @@ Just run:
 $ bin/setup
 ```
 
-You may want to change the app's default environment variables, which lays in `.env`.
+Configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`.
 
 
 ## Deploy
