@@ -11,7 +11,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160221210951) do
+ActiveRecord::Schema.define(version: 20160224153424) do
+
+  create_table "accounts", force: :cascade do |t|
+    t.integer  "user_id",                     null: false
+    t.string   "uid",                         null: false
+    t.string   "type",       default: "cash", null: false
+    t.string   "name",                        null: false
+    t.string   "currency",   default: "TWD",  null: false
+    t.integer  "balance",    default: 0,      null: false
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+    t.index ["type"], name: "index_accounts_on_type"
+    t.index ["uid"], name: "index_accounts_on_uid", unique: true
+    t.index ["user_id"], name: "index_accounts_on_user_id"
+  end
 
   create_table "oauth_access_grants", force: :cascade do |t|
     t.integer  "resource_owner_id", null: false
@@ -84,7 +98,9 @@ ActiveRecord::Schema.define(version: 20160221210951) do
     t.text     "fb_access_token"
     t.datetime "created_at",                                null: false
     t.datetime "updated_at",                                null: false
+    t.string   "default_account_uid"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
+    t.index ["default_account_uid"], name: "index_users_on_default_account_uid"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["fb_email"], name: "index_users_on_fb_email"
     t.index ["fb_id"], name: "index_users_on_fb_id"

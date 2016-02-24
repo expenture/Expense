@@ -4,6 +4,10 @@ Rails.application.routes.draw do
 
   resources :users, defaults: { format: :json }
 
+  namespace :me, defaults: { format: :json } do
+    resources :accounts, only: [:index, :update, :destroy]
+  end
+
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
   # Serve websocket cable requests in-process

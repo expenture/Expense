@@ -3,6 +3,14 @@ class User < ApplicationRecord
   devise :database_authenticatable, :omniauthable, :registerable, :confirmable,
          :timeoutable, :lockable, :recoverable, :trackable, :validatable
 
+  has_many :accounts
+  belongs_to :default_account, class_name: :Account,
+             primary_key: :uid, foreign_key: :default_account_uid,
+             optional: true
+
+  validates :default_account, presence: true, on: :update
+
+  after_create :create_default_account
   before_validation :check_password
 
   def link_to_facebook_by_data(data, save: true)
@@ -29,6 +37,12 @@ class User < ApplicationRecord
   end
 
   private
+
+  def create_default_account
+    self.default_account = Account.new(user_id: id, uid: "#{id}-#{SecureRandom.uuid}", name: 'default')
+    self.default_account.save!
+    self.save!
+  end
 
   def check_password
     if self.from == 'facebook'

@@ -7,12 +7,16 @@ An expense managing application to make life more easier and free. This is the b
 - [Development Setup](#development-setup)
 - [Deploy](#deploy)
 - [API](#api)
-  - [User Registration](#user-registration)
-  - [User Authentication (OAuth)](#user-authentication)
-    - [Resource Owner Password Credentials Grant Flow](#resource-owner-password-credentials-grant-flow)
-      - [Using Email and Password](#using-email-and-password)
-      - [Using an Facebook Access Token](#using-an-facebook-access-token)
-    - [Using The Refresh Token](#using-the-refresh-token)
+  - [Conventions](#conventions)
+    - [HTTP Methouds](#http-methouds)
+    - [Value Unit](#value-unit)
+  - [Authentication Related APIs](#authentication-related-apis)
+    - [User Registration](#user-registration)
+    - [User Authentication (OAuth)](#user-authentication-oauth)
+      - [Resource Owner Password Credentials Grant Flow](#resource-owner-password-credentials-grant-flow)
+      - [Using The Refresh Token](#using-the-refresh-token)
+  - [General APIs](#general-apis)
+    - [Account Management](#account-management)
 - [Architecture](#architecture)
   - [Specs](#specs)
     - [Module Specs](#module-specs)
@@ -43,7 +47,38 @@ Most APIs provided by this app are RESTful JSON APIs, and OAuth 2.0 is used for 
 
 Note that although most examples are using URL query parameters to pass data, form-data or raw body with JSON can also be used. Also, the OAuth access token can be passed using HTTP `Authorization` header (`Authorization: Bearer <access_token>`) instead of the `access_token` query parameter.
 
-### User Registration
+### Conventions
+
+#### HTTP Methouds
+
+##### Using `PUT` for Resource Creation
+
+Since this is an mobile oriented application, one considerations on API design is to make requests retryable (we assume that the internet is unstable). The traditional `POST` method is not retryable since it will create n duplicated resource after retrying n times.
+
+By using the `PUT` method (its definition is "replace or create"), we can make creating resource retryable by:
+
+  1. Generate the unique ID of that resource on the client side.
+  2. Send the request `PUT /resources/<generated_uid>` to create the resource.
+
+If the client thinks the request has failed, it can just retry step 2 without the worry of creating duplicated resources on the server side. Because the definition of `PUT` request is "replace or create", if that resource is already created successfully, resending the same request will simply "replace" that resource with the same data - making no changes to the final result.
+
+For this reason, the `POST` method are not provided for some APIs.
+
+##### Using `PATCH` for Updating Resource
+
+Since the definition of `PUT` request is "replace or create", it may be inconvenient for updating only a subset of attributes: all old attributes should be send within the request, otherwise the missing attributes will be cleared (because the whole resource has been replaced with the provided data).
+
+So, the recommended method for updating resourse is using `PATCH` requests. Only the attributes specified in the request will be updated, while others remain unchanged.
+
+For this reason, the `PUT` method are not provided for some APIs.
+
+#### Value Unit
+
+All money values like `amount` or `balance` are integers represented in 1,000/1 degrees, irrelevant to currency. That is, the programmatic money value `1234567` should be displayed as `$ 1,234.567`.
+
+### Authentication Related APIs
+
+#### User Registration
 
 New users can be registered using their email and password ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/users_spec.rb)).
 
@@ -69,15 +104,15 @@ A confirmation email will be sent after the new registration. After new users cl
 
 > TODO: Reset password API.
 
-### User Authentication
+#### User Authentication
 
 All authentications are done by [The OAuth 2.0 Authorization Framework](https://tools.ietf.org/html/rfc6749). All of the rest APIs will need a valid access token to access. The Resource Owner Password Credentials Grant Flow is supported to obtain an access token:
 
-#### Resource Owner Password Credentials Grant Flow
+##### Resource Owner Password Credentials Grant Flow
 
 This grant flow uses the user's account credentials to grant access and get an access token ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/oauth/token_spec.rb)). The API endpoint is `POST /oauth/token`, and two types of credentials are supported:
 
-##### Using Email and Password
+###### Using Email and Password
 
 Pass the user's email as the username and the password with the request like this:
 
@@ -105,7 +140,7 @@ Sample response:
 
 After 20+ unsuccessful credentials attempts, the user's account will be locked and cannot be logged in within a maximum time of 3 hours.
 
-##### Using an Facebook Access Token
+###### Using an Facebook Access Token
 
 To achieve "loggin in with Facebook", a vaild Facebook access token is also available to use as credential. Just use the fixed value `facebook:access_token` as the `username`, and pass in the Facebook access token as password:
 
@@ -122,7 +157,7 @@ Or if an old user is using Facebook login without linking his/her Facebook accou
 
 > Note that for security reasons, only the Facebook access tokens that belongs to the same Facebook app setted for this application can be used as credentials. Facebook access tokens that are created for other Facebook apps will be rejected - even if they belong to the same user.
 
-#### Using The Refresh Token
+##### Using The Refresh Token
 
 The refresh token is used for obtending a new access token after the current one has (or is going to) expired ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/oauth/token_spec.rb)). A sample request is:
 
@@ -143,6 +178,74 @@ the sample response:
   "scope": "default",
   "created_at": 00000000
 }
+```
+
+### General APIs
+
+#### Account Management
+
+A default cash account with the name "default" and type "cash" will be created with the new user ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)) and set as the default account ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)). Default accounts cannot be deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/account_spec.rb)). Operations for managing the user's accounts are listed below:
+
+##### Getting The List of Accounts
+
+```http
+GET /me/accounts
+```
+
+Sample response:
+
+```json
+accounts: [
+  {
+    "uid": "9aa5d2b6-a3c9-4d0e-891e-b43f40d2546d",
+    "name": "default",
+    "type": "cash",
+    "currency": "TWD",
+    "balance": 8000000
+  },
+  {
+    "uid": "4a58cb98-59ac-4401-9ff0-2d0887e31250",
+    "name": "悠遊卡",
+    "type": "cash",
+    "currency": "TWD",
+    "balance": 5000000
+  }
+]
+```
+
+> Note that the `balance` attribute is represented in 1,000/1 degrees.
+
+##### Creating an Account
+
+```http
+PUT /me/accounts/<generated_unique_id>
+Content-Type: application/json
+
+{
+  "account": {
+    "name": <the_name_of_the_account>,
+    "type": "cash",
+    "currency": "TWD",
+    "balance": <the_initial_balance>
+  }
+}
+```
+
+##### Updating Info of an Account
+
+```http
+PATCH /me/accounts/<account_uid>
+Content-Type: application/json
+
+{
+  "account": <updated_attributes_and_values>
+}
+```
+
+##### Deleting an Account
+
+```http
+DELETE /me/accounts/<account_uid>
 ```
 
 ## Architecture

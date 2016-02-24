@@ -1,4 +1,4 @@
-class UsersController < ActionController::API
+class UsersController < ApplicationAPIController
   def create
     @user = User.new(params.require(:user).permit(:email, :password, :password_confirmation))
     existing_unconfirmed_user = User.find_by(email: @user.email, confirmed_at: nil)
