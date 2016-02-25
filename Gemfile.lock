@@ -54,6 +54,7 @@ GEM
     bcrypt (3.1.10)
     builder (3.2.2)
     byebug (8.2.2)
+    choice (0.2.0)
     coderay (1.1.1)
     concurrent-ruby (1.0.0)
     coveralls (0.8.11)
@@ -177,6 +178,11 @@ GEM
       activesupport (>= 4.2.0.beta, < 5.0)
       nokogiri (~> 1.6.0)
       rails-deprecated_sanitizer (>= 1.0.1)
+    rails-erd (1.4.6)
+      activerecord (>= 3.2)
+      activesupport (>= 3.2)
+      choice (~> 0.2.0)
+      ruby-graphviz (~> 1.2)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
     rails_stdout_logging (0.0.4)
@@ -216,6 +222,7 @@ GEM
       rspec-mocks (~> 3.1.0)
       rspec-support (~> 3.1.0)
     rspec-support (3.1.2)
+    ruby-graphviz (1.2.2)
     safe_yaml (1.0.4)
     shoulda-matchers (3.1.1)
       activesupport (>= 4.0.0)
@@ -283,6 +290,7 @@ DEPENDENCIES
   pry-rails
   puma
   rails (>= 5.0.0.beta2, < 5.1)
+  rails-erd
   rails_stdout_logging
   rb-readline
   redis (~> 3.0)

@@ -70,6 +70,7 @@ group :development do
   gem 'spring'
   # Open the sent email directly in the browser while development
   gem 'letter_opener'
+  gem 'rails-erd'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

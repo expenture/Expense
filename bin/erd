@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+BASEDIR=$(dirname "$0")
+cd "$(dirname "$BASEDIR")" || exit
+
+# Hack: Removes code that confuses rails-erd
+mv -f app/models/user.rb app/models/user.rb_org
+cat app/models/user.rb_org | \
+  sed "s/.*belongs_to :default_account.*//g" | \
+  sed "s/.*foreign_key: :default_account_uid.*//g" | \
+  sed "s/.*optional: true.*//g" \
+  > app/models/user.rb
+
+bundle exec rake erd \
+  notation=bachman inheritance=false polymorphism=false filetype=dot \
+  exclude='Doorkeeper::Application,Doorkeeper::AccessGrant,Doorkeeper::AccessToken' && \
+  dot -Tpng erd.dot -o erd.png && \
+  dot -Tpdf erd.dot > erd.pdf && \
+  open erd.pdf
+
+# Hack: Restore the code that has been hacked above
+rm app/models/user.rb
+mv app/models/user.rb_org app/models/user.rb

@@ -12,17 +12,18 @@ An expense managing application to make life more easier and free. This is the b
     - [Value Unit](#value-unit)
   - [Authentication Related APIs](#authentication-related-apis)
     - [User Registration](#user-registration)
-    - [User Authentication (OAuth)](#user-authentication-oauth)
+    - [User Authentication (OAuth)](#user-authentication)
       - [Resource Owner Password Credentials Grant Flow](#resource-owner-password-credentials-grant-flow)
       - [Using The Refresh Token](#using-the-refresh-token)
   - [General APIs](#general-apis)
     - [Account Management](#account-management)
 - [Architecture](#architecture)
+  - [Domain Model ERD Diagram](#domain-model-erd-diagram)
+  - [Backing Services](#backing-services)
   - [Specs](#specs)
     - [Module Specs](#module-specs)
     - [Request Specs](#request-specs)
     - [Feature Specs](#feature-specs)
-  - [Backing Services](#backing-services)
 
 
 ## Development Setup
@@ -250,7 +251,19 @@ DELETE /me/accounts/<account_uid>
 
 ## Architecture
 
-The architecture of this app is briefly explained in the sections below:
+This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devise](https://github.com/plataformatec/devise), [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper/), [Jbuilder](https://github.com/rails/jbuilder) and many others. Tests are done by [RSpec](http://rspec.info/). The architecture of this app is briefly explained in the sections below:
+
+### Domain Model ERD Diagram
+
+![](https://raw.githubusercontent.com/Neson/Expense/master/erd.png?token=ADm_7_rGOdlefEHT8smFsow3krbEZpGlks5W2EjswA%3D%3D)
+
+> Note: This diagram is generated with the command `bin/erd`.
+
+### Backing Services
+
+Communication with backing services, such as database, file storage, outbound email service, Facebook connection, Apple Push Notification Service and GCM, are all wrapped in external gems or service objects to provide united API, logic arrangement and easy testing. That is to say, there are hardly any direct `RestClient.get ...` or other TCP, HTTP connections be fired in models, controllers or jobs. They're at least wrapped into service-oriented service object or gems, or further more, wrapped as functionality-oriented libs for a more high-level API.
+
+These type of service objects written in this app will provide a `mock_mode` module attr. While it is set to `true`, no real connections to those backing services will be established, and mock data will be used for return value. This is normally used for testing. And the mock data written in those modules can also act as documentation.
 
 ### Specs
 
@@ -267,9 +280,3 @@ Request specs specified all the surface accessible APIs of this app. They're org
 #### Feature Specs
 
 Non-API features, such as browsable web pages of this app, are specified in feature specs placed in in the `features` directory.
-
-### Backing Services
-
-Communication with backing services, such as database, file storage, outbound email service, Facebook connection, Apple Push Notification Service and GCM, are all wrapped in external gems or service objects to provide united API, logic arrangement and easy testing. That is to say, there are hardly any direct `RestClient.get ...` or other TCP, HTTP connections be fired in models, controllers or jobs. They're at least wrapped into service-oriented service object or gems, or further more, wrapped as functionality-oriented libs for a more high-level API.
-
-These type of service objects written in this app will provide a `mock_mode` module attr. While it is set to `true`, no real connections to those backing services will be established, and mock data will be used for return value. This is normally used for testing. And the mock data written in those modules can also act as documentation.

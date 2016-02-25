@@ -14,3 +14,13 @@
 # ActiveSupport::Inflector.inflections(:en) do |inflect|
 #   inflect.acronym 'RESTful'
 # end
+
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.acronym 'RESTful'
+  inflect.acronym 'OAuth'
+  inflect.acronym 'API'
+  inflect.acronym 'SSO'
+  inflect.acronym 'SMS'
+  inflect.acronym 'APNS'
+  inflect.acronym 'GCM'
+end
