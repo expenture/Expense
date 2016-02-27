@@ -8,10 +8,10 @@ class Me::AccountsController < ApplicationAPIController
   def update
     if request.put?
       @account = current_user.accounts.find_or_initialize_by(uid: params[:id])
-      @account.replace_attributes(account_params)
+      @account.assign_attributes(empty_account_param_set.merge(account_params.to_h))
     else request.patch?
       @account = current_user.accounts.find_by!(uid: params[:id])
-      @account.update_attributes(account_params)
+      @account.assign_attributes(account_params)
     end
 
     status = @account.persisted? ? 200 : 201
@@ -37,7 +37,15 @@ class Me::AccountsController < ApplicationAPIController
 
   private
 
+  def permitted_account_param_names
+    %w(type name currency balance)
+  end
+
   def account_params
-    params.require(:account).permit(%w(type name currency balance))
+    params.require(:account).permit(permitted_account_param_names)
+  end
+
+  def empty_account_param_set
+    HashWithIndifferentAccess[permitted_account_param_names.map { |v| [v, nil] }]
   end
 end

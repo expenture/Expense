@@ -31,6 +31,10 @@ gem 'devise', '~> 4.0.0.rc1'
 gem 'doorkeeper', github: 'ashishtajane/doorkeeper', branch: 'fix_issue_774'
 gem 'omniauth-facebook'
 
+# Controller helpers
+gem 'api_helper', '~> 0.1.1'
+gem 'kaminari'
+
 # Use Pry as the Rails console
 gem 'rb-readline'
 gem 'pry-rails'

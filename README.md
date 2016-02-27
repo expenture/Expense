@@ -17,6 +17,7 @@ An expense managing application to make life more easier and free. This is the b
       - [Using The Refresh Token](#using-the-refresh-token)
   - [General APIs](#general-apis)
     - [Account Management](#account-management)
+    - [Transaction Management](#transaction-management)
 - [Architecture](#architecture)
   - [Domain Model ERD Diagram](#domain-model-erd-diagram)
   - [Backing Services](#backing-services)
@@ -63,7 +64,7 @@ By using the `PUT` method (its definition is "replace or create"), we can make c
 
 If the client thinks the request has failed, it can just retry step 2 without the worry of creating duplicated resources on the server side. Because the definition of `PUT` request is "replace or create", if that resource is already created successfully, resending the same request will simply "replace" that resource with the same data - making no changes to the final result.
 
-For this reason, the `POST` method are not provided for some APIs.
+For this reason, `POST` methods are not provided for some APIs.
 
 ##### Using `PATCH` for Updating Resource
 
@@ -71,7 +72,7 @@ Since the definition of `PUT` request is "replace or create", it may be inconven
 
 So, the recommended method for updating resourse is using `PATCH` requests. Only the attributes specified in the request will be updated, while others remain unchanged.
 
-For this reason, the `PUT` method are not provided for some APIs.
+For this reason, `PUT` methods are not provided for some APIs.
 
 #### Value Unit
 
@@ -185,7 +186,7 @@ the sample response:
 
 #### Account Management
 
-A default cash account with the name "default" and type "cash" will be created with the new user ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)) and set as the default account ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)). Default accounts cannot be deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/account_spec.rb)). Operations for managing the user's accounts are listed below:
+All the transactions (the log of expense or income) are filed under accounts. A default cash account with the name "default" and type "cash" will be created with the new user ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)) and set as the default account ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)). Default accounts cannot be deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/account_spec.rb)). Operations for managing the user's accounts are listed below:
 
 ##### Getting The List of Accounts
 
@@ -247,6 +248,90 @@ Content-Type: application/json
 
 ```http
 DELETE /me/accounts/<account_uid>
+```
+
+#### Transaction Management
+
+The log of an expense or income is a transaction. Transactions are filed under accounts, and the account balance will be auto updated after a transaction has been created, updated or deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/transaction_spec.rb)). Transactions are categorized into categories and can add tags onto, which provide ways for filter and analyzing. Operations for managing transactions are listed below:
+
+##### Getting All Transactions
+
+```http
+GET /me/transactions
+```
+
+This API is [Paginatable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Paginatable), [Sortable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Sortable) and [Filterable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Filterable).
+
+Sample response:
+
+```json
+{
+  "transactions": [
+    {
+      "account_uid": "15-149f840d-dda4-4b30-81ce-90aebc4950f3",
+      "uid": "f37e0e61-6601-4934-9f9f-5d50b7f80563",
+      "amount": 700000,
+      "description": "Breakfast at Starbucks",
+      "category_code": "breakfast",
+      "note": null,
+      "date": "2016-02-27T08:32:38.088Z",
+      "latitude": null,
+      "longitude": null,
+      "ignore_in_statistics": false,
+      "created_at": "2016-02-27T06:32:38.092Z",
+      "updated_at": "2016-02-27T06:32:38.092Z"
+    },
+    ...
+  ],
+  "pagination": {
+    "items_count": 820,
+    "pages_count": 33,
+    "links": {
+      "next": "http://localhost:3000/me/transactions?page=2",
+      "last": "http://localhost:3000/me/transactions?page=33"
+    }
+  }
+}
+```
+
+> Note that the `amount` attribute is represented in 1,000/1 degrees.
+
+##### Getting All Transactions Under An Account
+
+```http
+GET /me/accounts/<account_uid>/transactions
+```
+
+This API is [Paginatable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Paginatable), [Sortable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Sortable) and [Filterable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Filterable).
+
+The response format is same as `GET /me/transactions`.
+
+##### Creating A Transaction
+
+```http
+PUT /me/accounts/<account_uid>/transactions/<generated_unique_id>
+Content-Type: application/json
+
+{
+  "transaction": <transaction_attrs>
+}
+```
+
+##### Updating A Transaction
+
+```http
+PATCH /me/accounts/<account_uid>/transactions/<transaction_uid>
+Content-Type: application/json
+
+{
+  "transaction": <transaction_attrs>
+}
+```
+
+##### Deleting A Transaction
+
+```http
+DELETE /me/accounts/<account_uid>/transactions/<transaction_uid>
 ```
 
 ## Architecture

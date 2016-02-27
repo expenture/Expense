@@ -7,6 +7,7 @@ class User < ApplicationRecord
   belongs_to :default_account, class_name: :Account,
              primary_key: :uid, foreign_key: :default_account_uid,
              optional: true
+  has_many :transactions, through: :accounts
 
   validates :default_account, presence: true, on: :update
 

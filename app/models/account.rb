@@ -2,6 +2,8 @@ class Account < ApplicationRecord
   self.inheritance_column = nil
 
   belongs_to :user
+  has_many :transactions,
+           primary_key: :uid, foreign_key: :account_uid
 
   validates :user, :uid, :type, :name, :currency, :balance, presence: true
   validates :uid, uniqueness: true

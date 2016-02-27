@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160224153424) do
+ActiveRecord::Schema.define(version: 20160226144407) do
 
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                     null: false
@@ -65,6 +65,26 @@ ActiveRecord::Schema.define(version: 20160224153424) do
     t.string   "owner_type"
     t.index ["owner_id", "owner_type"], name: "index_oauth_applications_on_owner_id_and_owner_type"
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
+  end
+
+  create_table "transactions", force: :cascade do |t|
+    t.string   "uid",                                  null: false
+    t.string   "account_uid",                          null: false
+    t.integer  "amount",                               null: false
+    t.text     "description"
+    t.string   "category_code"
+    t.string   "tags"
+    t.text     "note"
+    t.datetime "date",                                 null: false
+    t.integer  "latitude"
+    t.integer  "longitude"
+    t.boolean  "ignore_in_statistics", default: false, null: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
+    t.index ["account_uid"], name: "index_transactions_on_account_uid"
+    t.index ["category_code"], name: "index_transactions_on_category_code"
+    t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"
+    t.index ["uid"], name: "index_transactions_on_uid", unique: true
   end
 
   create_table "users", force: :cascade do |t|

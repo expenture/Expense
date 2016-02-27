@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  describe "instantiation" do
+  describe "instance" do
     subject(:user) { create(:user) }
 
     context "after created" do

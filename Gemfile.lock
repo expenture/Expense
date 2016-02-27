@@ -49,6 +49,8 @@ GEM
       minitest (~> 5.1)
       tzinfo (~> 1.1)
     addressable (2.4.0)
+    api_helper (0.1.1)
+      activesupport (>= 3)
     arel (7.0.0)
     awesome_print (1.6.1)
     bcrypt (3.1.10)
@@ -110,6 +112,9 @@ GEM
       multi_json (~> 1.2)
     json (1.8.3)
     jwt (1.5.1)
+    kaminari (0.16.3)
+      actionpack (>= 3.0.0)
+      activesupport (>= 3.0.0)
     launchy (2.4.3)
       addressable (~> 2.3)
     letter_opener (1.4.1)
@@ -270,6 +275,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  api_helper (~> 0.1.1)
   awesome_print
   byebug
   coveralls
@@ -282,6 +288,7 @@ DEPENDENCIES
   hirb
   hirb-unicode
   jbuilder (~> 2.4)
+  kaminari
   letter_opener
   newrelic_rpm
   omniauth-facebook

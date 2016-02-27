@@ -16,6 +16,8 @@
 # end
 
 ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.acronym 'UID'
+  inflect.acronym 'UUID'
   inflect.acronym 'RESTful'
   inflect.acronym 'OAuth'
   inflect.acronym 'API'

@@ -1,4 +1,8 @@
 class ApplicationAPIController < ActionController::API
+  include APIHelper::Paginatable
+  include APIHelper::Sortable
+  include APIHelper::Filterable
+
   helper_method :current_user, :camelize_keys, :time_format
 
   def current_user
