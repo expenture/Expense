@@ -26,6 +26,9 @@ gem 'redis', '~> 3.0'
 # HTTP client
 gem 'rest-client'
 
+# In-database key-value storage
+gem 'rails-settings-cached', github: 'Neson/rails-settings-cached'
+
 # User authentication
 gem 'devise', '~> 4.0.0.rc1'
 gem 'doorkeeper', github: 'ashishtajane/doorkeeper', branch: 'fix_issue_774'

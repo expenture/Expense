@@ -28,7 +28,6 @@ RSpec.describe Transaction, type: :model do
 
         expect(account.balance).to eq(500_000)
 
-
         transaction.update_attributes(amount: -500_000)
         transaction.save!
         account.reload

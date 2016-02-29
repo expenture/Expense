@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  include RailsSettings::Extend
+
   attr_accessor :from
   devise :database_authenticatable, :omniauthable, :registerable, :confirmable,
          :timeoutable, :lockable, :recoverable, :trackable, :validatable

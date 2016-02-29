@@ -1,0 +1,1 @@
+Settings.defaults[:transaction_category_set] = TransactionCategoryService.default_transaction_category_set

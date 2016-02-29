@@ -12,7 +12,7 @@ cat app/models/user.rb_org | \
 
 bundle exec rake erd \
   notation=bachman inheritance=false polymorphism=false filetype=dot \
-  exclude='Doorkeeper::Application,Doorkeeper::AccessGrant,Doorkeeper::AccessToken' && \
+  exclude='Settings,RailsSettings::Settings,RailsSettings::ScopedSettings,RailsSettings::CachedSettings,Doorkeeper::Application,Doorkeeper::AccessGrant,Doorkeeper::AccessToken' && \
   dot -Tpng erd.dot -o erd.png && \
   dot -Tpdf erd.dot > erd.pdf && \
   open erd.pdf

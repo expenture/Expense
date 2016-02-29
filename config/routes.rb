@@ -7,8 +7,11 @@ Rails.application.routes.draw do
   namespace :me, defaults: { format: :json } do
     resources :accounts, only: [:index, :update, :destroy] do
       resources :transactions, controller: 'accounts/transactions',
-                only: [:index, :update, :destroy]
+                               only: [:index, :update, :destroy]
     end
+
+    resource :transaction_category_set, controller: 'transaction_category_set',
+                                        only: [:show, :update]
 
     resources :transactions, only: [:index]
   end

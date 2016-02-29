@@ -18,6 +18,7 @@ An expense managing application to make life more easier and free. This is the b
   - [General APIs](#general-apis)
     - [Account Management](#account-management)
     - [Transaction Management](#transaction-management)
+    - [Transaction Category Set Management](#transaction-category-set-management)
 - [Architecture](#architecture)
   - [Domain Model ERD Diagram](#domain-model-erd-diagram)
   - [Backing Services](#backing-services)
@@ -334,6 +335,117 @@ Content-Type: application/json
 DELETE /me/accounts/<account_uid>/transactions/<transaction_uid>
 ```
 
+#### Transaction Category Set Management
+
+Each transaction can be categorize into one category by their `category_code`. This API manages the categories defined by the user.
+
+The attributes of a category are `code`, `name`, `priority` and `hidden`. The `code` is a unique identifier of the category. The `priority` decides the order of that category to be show on UI, while it should be hidden on the UI with `hidden` set to `true`. Every category are filed under a parent-category, parent-categories also has the attributes `code`, `name`, `priority` and `hidden`.
+
+This app will define a default set of categories. All user's category settings will inherit this set. Users are free to create, update or delete any custom categories. But predefined categories, or categories having at least one transcation can not be deleted, they can just set to be `hide` ([spec](https://github.com/Neson/Expense/blob/master/spec/services/transaction_category_service_spec.rb)).
+
+Updating the category set on the backend server side can let users access their category set everywhere. The user defined category set will also be used for auto-categorizing.
+
+##### Retrieving The Transaction Category Set
+
+```http
+GET /me/transaction_category_set
+```
+
+Sample response:
+
+```json
+{
+  "transaction_categories": {
+    "transaction_parent_category_one_code": {
+      "priority": 1,
+      "name": "Transaction Parent Category One",
+      "hidden": false,
+      "children": {
+        "transaction_category_one_code": {
+          "priority": 1,
+          "name": "Transaction Category One",
+          "hidden": false
+        },
+        "hidden_transaction_category_code": {
+          "priority": 2,
+          "name": "Hidden Transaction Category",
+          "hidden": true
+        }
+      }
+    },
+    "transaction_parent_category_two_code": {
+      "priority": 2,
+      "name": "Transaction Parent Category Two",
+      "hidden": false,
+      "children": {
+        "transaction_category_two_code": {
+          "priority": 1,
+          "name": "Transaction Category Two",
+          "hidden": false
+        },
+
+        ...
+      }
+    },
+
+    ...
+  }
+}
+```
+
+##### Updating The Transaction Category Set
+
+To update the category set, just send a `PUT` request to `/me/transaction_category_set` with the whole updated data in the request body. The request body format is same as the returned data of `GET /me/transaction_category_set`. To delete a category, just ignore it in the request. To rename or change the `hide` status of a category, just update the object with the same `code`. To create a new category, generate a `code` for that category, and add it to the object with the `code` as the key.
+
+```http
+PUT /me/transaction_category_set
+```
+
+Sample request:
+
+```http
+PUT /me/transaction_category_set
+Content-Type: application/json
+
+{
+  "transaction_categories": {
+    "transaction_parent_category_one_code": {
+      "priority": 1000,
+      "name": "Move This To Bottom!",
+      "hidden": false,
+      "children": {
+        "transaction_category_one_code": {
+          "priority": 1,
+          "name": "Hide This!",
+          "hidden": true
+        },
+        "hidden_transaction_category_code": {
+          "priority": 2,
+          "name": "Show This!",
+          "hidden": false
+        }
+      }
+    },
+    "transaction_parent_category_two_code": {
+      "priority": 1,
+      "name": "Move This To Top!",
+      "hidden": false,
+      "children": {
+        "transaction_category_two_code": {
+          "priority": 1,
+          "name": "Rename This!",
+          "hidden": false
+        },
+
+        ...
+      }
+    },
+
+    ...
+  }
+}
+```
+
 ## Architecture
 
 This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devise](https://github.com/plataformatec/devise), [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper/), [Jbuilder](https://github.com/rails/jbuilder) and many others. Tests are done by [RSpec](http://rspec.info/). The architecture of this app is briefly explained in the sections below:
@@ -343,6 +455,14 @@ This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devis
 ![](https://raw.githubusercontent.com/Neson/Expense/master/erd.png?token=ADm_7_rGOdlefEHT8smFsow3krbEZpGlks5W2EjswA%3D%3D)
 
 > Note: This diagram is generated with the command `bin/erd`.
+
+### The Settings Model
+
+The `Settings` model is a way to store key-value settings in the database. This functionality is provided by [rails-settings-cached](https://github.com/Neson/rails-settings-cached). Note that making direct changes to `Settings` is not recommended, while doing this, the values aren't validated before saving, this may breake the app. A better way is to call "set settings" method defined in other class or modules, and let then manage the settings for you.
+
+### Transaction Categorizing
+
+Each transaction can be categorize into one category by their `category_code`. Categories has their `code` and (displayed) `name` defined. The `code` is a unique identifier. Every category are filed under a parent-category, parent-categories also has a `code` and `name`.
 
 ### Backing Services
 

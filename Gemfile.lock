@@ -1,4 +1,11 @@
 GIT
+  remote: git://github.com/Neson/rails-settings-cached.git
+  revision: 39b336e3fe1b4f1204f715f21943052a37797d7c
+  specs:
+    rails-settings-cached (0.4.1)
+      rails (>= 4.0.0)
+
+GIT
   remote: git://github.com/ashishtajane/doorkeeper.git
   revision: 2021b1478f2c63eba4b8c25f1f94b15980d34db4
   branch: fix_issue_774
@@ -298,6 +305,7 @@ DEPENDENCIES
   puma
   rails (>= 5.0.0.beta2, < 5.1)
   rails-erd
+  rails-settings-cached!
   rails_stdout_logging
   rb-readline
   redis (~> 3.0)
