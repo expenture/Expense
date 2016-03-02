@@ -265,7 +265,7 @@ class TransactionCategoryService
     # Define the default transaction categories which will provided by the app
     # for user's predefined category set
     def default_transaction_category_set
-      HashWithIndifferentAccess.new({
+      HashWithIndifferentAccess.new(
         personal_finance: {
           name: "Personal Finance",
           priority: 1,
@@ -322,7 +322,7 @@ class TransactionCategoryService
             }
           }
         }
-      })
+      )
     end
   end
 end
