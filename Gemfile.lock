@@ -74,6 +74,7 @@ GEM
       tins (~> 1.6.0)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
+    database_cleaner (1.5.1)
     devise (4.0.0.rc1)
       bcrypt (~> 3.0)
       orm_adapter (~> 0.1)
@@ -292,6 +293,7 @@ DEPENDENCIES
   awesome_print
   byebug
   coveralls
+  database_cleaner
   devise (~> 4.0.0.rc1)
   doorkeeper!
   dotenv-rails

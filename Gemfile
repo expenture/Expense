@@ -71,6 +71,7 @@ group :development, :test do
   gem 'spring-commands-rspec'
   gem 'shoulda-matchers', require: false
   gem 'rspec-its', require: false
+  gem 'database_cleaner'
   gem 'email_spec'
   gem 'simplecov', require: false
   gem 'coveralls', require: false
