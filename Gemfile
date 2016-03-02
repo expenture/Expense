@@ -38,8 +38,14 @@ gem 'omniauth-facebook'
 gem 'api_helper', '~> 0.1.1'
 gem 'kaminari'
 
+# Geo related tools
+gem 'geocoder'
+gem 'timezone'
+
+# Auto classification lib
+gem 'omnicat-bayes'
+
 # Use Pry as the Rails console
-gem 'rb-readline'
 gem 'pry-rails'
 gem 'pry-byebug'
 gem 'awesome_print', :require => false

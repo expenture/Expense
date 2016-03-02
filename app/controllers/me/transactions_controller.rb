@@ -6,7 +6,7 @@ class Me::TransactionsController < ApplicationAPIController
     collection = filter(resource_collection)
 
     # Sortable
-    sortable default_order: { date: :desc }
+    sortable default_order: { datetime: :desc }
 
     # Paginatable
     pagination collection.count, default_per_page: 25, maxium_per_page: 1000

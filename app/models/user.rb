@@ -7,9 +7,10 @@ class User < ApplicationRecord
 
   has_many :accounts
   belongs_to :default_account, class_name: :Account,
-             primary_key: :uid, foreign_key: :default_account_uid,
-             optional: true
+                               primary_key: :uid, foreign_key: :default_account_uid,
+                               optional: true
   has_many :transactions, through: :accounts
+  has_many :transaction_categorization_cases
 
   validates :default_account, presence: true, on: :update
 

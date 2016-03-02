@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160228064613) do
+ActiveRecord::Schema.define(version: 20160301184459) do
 
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                     null: false
@@ -77,6 +77,16 @@ ActiveRecord::Schema.define(version: 20160228064613) do
     t.index ["thing_type", "thing_id", "var"], name: "index_settings_on_thing_type_and_thing_id_and_var", unique: true
   end
 
+  create_table "transaction_categorization_cases", force: :cascade do |t|
+    t.integer  "user_id"
+    t.string   "words"
+    t.string   "category_code"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.index ["category_code"], name: "index_transaction_categorization_cases_on_category_code"
+    t.index ["user_id"], name: "index_transaction_categorization_cases_on_user_id"
+  end
+
   create_table "transactions", force: :cascade do |t|
     t.string   "uid",                                  null: false
     t.string   "account_uid",                          null: false
@@ -85,9 +95,9 @@ ActiveRecord::Schema.define(version: 20160228064613) do
     t.string   "category_code"
     t.string   "tags"
     t.text     "note"
-    t.datetime "date",                                 null: false
-    t.integer  "latitude"
-    t.integer  "longitude"
+    t.datetime "datetime",                             null: false
+    t.float    "latitude"
+    t.float    "longitude"
     t.boolean  "ignore_in_statistics", default: false, null: false
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false

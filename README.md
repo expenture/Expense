@@ -275,7 +275,7 @@ Sample response:
       "description": "Breakfast at Starbucks",
       "category_code": "breakfast",
       "note": null,
-      "date": "2016-02-27T08:32:38.088Z",
+      "datetime": "2016-02-27T08:32:38.088Z",
       "latitude": null,
       "longitude": null,
       "ignore_in_statistics": false,

@@ -8,9 +8,9 @@ class CreateTransactions < ActiveRecord::Migration[5.0]
       t.string :category_code
       t.string :tags
       t.text :note
-      t.datetime :date, null: false
-      t.integer :latitude
-      t.integer :longitude
+      t.datetime :datetime, null: false
+      t.float :latitude
+      t.float :longitude
       t.boolean :ignore_in_statistics, null: false, default: false
 
       t.timestamps

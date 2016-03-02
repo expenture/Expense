@@ -275,7 +275,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     it "gets and sets the default transaction categories" do
       transaction_category_set = {
         food: {
-          name: "food",
+          name: "Food",
           priority: 1,
           categories: {
             breakfirst: {
@@ -309,7 +309,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     end
   end
 
-  describe ".transaction_category_set" do
+  describe "#transaction_category_set" do
     before(:all) do
       TransactionCategoryService.transaction_category_set = {
         dpc1: {
@@ -561,6 +561,188 @@ RSpec.describe TransactionCategoryService, type: :service do
       expect(updated_transaction_category_set).to have_key('pc4')
       expect(updated_transaction_category_set['pc4'][:categories]).to have_key('cht4')
       expect(updated_transaction_category_set['pc4'][:categories]).not_to have_key('c4')
+    end
+  end
+
+  describe "#categorize" do
+    before(:all) do
+      TransactionCategoryService.transaction_category_set = {
+        food: {
+          name: "Food",
+          priority: 1,
+          categories: {
+            breakfast: {
+              name: "Breakfast",
+              priority: 1
+            },
+            launch: {
+              name: "Launch",
+              priority: 2
+            },
+            dinner: {
+              name: "Dinner",
+              priority: 3
+            },
+            brunch: {
+              name: "Brunch",
+              priority: 4
+            },
+            afternoon_tea: {
+              name: "Afternoon Tea",
+              priority: 5
+            },
+            supper: {
+              name: "Supper",
+              priority: 6
+            },
+            meal: {
+              name: "Meal",
+              priority: 7
+            },
+            drinks: {
+              name: "Drinks",
+              priority: 8
+            },
+            snacks: {
+              name: "Snacks",
+              priority: 9
+            }
+          }
+        },
+        other: {
+          name: "Other",
+          priority: 2,
+          categories: {
+            other: {
+              name: "Other",
+              priority: 1
+            },
+            uneatable: {
+              name: "Uneatable",
+              priority: 2
+            }
+          }
+        }
+      }
+
+      create :transaction_categorization_case, words: 'Sandwich', category_code: 'meal'
+      create :transaction_categorization_case, words: 'Steak', category_code: 'meal'
+      create :transaction_categorization_case, words: 'Pork Chop', category_code: 'meal'
+      create :transaction_categorization_case, words: 'Roast Chicken', category_code: 'meal'
+      create :transaction_categorization_case, words: 'Spaghetti', category_code: 'meal'
+      create :transaction_categorization_case, words: 'Hamburger', category_code: 'meal'
+      create :transaction_categorization_case, words: 'Baked Rice', category_code: 'meal'
+      create :transaction_categorization_case, words: '三明治', category_code: 'meal'
+      create :transaction_categorization_case, words: '牛排', category_code: 'meal'
+      create :transaction_categorization_case, words: '豬排', category_code: 'meal'
+      create :transaction_categorization_case, words: '烤雞', category_code: 'meal'
+      create :transaction_categorization_case, words: '義大利麵', category_code: 'meal'
+      create :transaction_categorization_case, words: '漢堡', category_code: 'meal'
+      create :transaction_categorization_case, words: '焗烤飯', category_code: 'meal'
+      create :transaction_categorization_case, words: 'Ice Tea', category_code: 'drinks'
+      create :transaction_categorization_case, words: 'Hot Tea', category_code: 'drinks'
+      create :transaction_categorization_case, words: 'Black Tea', category_code: 'drinks'
+      create :transaction_categorization_case, words: 'Orange Juice', category_code: 'drinks'
+      create :transaction_categorization_case, words: 'Grape Juice', category_code: 'drinks'
+      create :transaction_categorization_case, words: '紅茶', category_code: 'drinks'
+      create :transaction_categorization_case, words: '綠茶', category_code: 'drinks'
+      create :transaction_categorization_case, words: '珍珠奶茶', category_code: 'drinks'
+      create :transaction_categorization_case, words: '柳橙汁', category_code: 'drinks'
+      create :transaction_categorization_case, words: '葡萄汁', category_code: 'drinks'
+      create :transaction_categorization_case, words: 'SNICKERS', category_code: 'snacks'
+      create :transaction_categorization_case, words: 'Pringle\'s Newfangled Potato Chips', category_code: 'snacks'
+      create :transaction_categorization_case, words: 'Doritos', category_code: 'snacks'
+      create :transaction_categorization_case, words: '士力架 巧克力', category_code: 'snacks'
+      create :transaction_categorization_case, words: '品客 洋芋片', category_code: 'snacks'
+      create :transaction_categorization_case, words: '多力多滋', category_code: 'snacks'
+
+      # User2 eats SNICKERS as meals and doesn't drink tea
+      @user2 = create(:user)
+      create :transaction_categorization_case, words: 'SNICKERS', category_code: 'meal', user: @user2
+      create :transaction_categorization_case, words: 'SNICKERS', category_code: 'meal', user: @user2
+      create :transaction_categorization_case, words: '士力架 巧克力', category_code: 'meal', user: @user2
+      create :transaction_categorization_case, words: '士力架 巧克力', category_code: 'meal', user: @user2
+      tcs = TransactionCategoryService.new(@user2)
+      tcs.transaction_category_set = {
+        food: {
+          name: "Food",
+          priority: 1,
+          categories: {
+            breakfast: {
+              name: "Breakfast",
+              priority: 1
+            },
+            launch: {
+              name: "Launch",
+              priority: 2
+            },
+            dinner: {
+              name: "Dinner",
+              priority: 3
+            },
+            brunch: {
+              name: "Brunch",
+              priority: 4
+            },
+            afternoon_tea: {
+              name: "Afternoon Tea",
+              priority: 5
+            },
+            supper: {
+              name: "Supper",
+              priority: 6
+            },
+            meal: {
+              name: "Meal",
+              priority: 7
+            },
+            snacks: {
+              name: "Snacks",
+              priority: 9
+            }
+          }
+        }
+      }
+    end
+
+    let(:user2) { @user2 }
+
+    it "categorize words generally" do
+      tcs = TransactionCategoryService.new(user)
+
+      expect(tcs.categorize('Tea')).to eq('drinks')
+      expect(tcs.categorize('茶')).to eq('drinks')
+      expect(tcs.categorize('烏龍茶')).to eq('drinks')
+      expect(tcs.categorize('夕立汁')).to eq('drinks')
+      expect(tcs.categorize('SNICKERS')).to eq('snacks')
+      expect(tcs.categorize('巧克力')).to eq('snacks')
+      expect(tcs.categorize('洋芋片')).to eq('snacks')
+      expect(tcs.categorize('Nothing')).to eq('other')
+    end
+
+    it "categorize words customize" do
+      tcs = TransactionCategoryService.new(user2)
+
+      expect(tcs.categorize('Tea')).not_to eq('drinks')
+      expect(tcs.categorize('茶')).not_to eq('drinks')
+      expect(tcs.categorize('烏龍茶')).not_to eq('drinks')
+      expect(tcs.categorize('夕立汁')).not_to eq('drinks')
+      expect(tcs.categorize('SNICKERS')).to eq('meal')
+      expect(tcs.categorize('巧克力')).to eq('meal')
+      expect(tcs.categorize('洋芋片')).to eq('snacks')
+      expect(tcs.categorize('Nothing')).to eq('other')
+    end
+
+    it "categorize words by time and location" do
+      WebMock.allow_net_connect!
+
+      tcs = TransactionCategoryService.new(user)
+      expect(tcs.categorize('Sandwich', datetime: Time.new(2000, 1, 1, 8, 0, 0, 0))).to eq('breakfast')
+      expect(tcs.categorize('Sandwich', datetime: Time.new(2000, 1, 1, 12, 0, 0, 0))).to eq('launch')
+      expect(tcs.categorize('Sandwich', datetime: Time.new(2000, 1, 1, 0, 0, 0, 0))).to eq('supper')
+      expect(tcs.categorize('Sandwich', datetime: Time.new(2000, 1, 1, 0, 0, 0, 0), latitude: 23.996917, longitude: 121.638565)).to eq('breakfast')
+      expect(tcs.categorize('Sandwich', datetime: Time.new(2000, 1, 1, 4, 0, 0, 0), latitude: 23.996917, longitude: 121.638565)).to eq('launch')
+      expect(tcs.categorize('牛排', datetime: Time.new(2000, 1, 1, 12, 0, 0, 0), latitude: 23.996917, longitude: 121.638565)).to eq('dinner')
     end
   end
 end

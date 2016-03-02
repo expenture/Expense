@@ -6,7 +6,8 @@ class TransactionCategoryService
   end
 
   def transaction_category_set
-    HashWithIndifferentAccess.new(
+    return @transaction_category_set if @transaction_category_set
+    @transaction_category_set = HashWithIndifferentAccess.new(
       @user.settings.user_transaction_category_set ||
       TransactionCategoryService.transaction_category_set
     )
@@ -54,10 +55,63 @@ class TransactionCategoryService
     end
 
     @user.settings.user_transaction_category_set = new_set
+    @transaction_category_set = new_set
   end
 
   def transaction_category_codes
     TransactionCategoryService.transaction_category_codes(transaction_category_set)
+  end
+
+  def available_transaction_category_codes
+    TransactionCategoryService.available_transaction_category_codes(transaction_category_set)
+  end
+
+  def transaction_categorization_codes
+    ['other'] + available_transaction_category_codes.delete_if { |c| c == 'other' }
+  end
+
+  def transaction_categorization_cases
+    TransactionCategorizationCase.where(user: [@user, nil], category_code: transaction_categorization_codes)
+  end
+
+  def classifier
+    return @classifier if @classifier
+
+    if transaction_categorization_codes == TransactionCategoryService.transaction_categorization_codes
+      TransactionCategoryService.classifier
+    else
+      @classifier = TransactionCategoryService.classifier(transaction_categorization_codes, transaction_categorization_cases, general: false)
+      @classifier
+    end
+  end
+
+  def categorize(words, datetime: nil, latitude: nil, longitude: nil)
+    code = classifier.classify(words).to_hash[:top_score_key]
+
+    if code == 'meal' && datetime.is_a?(Time)
+      if latitude && longitude
+        timezone = Timezone::Zone.new latlon: [latitude, longitude]
+        hour = timezone.time(datetime).hour
+      else
+        hour = datetime.hour
+      end
+
+      if hour.between?(4, 10)
+        code = 'breakfast'
+      elsif hour.between?(10, 11)
+        code = 'brunch'
+      elsif hour.between?(11, 14)
+        code = 'launch'
+      elsif hour.between?(14, 16)
+        code = 'afternoon_tea'
+      elsif hour.between?(16, 21)
+        code = 'dinner'
+      else
+        code = 'supper'
+      end
+    end
+
+    code
   end
 
   class << self
@@ -77,6 +131,12 @@ class TransactionCategoryService
     # Return the category codes that a category set contains
     def transaction_category_codes(category_set = transaction_category_set)
       category_set.values.delete_if { |pc| !pc[:categories].is_a?(Hash) }.map { |pc| pc[:categories].keys }.reduce { |a, e| a.concat(e) } || []
+    end
+
+    # Return the available (not hidden) category codes that a
+    # category set contains
+    def available_transaction_category_codes(category_set = transaction_category_set)
+      category_set.values.delete_if { |pc| !pc[:categories].is_a?(Hash) || pc[:hidden] }.map { |pc| pc[:categories].delete_if { |_k, v| v[:hidden] }.keys }.reduce { |a, e| a.concat(e) } || []
     end
 
     # Get the parent category code for a category
@@ -159,6 +219,49 @@ class TransactionCategoryService
       new_category_set = new_category_set.delete_if { |_k, v| v.blank? }
     end
 
+    # Returns the general transaction categorization codes
+    def transaction_categorization_codes
+      ['other'] + transaction_category_codes.delete_if { |c| c == 'other' } + ['meal']
+    end
+
+    # Returns the general transaction categorization cases
+    def transaction_categorization_cases
+      TransactionCategorizationCase.where(user: nil, category_code: transaction_categorization_codes)
+    end
+
+    # Returns a classifier for a set of transaction categorization cases
+    def classifier transaction_categorization_codes = self.transaction_categorization_codes,
+                   transaction_categorization_cases = self.transaction_categorization_cases,
+                   general: true
+      if general && @classifier
+        return @classifier if Time.now - @classifier_update_time < 15.minutes
+      end
+
+      classifier = OmniCat::Classifiers::Bayes.new
+
+      transaction_categorization_codes.each do |c|
+        classifier.add_category c
+      end
+      classifier.train 'other', 'other'
+
+      train_data = transaction_categorization_cases.map { |o| { words: o.words, category_code: o.category_code } }.group_by { |h| h[:category_code] }
+      d_max = train_data.map { |_k, v| v.length }.max || 2
+      transaction_categorization_codes.each do |code|
+        data = train_data[code] || []
+        d_diff = d_max - data.length
+        (d_diff / 1.01).to_i.times { data.push(words: code, category_code: code) }
+
+        classifier.train_batch code, JSON.parse(data.map { |d| d[:words].to_s }.to_json)
+      end
+
+      if general
+        @classifier = classifier
+        @classifier_update_time = Time.now
+      end
+
+      classifier
+    end
+
     # Define the default transaction categories which will provided by the app
     # for user's predefined category set
     def default_transaction_category_set
@@ -205,13 +308,17 @@ class TransactionCategoryService
               name: "Supper",
               priority: 6
             },
+            meal: {
+              name: "Meal",
+              priority: 7
+            },
             drinks: {
               name: "Drinks",
-              priority: 7
+              priority: 8
             },
             snacks: {
               name: "Snacks",
-              priority: 8
+              priority: 9
             }
           }
         }

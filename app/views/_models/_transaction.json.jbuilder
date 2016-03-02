@@ -4,7 +4,7 @@ json.amount transaction.amount
 json.description transaction.description
 json.category_code transaction.category_code
 json.note transaction.note
-json.date transaction.date
+json.datetime transaction.datetime
 json.latitude transaction.latitude
 json.longitude transaction.longitude
 json.ignore_in_statistics transaction.ignore_in_statistics

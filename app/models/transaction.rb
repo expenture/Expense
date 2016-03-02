@@ -2,7 +2,7 @@ class Transaction < ApplicationRecord
   belongs_to :account,
              primary_key: :uid, foreign_key: :account_uid
 
-  validates :account, :uid, :amount, :date, presence: true
+  validates :account, :uid, :amount, :datetime, presence: true
 
   before_validation :set_default_date, :standardize_attrs
   after_create :update_account_on_create
@@ -12,7 +12,7 @@ class Transaction < ApplicationRecord
   private
 
   def set_default_date
-    self.date = Time.now if self.date.blank?
+    self.datetime = Time.now if self.datetime.blank?
   end
 
   def standardize_attrs
