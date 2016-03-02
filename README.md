@@ -13,8 +13,6 @@ An expense managing application to make life more easier and free. This is the b
   - [Authentication Related APIs](#authentication-related-apis)
     - [User Registration](#user-registration)
     - [User Authentication (OAuth)](#user-authentication)
-      - [Resource Owner Password Credentials Grant Flow](#resource-owner-password-credentials-grant-flow)
-      - [Using The Refresh Token](#using-the-refresh-token)
   - [General APIs](#general-apis)
     - [Account Management](#account-management)
     - [Transaction Management](#transaction-management)
@@ -41,7 +39,7 @@ Configure the application by editing the environment variables in `.env`. After 
 
 ## Deploy
 
-This application is designed under The [Twelve-Factor](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
+This application is designed under [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
 
 
 ## API
@@ -446,6 +444,20 @@ Content-Type: application/json
 }
 ```
 
+##### Get Transcation Categorization Suggestion For Some Words
+
+```http
+GET /me/accounts/<account_id>/transcation_categorization_suggestion?words=<some_words>
+```
+
+Sample response:
+
+```json
+{
+  "category_code": "drinks"
+}
+```
+
 ## Architecture
 
 This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devise](https://github.com/plataformatec/devise), [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper/), [Jbuilder](https://github.com/rails/jbuilder) and many others. Tests are done by [RSpec](http://rspec.info/). The architecture of this app is briefly explained in the sections below:
@@ -456,13 +468,43 @@ This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devis
 
 > Note: This diagram is generated with the command `bin/erd`.
 
+### Environment Variables
+
+By following [The Twelve Factor App](http://12factor.net/) pattern, this application should be [configurable via environment variables](http://12factor.net/config).
+
+Available environment variable, ENVs, should be listed in `.env.sample` with their sample values.
+
 ### The Settings Model
 
-The `Settings` model is a way to store key-value settings in the database. This functionality is provided by [rails-settings-cached](https://github.com/Neson/rails-settings-cached). Note that making direct changes to `Settings` is not recommended, while doing this, the values aren't validated before saving, this may breake the app. A better way is to call "set settings" method defined in other class or modules, and let then manage the settings for you.
+The `Settings` model is a way to store key-value settings in the database. This functionality is provided by [rails-settings-cached](https://github.com/Neson/rails-settings-cached).
+
+Note that making direct changes to `Settings` is not recommended. While doing this, the values aren't validated before saving, this may breake the app. A better way is to call the *set settings* method defined in other class or modules, and let them manage the settings for you. (For example, use `TransactionCategoryService.transaction_category_set = { ... }` to set the default category set instead of calling `Settings.transaction_category_set = ...`.)
 
 ### Transaction Categorizing
 
-Each transaction can be categorize into one category by their `category_code`. Categories has their `code` and (displayed) `name` defined. The `code` is a unique identifier. Every category are filed under a parent-category, parent-categories also has a `code` and `name`.
+A service object, `TransactionCategoryService`, is used to manage transaction categories, both for this app and each user.
+
+Class methods `.transaction_category_set` and `.transaction_category_set=` can be used to get and set the category set defined by this app. The `.default_transaction_category_set` method will return a default category set.
+
+Instances of `TransactionCategoryService` should be initialized with a `User`. An of instances `TransactionCategoryService` represents actions to the specified user. Instance methods `#transaction_category_set` and `#transaction_category_set=` are used to get and set the custom category set for a user.
+
+Each instances of `TransactionCategoryService` provides a method `#categorize`. `#categorize` is a auto-classifier that returns a conjecturing category code, based on a string of words, and optional datetime, latitude and longitude. `TransactionCategoryService#categorize` for each user are not the same, since users have their own `transaction_category_set` and manual categorizing log that will be learned. The conjecture is based on these conditions too.
+
+```ruby
+user = User.find(1)
+tcs = TransactionCategoryService.new(user)
+
+datetime = Time.new(2000, 1, 1, 23, 0, 0, 0)  # => 2000/1/1 23:00:00 at UTC
+latitude = 23.5; longitude = 121  # Taiwan, UTC+8
+
+category_code = tcs.categorize("Roasted Chicken Sandwich", datetime: datetime, latitude: latitude, longitude: longitude)  # => "breakfast"
+```
+
+_▴ Demo of using `TransactionCategoryService#categorize`._
+
+The functionality of `#categorize` is based on records in the model `TransactionCategorizationCase`. `TransactionCategorizationCase` has attribute `words`, `category_code` and a optional `user_id`. For each example case, `words` is the sample words of an transcaion that should be categorize into `category_code`. `TransactionCategorizationCase`s without an `user_id` are shared by all users, while those with a specified `user_id` only effects that user.
+
+New `TransactionCategorizationCase`s are automatically created with an `user_id` while the user uses `PUT /me/accounts/<account_id>/transactions/<transaction_id>` or `PATCH /me/accounts/<account_id>/transactions/<transaction_id>` to update a transaction with a specified `category_code`. Exploring `TransactionCategorizationCase` and clear the `user_id` for those are a general case is a way to improve the correct rate of the auto-transaction-categorizing feature for all users.
 
 ### Backing Services
 

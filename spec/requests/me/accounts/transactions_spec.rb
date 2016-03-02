@@ -16,7 +16,7 @@ describe "Transactions Management API" do
   describe "GET /me/accounts/<account_uid>/transactions" do
     before do
       14.times do |i|
-        if (i < 12)
+        if i < 12
           account.transactions.create!(uid: SecureRandom.uuid, amount: (i - 2) * 1_000_000)
         else
           other_account.transactions.create!(uid: SecureRandom.uuid, amount: (i - 2) * 1_000_000)
@@ -26,16 +26,13 @@ describe "Transactions Management API" do
 
     it_behaves_like "a paginatable API", "/me/accounts/account_uid/transactions", 12
     it_behaves_like "a filterable API", "/me/accounts/account_uid/transactions", 'transactions', 'amount',
-                    {
-                      'greater_then(8900000)' => [9000000],
-                      'less_then_or_equal(2000000)' => [2000000, 1000000, 0, -1000000, -2000000],
-                      'between(3000000,5000000)' => [3000000, 4000000, 5000000]
-                    }
+                    'greater_then(8900000)' => [9000000],
+                    'less_then_or_equal(2000000)' => [2000000, 1000000, 0, -1000000, -2000000],
+                    'between(3000000,5000000)' => [3000000, 4000000, 5000000]
+
     it_behaves_like "a sortable API", "/me/accounts/account_uid/transactions", 'transactions',
-                    {
-                      '-amount' => ['amount', 9000000],
-                      'amount' => ['amount', -2000000]
-                    }
+                    '-amount' => ['amount', 9000000],
+                    'amount' => ['amount', -2000000]
 
     it "sends a list of transactions" do
       get "/me/accounts/account_uid/transactions", api_authorization
@@ -49,13 +46,15 @@ describe "Transactions Management API" do
     let(:transaction_uid) { 'test_transaction_uid' }
 
     subject do
-      put "/me/accounts/account_uid/transactions/#{transaction_uid}", api_authorization.merge({
+      put "/me/accounts/account_uid/transactions/#{transaction_uid}", api_authorization.merge(
         params: {
           transaction: {
-            'amount' => -8_000_000
+            'amount' => -120_000,
+            'description' => 'Fish And Chips',
+            'category_code' => 'meal'
           }
         }
-      })
+      )
     end
 
     context "the transaction does not exists" do
@@ -67,7 +66,7 @@ describe "Transactions Management API" do
 
         transaction = account.transactions.find_by(uid: transaction_uid)
 
-        expect(transaction.amount).to eq(-8_000_000)
+        expect(transaction.amount).to eq(-120_000)
       end
     end
 
@@ -84,19 +83,28 @@ describe "Transactions Management API" do
 
         transaction = account.transactions.find_by(uid: transaction_uid)
 
-        expect(transaction.amount).to eq(-8_000_000)
+        expect(transaction.amount).to eq(-120_000)
+      end
+
+      it "updates the TransactionCategorizationCase" do
+        subject
+
+        tcc = TransactionCategorizationCase.find_by(user: user, the_transaction: Transaction.last)
+        expect(tcc).not_to be_blank
+        expect(tcc.words).to include('Fish')
+        expect(tcc.category_code).to eq('meal')
       end
     end
 
     context "with invalid params" do
       subject do
-        put "/me/accounts/account_uid/transactions/#{transaction_uid}", api_authorization.merge({
+        put "/me/accounts/account_uid/transactions/#{transaction_uid}", api_authorization.merge(
           params: {
             transaction: {
               'amount' => nil
             }
           }
-        })
+        )
       end
 
       it "returns an error with 400" do
@@ -115,16 +123,18 @@ describe "Transactions Management API" do
     end
 
     subject do
-      patch "/me/accounts/account_uid/transactions/#{transaction.uid}", api_authorization.merge({
+      patch "/me/accounts/account_uid/transactions/#{transaction.uid}", api_authorization.merge(
         params: {
           transaction: {
-            'amount' => 8_000_000
+            'amount' => 120_000,
+            'description' => 'Fish And Chips',
+            'category_code' => 'meal'
           }
         }
-      })
+      )
     end
 
-    it "returns 200 and updates the account attributes" do
+    it "returns 200 and updates the transaction attributes" do
       subject
 
       expect(response).to be_success
@@ -132,7 +142,16 @@ describe "Transactions Management API" do
 
       transaction.reload
 
-      expect(transaction.amount).to eq(8_000_000)
+      expect(transaction.amount).to eq(120_000)
+    end
+
+    it "updates the TransactionCategorizationCase" do
+      subject
+
+      tcc = TransactionCategorizationCase.find_by(user: user, the_transaction: Transaction.last)
+      expect(tcc).not_to be_blank
+      expect(tcc.words).to include('Fish')
+      expect(tcc.category_code).to eq('meal')
     end
   end
 

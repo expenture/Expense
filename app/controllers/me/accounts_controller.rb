@@ -35,6 +35,25 @@ class Me::AccountsController < ApplicationAPIController
     end
   end
 
+  def transcation_categorization_suggestion
+    if params[:words].blank?
+      @error = { message: 'Please provide the param "words".' }
+      render status: 400
+      return
+    end
+
+    req = Rack::Request.new(request.env)
+    request_location = req.safe_location
+
+    account = Account.find_by(uid: params[:account_id])
+    user = account.user
+    tcs = TransactionCategoryService.new(user)
+
+    @category_code = tcs.categorize params[:words], datetime: params[:datetime] || Time.now,
+                                                    latitude: params[:latitude] || request_location.latitude,
+                                                    longitude: params[:longitude] || request_location.longitude
+  end
+
   private
 
   def permitted_account_param_names

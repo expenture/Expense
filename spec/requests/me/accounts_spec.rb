@@ -183,4 +183,23 @@ describe "User's Accounts Management API" do
       end
     end
   end
+
+  describe "PUT /me/accounts/<account_uid>/transcation_categorization_suggestion" do
+    subject do
+      get "/me/accounts/#{user.accounts.last.uid}/transcation_categorization_suggestion", {
+        headers: {
+          'Authorization' => "Bearer #{access_token.token}"
+        },
+        params: {
+          words: 'Sashimi rice bowl'
+        }
+      }
+    end
+
+    it "returns the suggested category code for some words" do
+      subject
+
+      expect(json).to have_key('category_code')
+    end
+  end
 end

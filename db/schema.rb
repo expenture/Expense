@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160301184459) do
+ActiveRecord::Schema.define(version: 20160302150939) do
 
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                     null: false
@@ -81,9 +81,11 @@ ActiveRecord::Schema.define(version: 20160301184459) do
     t.integer  "user_id"
     t.string   "words"
     t.string   "category_code"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.string   "transaction_uid"
     t.index ["category_code"], name: "index_transaction_categorization_cases_on_category_code"
+    t.index ["transaction_uid"], name: "index_transaction_categorization_cases_on_transaction_uid"
     t.index ["user_id"], name: "index_transaction_categorization_cases_on_user_id"
   end
 

@@ -52,6 +52,15 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
     status = @transaction.persisted? ? 200 : 201
 
     if @transaction.save
+      # Create or update the transaction categorization case
+      if @transaction.category_code.present? &&
+         (@transaction.description.present? || @transaction.note.present?)
+        transaction_categorization_case = TransactionCategorizationCase.find_or_initialize_by(user_id: @transaction.account.user_id, transaction_uid: @transaction.uid)
+        transaction_categorization_case.words = "#{@transaction.description} #{@transaction.note}"
+        transaction_categorization_case.category_code = @transaction.category_code
+        transaction_categorization_case.save
+      end
+
       render status: status
     else
       @error = { messages: @transaction.errors }
