@@ -30,15 +30,19 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
       @transaction = resource_collection.find_or_initialize_by(uid: params[:id])
       @transaction.assign_attributes(empty_transaction_param_set.merge(transaction_params.to_h))
 
-      request_location = req.safe_location
+      # Set the default latitude/longitude base on the request location
+      begin
+        if @transaction.latitude.blank? &&
+           @transaction.longitude.blank?
+          request_location = req.safe_location
 
-      if request_location.latitude != 0 ||
-         request_location.longitude != 0 &&
-         @transaction.latitude.blank? &&
-         @transaction.longitude.blank?
-
-        @transaction.latitude = request_location.latitude
-        @transaction.longitude = request_location.longitude
+          if request_location.latitude != 0 ||
+             request_location.longitude != 0
+            @transaction.latitude = request_location.latitude
+            @transaction.longitude = request_location.longitude
+          end
+        end
+      rescue Exception => e
       end
     elsif request.patch?
       @transaction = resource_collection.find_by!(uid: params[:id])
