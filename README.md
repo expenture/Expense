@@ -484,7 +484,7 @@ Note that making direct changes to `Settings` is not recommended. While doing th
 
 A service object, `TransactionCategoryService`, is used to manage transaction categories, both for this app and each user.
 
-Class methods `.transaction_category_set` and `.transaction_category_set=` can be used to get and set the category set defined by this app. The `.default_transaction_category_set` method will return a default category set.
+Class methods `.transaction_category_set` and `.transaction_category_set=` can be used to get and set the category set defined by this app.
 
 Instances of `TransactionCategoryService` should be initialized with a `User`. An of instances `TransactionCategoryService` represents actions to the specified user. Instance methods `#transaction_category_set` and `#transaction_category_set=` are used to get and set the custom category set for a user.
 
