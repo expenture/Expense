@@ -47,7 +47,7 @@ class Me::AccountsController < ApplicationAPIController
 
     account = Account.find_by(uid: params[:account_id])
     user = account.user
-    tcs = TransactionCategoryService.new(user)
+    tcs = user.transaction_category_set
 
     @category_code = tcs.categorize params[:words], datetime: params[:datetime] || Time.now,
                                                     latitude: params[:latitude] || request_location.latitude,

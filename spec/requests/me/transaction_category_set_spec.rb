@@ -2,7 +2,7 @@ require "rails_helper"
 
 describe "User's Transaction Category Set Management API" do
   before(:all) do
-    TransactionCategoryService.transaction_category_set = {
+    TransactionCategorySet.hash = {
       dpc: {
         name: "Default Parent Category",
         priority: 1,
@@ -44,7 +44,7 @@ describe "User's Transaction Category Set Management API" do
 
     context "user has custom category set" do
       before do
-        tcs = TransactionCategoryService.new(user)
+        tcs = TransactionCategorySet.new(user)
         @cs = {
           pc: {
             name: "Parent Category",
@@ -57,7 +57,7 @@ describe "User's Transaction Category Set Management API" do
             }
           }
         }
-        tcs.transaction_category_set = @cs
+        tcs.hash = @cs
       end
 
       it "returns the user defined category set" do
@@ -99,14 +99,14 @@ describe "User's Transaction Category Set Management API" do
 
       expect(response).to be_success
 
-      tcs = TransactionCategoryService.new(user)
-      transaction_category_set = tcs.transaction_category_set
+      tcs = TransactionCategorySet.new(user)
+      tcs_hash = tcs.hash
 
-      expect(transaction_category_set).to have_key('dpc')
-      expect(transaction_category_set['dpc']['categories']).to have_key('dc')
-      expect(transaction_category_set).to have_key('npc')
-      expect(transaction_category_set['npc']['categories']).to have_key('nc')
-      expect(transaction_category_set).to have_key('npc2')
+      expect(tcs_hash).to have_key('dpc')
+      expect(tcs_hash['dpc']['categories']).to have_key('dc')
+      expect(tcs_hash).to have_key('npc')
+      expect(tcs_hash['npc']['categories']).to have_key('nc')
+      expect(tcs_hash).to have_key('npc2')
     end
   end
 end

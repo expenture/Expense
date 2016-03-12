@@ -19,6 +19,10 @@ An expense managing application to make life more easier and free. This is the b
     - [Transaction Category Set Management](#transaction-category-set-management)
 - [Architecture](#architecture)
   - [Domain Model ERD Diagram](#domain-model-erd-diagram)
+  - [Environment Variables](#environment-variables)
+  - [The Settings Model](#the-settings-model)
+  - [Objects](#objects-value-objects-parameter-objects-etc)
+  - [Service Modules](#service-modules)
   - [Backing Services](#backing-services)
   - [Specs](#specs)
     - [Module Specs](#module-specs)
@@ -34,7 +38,9 @@ Just run:
 $ bin/setup
 ```
 
-Configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`.
+Configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`, enter the console by `bin/console`, or run the tests by `bin/rspec`.
+
+> Note: After updating (i.e. pulling a new version from the remote repo), be sure to run `bin/update` before you do anything.
 
 
 ## Deploy
@@ -478,29 +484,45 @@ Available environment variable, ENVs, should be listed in `.env.sample` with the
 
 The `Settings` model is a way to store key-value settings in the database. This functionality is provided by [rails-settings-cached](https://github.com/Neson/rails-settings-cached).
 
-Note that making direct changes to `Settings` is not recommended. While doing this, the values aren't validated before saving, this may breake the app. A better way is to call the *set settings* method defined in other class or modules, and let them manage the settings for you. (For example, use `TransactionCategoryService.transaction_category_set = { ... }` to set the default category set instead of calling `Settings.transaction_category_set = ...`.)
+Note that making direct changes to `Settings` is not recommended. While doing this, the values aren't validated before saving, this may breake the app. A better way is to call the *set settings* method defined in other class or modules, and let them manage the settings for you. (For example, use `TransactionCategorySet.hash = { ... }` to set the default category set instead of calling `Settings.transaction_category_set = ...`.)
+
+### Objects: Value Objects, Parameter Objects, etc.
+
+A variant kinds of pure objects are used in this app: [Value Objects](http://refactoring.com/catalog/replaceDataValueWithObject.html), [Parameter Objects](http://refactoring.com/catalog/introduceParameterObject.html) and so on. These objects lives under `app/objects`.
+
+### Service Modules
+
+Service Modules (or "Service Objects") encapsulate operations that are used widely over the application. These operations often meets one or more of the following criteria:
+
+- Complex.
+- Interacts with an external service.
+- Interacts with multiple models.
+- Not a core concern of the interacted model.
+
+These modules lives under `app/services`.
 
 ### Transaction Categorizing
 
-A service object, `TransactionCategoryService`, is used to manage transaction categories, both for this app and each user.
+A class, `TransactionCategorySet`, is used to manage transaction categories, both for this app and each user.
 
-Class methods `.transaction_category_set` and `.transaction_category_set=` can be used to get and set the category set defined by this app.
+Class methods `.hash` and `.hash=` can be used to get and set the category set defined by this app.
 
-Instances of `TransactionCategoryService` should be initialized with a `User`. An of instances `TransactionCategoryService` represents actions to the specified user. Instance methods `#transaction_category_set` and `#transaction_category_set=` are used to get and set the custom category set for a user.
+Instances of `TransactionCategorySet` should be initialized with a `User`. An of instances `TransactionCategorySet` represents actions to the specified user. Instance methods `#hash` and `#hash=` are used to get and set the custom category set for a user.
 
-Each instances of `TransactionCategoryService` provides a method `#categorize`. `#categorize` is a auto-classifier that returns a conjecturing category code, based on a string of words, and optional datetime, latitude and longitude. `TransactionCategoryService#categorize` for each user are not the same, since users have their own `transaction_category_set` and manual categorizing log that will be learned. The conjecture is based on these conditions too.
+Each instances of `TransactionCategorySet` provides a method `#categorize`. `#categorize` is a auto-classifier that returns a conjecturing category code, based on a string of words, and optional datetime, latitude and longitude. `TransactionCategorySet#categorize` for each user are not the same, since users have their own `transaction_category_set` and manual categorizing log that will be learned. The conjecture is based on these conditions too.
 
 ```ruby
 user = User.find(1)
-tcs = TransactionCategoryService.new(user)
+tcs = TransactionCategorySet.new(user)  # or user.transaction_category_set
 
 datetime = Time.new(2000, 1, 1, 23, 0, 0, 0)  # => 2000/1/1 23:00:00 at UTC
 latitude = 23.5; longitude = 121  # Taiwan, UTC+8
 
-category_code = tcs.categorize("Roasted Chicken Sandwich", datetime: datetime, latitude: latitude, longitude: longitude)  # => "breakfast"
+category_code = tcs.categorize("Roasted Chicken Sandwich", datetime: datetime, latitude: latitude, longitude: longitude)
+# => "breakfast"
 ```
 
-_▴ Demo of using `TransactionCategoryService#categorize`._
+_▴ Demo of using `TransactionCategorySet#categorize`._
 
 The functionality of `#categorize` is based on records in the model `TransactionCategorizationCase`. `TransactionCategorizationCase` has attribute `words`, `category_code` and a optional `user_id`. For each example case, `words` is the sample words of an transcaion that should be categorize into `category_code`. `TransactionCategorizationCase`s without an `user_id` are shared by all users, while those with a specified `user_id` only effects that user.
 

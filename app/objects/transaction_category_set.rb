@@ -1,33 +1,31 @@
-# A class to deal with transaction categories, the instance can be initialize
-# with a user, for user specific services
-class TransactionCategoryService
+class TransactionCategorySet
   extend Forwardable
 
-  def_delegator self, :validate_category_set
+  def_delegator self, :validate_hash
 
   def initialize(user)
     @user = user
   end
 
   # Gets the transaction category set
-  def transaction_category_set
-    return @transaction_category_set if @transaction_category_set
-    @transaction_category_set = HashWithIndifferentAccess.new(
+  def hash
+    return @hash if @hash
+    @hash = HashWithIndifferentAccess.new(
       @user.settings.user_transaction_category_set ||
-      self.class.transaction_category_set
+      self.class.hash
     )
   end
 
   # Sets the transaction category set
-  def transaction_category_set=(new_set)
+  def hash=(new_set)
     new_set = HashWithIndifferentAccess.new(new_set)
 
     # Validate
-    old_set = transaction_category_set
-    new_set = validate_category_set(new_set, old_set)
+    old_set = hash
+    new_set = validate_hash(new_set, old_set)
 
     # Add back default categories if they're deleted
-    self.class.transaction_category_set.each_pair do |parent_code, parent_category|
+    self.class.hash.each_pair do |parent_code, parent_category|
       if new_set[parent_code].blank?
         new_set[parent_code] = parent_category
         new_set[parent_code][:hidden] = true
@@ -41,10 +39,10 @@ class TransactionCategoryService
       end
     end
 
-    new_set = validate_category_set(new_set, old_set)
+    new_set = validate_hash(new_set, old_set)
 
-    old_codes = self.class.transaction_category_codes(old_set)
-    new_codes = self.class.transaction_category_codes(new_set)
+    old_codes = self.class.codes(old_set)
+    new_codes = self.class.codes(new_set)
 
     # Categories with transcations can't be deleted
     deleted_codes = old_codes - new_codes
@@ -61,17 +59,17 @@ class TransactionCategoryService
     end
 
     @user.settings.user_transaction_category_set = new_set
-    @transaction_category_set = new_set
+    @hash = new_set
   end
 
   # Return the category codes
-  def transaction_category_codes
-    self.class.transaction_category_codes(transaction_category_set)
+  def codes
+    self.class.codes(hash)
   end
 
   # Return the available (not hidden) category codes
-  def available_transaction_category_codes
-    self.class.available_transaction_category_codes(transaction_category_set)
+  def available_codes
+    self.class.available_codes(hash)
   end
 
   # Conjecture a category_code by the given words, datetime and location
@@ -117,7 +115,7 @@ class TransactionCategoryService
   end
 
   private def transaction_categorization_codes
-    ['other'] + available_transaction_category_codes.delete_if { |c| c == 'other' }
+    ['other'] + available_codes.delete_if { |c| c == 'other' }
   end
 
   private def transaction_categorization_cases
@@ -142,32 +140,32 @@ class TransactionCategoryService
 
   class << self
     # Gets the default transaction category set for all users of this app
-    def transaction_category_set
+    def hash
       HashWithIndifferentAccess.new(Settings.transaction_category_set)
     end
 
     # Sets the default transaction category set for all users of this app
-    def transaction_category_set=(transaction_category_set)
-      transaction_category_set = HashWithIndifferentAccess.new(transaction_category_set)
-      transaction_category_set = validate_category_set(transaction_category_set, Settings.transaction_category_set)
-      Settings.transaction_category_set = transaction_category_set
+    def hash=(hash)
+      hash = HashWithIndifferentAccess.new(hash) unless hash.is_a? HashWithIndifferentAccess
+      hash = validate_hash(hash, Settings.hash)
+      Settings.transaction_category_set = hash
 
       return Settings.transaction_category_set
     end
 
     # Return the category codes that a category set contains
-    def transaction_category_codes(category_set = transaction_category_set)
+    def codes(category_set = hash)
       category_set.values.delete_if { |pc| !pc[:categories].is_a?(Hash) }.map { |pc| pc[:categories].keys }.reduce { |a, e| a.concat(e) } || []
     end
 
     # Return the available (not hidden) category codes that a
     # category set contains
-    def available_transaction_category_codes(category_set = transaction_category_set)
+    def available_codes(category_set = hash)
       category_set.values.delete_if { |pc| !pc[:categories].is_a?(Hash) || pc[:hidden] }.map { |pc| pc[:categories].delete_if { |_k, v| v[:hidden] }.keys }.reduce { |a, e| a.concat(e) } || []
     end
 
     # Get the parent category code for a category
-    def parent_code_for(code, category_set = transaction_category_set)
+    def parent_code_for(code, category_set = hash)
       category_set.each_pair do |parent_code, parent_category|
         return parent_code if parent_category[:categories].keys.include?(code)
       end
@@ -177,10 +175,11 @@ class TransactionCategoryService
 
     # Return the validated category set, remove or use old data for
     # invalid records
-    def validate_category_set(new_category_set, old_category_set)
-      return old_category_set unless new_category_set.is_a?(HashWithIndifferentAccess)
+    def validate_hash(new_category_set, old_category_set)
+      new_category_set = HashWithIndifferentAccess.new(new_category_set) unless new_category_set.is_a? HashWithIndifferentAccess
+      old_category_set = HashWithIndifferentAccess.new(old_category_set) unless old_category_set.is_a? HashWithIndifferentAccess
 
-      duplicated_codes = transaction_category_codes(new_category_set).group_by { |e| e }.select { |_k, v| v.size > 1 }.map(&:first)
+      duplicated_codes = codes(new_category_set).group_by { |e| e }.select { |_k, v| v.size > 1 }.map(&:first)
 
       new_category_set.each_pair do |parent_code, parent_category|
         new_category_set[parent_code] =
@@ -262,7 +261,7 @@ class TransactionCategoryService
 
     # Returns the general transaction categorization codes
     def transaction_categorization_codes
-      ['other'] + transaction_category_codes.delete_if { |c| c == 'other' } + ['meal']
+      ['other'] + codes.delete_if { |c| c == 'other' } + ['meal']
     end
 
     # Returns the general transaction categorization cases

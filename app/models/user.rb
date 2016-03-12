@@ -17,6 +17,10 @@ class User < ApplicationRecord
   after_create :create_default_account
   before_validation :check_password
 
+  def transaction_category_set
+    @transaction_category_set ||= TransactionCategorySet.new(self)
+  end
+
   def link_to_facebook_by_data(data, save: true)
     self.name = data[:name] if self.name.blank?
 

@@ -1,17 +1,13 @@
 require 'rails_helper'
 
-RSpec.describe TransactionCategoryService, type: :service do
-  before(:all) do
-    H = HashWithIndifferentAccess
-  end
-
+RSpec.describe TransactionCategorySet, type: :service do
   let(:user) { create(:user) }
   let(:user2) { create(:user) }
 
-  describe ".validate_category_set" do
+  describe ".validate_hash" do
     it "removes invalid parent categories" do
       # Invalid name
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -22,15 +18,15 @@ RSpec.describe TransactionCategoryService, type: :service do
           priority: 2,
           categories: {}
         }
-      })
-      old_cs = H.new({})
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      }
+      old_cs = {}
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs).not_to have_key('ipc')
 
       # Invalid categories
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -41,9 +37,9 @@ RSpec.describe TransactionCategoryService, type: :service do
           priority: 2,
           categories: 0.1
         }
-      })
-      old_cs = H.new({})
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      }
+      old_cs = {}
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs).not_to have_key('ipc')
@@ -51,7 +47,7 @@ RSpec.describe TransactionCategoryService, type: :service do
 
     it "ignores invalid parent categories" do
       # Invalid name
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -62,22 +58,22 @@ RSpec.describe TransactionCategoryService, type: :service do
           priority: 2,
           categories: {}
         }
-      })
-      old_cs = H.new({
+      }
+      old_cs = {
         ipc: {
           name: "IPC",
           priority: 2,
           categories: {}
         }
-      })
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      }
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs).to have_key('ipc')
       expect(cs['ipc']['name']).to eq('IPC')
 
       # Invalid categories
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -88,16 +84,16 @@ RSpec.describe TransactionCategoryService, type: :service do
           priority: 2,
           categories: 0.1
         }
-      })
-      old_cs = H.new({
+      }
+      old_cs = {
         ipc: {
           name: "IPC",
           priority: 2,
           categories: {}
         }
-      })
+      }
 
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs).to have_key('ipc')
@@ -105,7 +101,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     end
 
     it "removes invalid params for parent categories" do
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -113,9 +109,9 @@ RSpec.describe TransactionCategoryService, type: :service do
           hidden: false,
           what: 1
         }
-      })
-      old_cs = H.new({})
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      }
+      old_cs = {}
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs[:pc]).to have_key('name')
@@ -127,7 +123,7 @@ RSpec.describe TransactionCategoryService, type: :service do
 
     it "removes invalid categories" do
       # Invalid name
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -142,9 +138,9 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
-      old_cs = H.new({})
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      }
+      old_cs = {}
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs['pc'][:categories]).to have_key('c')
@@ -153,7 +149,7 @@ RSpec.describe TransactionCategoryService, type: :service do
 
     it "ignores invalid categories" do
       # Invalid name
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -168,8 +164,8 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
-      old_cs = H.new({
+      }
+      old_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -184,8 +180,8 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      }
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs['pc'][:categories]).to have_key('c')
@@ -194,7 +190,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     end
 
     it "removes invalid params for parent categories" do
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -207,9 +203,9 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
-      old_cs = H.new({})
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      }
+      old_cs = {}
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs['pc'][:categories]['c']).to have_key('name')
@@ -219,7 +215,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     end
 
     it "removes duplicated categories" do
-      new_cs = H.new({
+      new_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -240,8 +236,8 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
-      old_cs = H.new({
+      }
+      old_cs = {
         pc: {
           name: "PC",
           priority: 1,
@@ -262,8 +258,8 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
-      cs = TransactionCategoryService.validate_category_set(new_cs, old_cs)
+      }
+      cs = TransactionCategorySet.validate_hash(new_cs, old_cs)
 
       expect(cs).to have_key('pc')
       expect(cs['pc'][:categories]).to have_key('c')
@@ -271,8 +267,8 @@ RSpec.describe TransactionCategoryService, type: :service do
     end
   end
 
-  describe ".transaction_category_set" do
-    it "gets and sets the default transaction categories" do
+  describe ".hash" do
+    it "gets and sets the default transaction categories by hash" do
       transaction_category_set = {
         food: {
           name: "Food",
@@ -304,14 +300,14 @@ RSpec.describe TransactionCategoryService, type: :service do
         }
       }
 
-      TransactionCategoryService.transaction_category_set = transaction_category_set
-      expect(TransactionCategoryService.transaction_category_set).to eq(H.new(transaction_category_set))
+      TransactionCategorySet.hash = transaction_category_set
+      expect(TransactionCategorySet.hash).to eq(HashWithIndifferentAccess.new(transaction_category_set))
     end
   end
 
-  describe "#transaction_category_set" do
+  describe "#hash" do
     before(:all) do
-      TransactionCategoryService.transaction_category_set = {
+      TransactionCategorySet.hash = {
         dpc1: {
           name: "Default Parent Category 1",
           priority: 1,
@@ -343,15 +339,15 @@ RSpec.describe TransactionCategoryService, type: :service do
       }
     end
 
-    let(:transaction_category_service) { TransactionCategoryService.new(user) }
-    let(:transaction_category_service2) { TransactionCategoryService.new(user2) }
+    let(:transaction_category_service) { TransactionCategorySet.new(user) }
+    let(:transaction_category_service2) { TransactionCategorySet.new(user2) }
 
-    it "returns the default category set by default" do
-      expect(transaction_category_service.transaction_category_set).to eq(TransactionCategoryService.transaction_category_set)
+    it "returns the default category set hash by default" do
+      expect(transaction_category_service.hash).to eq(TransactionCategorySet.hash)
     end
 
-    it "sets the category set for the user" do
-      new_cs = H.new({
+    it "sets the category set for the user by hash" do
+      new_cs = {
         dpc1: {
           name: "Default Parent Category 1",
           priority: 1,
@@ -389,14 +385,14 @@ RSpec.describe TransactionCategoryService, type: :service do
           priority: 3,
           categories: {}
         }
-      })
-      transaction_category_service.transaction_category_set = new_cs
-      expect(transaction_category_service.transaction_category_set).to eq(new_cs)
-      expect(transaction_category_service2.transaction_category_set).to eq(TransactionCategoryService.transaction_category_set)
+      }
+      transaction_category_service.hash = new_cs
+      expect(transaction_category_service.hash).to eq(HashWithIndifferentAccess.new(new_cs))
+      expect(transaction_category_service2.hash).to eq(TransactionCategorySet.hash)
     end
 
     it "add backs default categories if deleted while updating" do
-      new_cs = H.new({
+      new_cs = {
         dpc1: {
           name: "Default Parent Category 1",
           priority: 1,
@@ -417,10 +413,10 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
-      transaction_category_service.transaction_category_set = new_cs
+      }
+      transaction_category_service.hash = new_cs
 
-      updated_transaction_category_set = transaction_category_service.transaction_category_set
+      updated_transaction_category_set = transaction_category_service.hash
       expect(updated_transaction_category_set).to have_key('dpc1')
       expect(updated_transaction_category_set['dpc1'][:categories]).to have_key('dc1')
       expect(updated_transaction_category_set['dpc1'][:categories]).to have_key('dc2')
@@ -432,7 +428,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     end
 
     it "add backs categories containing transactions if deleted while updating" do
-      old_cs = H.new({
+      old_cs = {
         dpc1: {
           name: "Default Parent Category 1",
           priority: 1,
@@ -505,8 +501,8 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
-      new_cs = H.new({
+      }
+      new_cs = {
         dpc1: {
           name: "Default Parent Category 1",
           priority: 1,
@@ -531,16 +527,16 @@ RSpec.describe TransactionCategoryService, type: :service do
             }
           }
         }
-      })
+      }
 
-      transaction_category_service.transaction_category_set = old_cs
+      transaction_category_service.hash = old_cs
       user.accounts.last.transactions.create!(uid: 'a', amount: 1000, category_code: 'cht1')
       user.accounts.last.transactions.create!(uid: 'b', amount: 1000, category_code: 'cht2')
       user.accounts.last.transactions.create!(uid: 'c', amount: 1000, category_code: 'cht3')
       user.accounts.last.transactions.create!(uid: 'd', amount: 1000, category_code: 'cht4')
-      transaction_category_service.transaction_category_set = new_cs
+      transaction_category_service.hash = new_cs
 
-      updated_transaction_category_set = transaction_category_service.transaction_category_set
+      updated_transaction_category_set = transaction_category_service.hash
       expect(updated_transaction_category_set).to have_key('dpc1')
       expect(updated_transaction_category_set['dpc1'][:categories]).to have_key('dc1')
       expect(updated_transaction_category_set['dpc1'][:categories]).to have_key('dc2')
@@ -566,7 +562,7 @@ RSpec.describe TransactionCategoryService, type: :service do
 
   describe "#categorize" do
     before(:all) do
-      TransactionCategoryService.transaction_category_set = {
+      TransactionCategorySet.hash = {
         food: {
           name: "Food",
           priority: 1,
@@ -662,8 +658,8 @@ RSpec.describe TransactionCategoryService, type: :service do
       create :transaction_categorization_case, words: 'SNICKERS', category_code: 'meal', user: @user2
       create :transaction_categorization_case, words: '士力架 巧克力', category_code: 'meal', user: @user2
       create :transaction_categorization_case, words: '士力架 巧克力', category_code: 'meal', user: @user2
-      tcs = TransactionCategoryService.new(@user2)
-      tcs.transaction_category_set = {
+      tcs = TransactionCategorySet.new(@user2)
+      tcs.hash = {
         food: {
           name: "Food",
           priority: 1,
@@ -708,7 +704,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     let(:user2) { @user2 }
 
     it "categorize words generally" do
-      tcs = TransactionCategoryService.new(user)
+      tcs = TransactionCategorySet.new(user)
 
       expect(tcs.categorize('Tea')).to eq('drinks')
       expect(tcs.categorize('茶')).to eq('drinks')
@@ -721,7 +717,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     end
 
     it "categorize words customize" do
-      tcs = TransactionCategoryService.new(user2)
+      tcs = TransactionCategorySet.new(user2)
 
       expect(tcs.categorize('Tea')).not_to eq('drinks')
       expect(tcs.categorize('茶')).not_to eq('drinks')
@@ -736,7 +732,7 @@ RSpec.describe TransactionCategoryService, type: :service do
     it "categorize words by time and location" do
       WebMock.allow_net_connect!
 
-      tcs = TransactionCategoryService.new(user)
+      tcs = TransactionCategorySet.new(user)
       expect(tcs.categorize('Sandwich', datetime: Time.new(2000, 1, 1, 8, 0, 0, 0))).to eq('breakfast')
       expect(tcs.categorize('Sandwich', datetime: Time.new(2000, 1, 1, 12, 0, 0, 0))).to eq('launch')
       expect(tcs.categorize('Sandwich', datetime: Time.new(2000, 1, 1, 0, 0, 0, 0))).to eq('supper')

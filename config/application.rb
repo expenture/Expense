@@ -22,8 +22,11 @@ module Expense
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-    config.paths.add File.join('app', 'services'), glob: File.join('**', '*.rb')
-    config.autoload_paths += Dir[Rails.root.join('app', 'services', '*')]
+    # Load additional directories for the app
+    %w(objects services).each do |dir|
+      config.paths.add File.join('app', dir), glob: File.join('**', '*.rb')
+      config.autoload_paths += Dir[Rails.root.join('app', dir, '*')]
+    end
 
     # Only loads a smaller set of middleware suitable for API only apps.
     # Middleware like session, flash, cookies can be added back manually.
@@ -46,7 +49,7 @@ module Expense
         config.logger = \
           RemoteSyslogLogger.new(ENV['REMOTE_LOGGER_HOST'], ENV['REMOTE_LOGGER_PORT'],
                                  local_hostname: "#{Socket.gethostname}".gsub(' ', '_'),
-                                 program: ('rails-' + Rails.application.class.parent_name.underscore))
+                                 program: ('rails-' + app_name.underscore))
       end
     end
   end
