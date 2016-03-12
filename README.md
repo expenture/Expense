@@ -464,7 +464,7 @@ This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devis
 
 ### Domain Model ERD Diagram
 
-![](https://raw.githubusercontent.com/Neson/Expense/master/erd.png?token=ADm_7_rGOdlefEHT8smFsow3krbEZpGlks5W2EjswA%3D%3D)
+![Domain Model ERD Diagram](https://raw.githubusercontent.com/Neson/Expense/master/erd.png?token=ADm_71Ifa7vq1QTmzrWclqSeHpCZUG-kks5W7aHqwA%3D%3D)
 
 > Note: This diagram is generated with the command `bin/erd`.
 
