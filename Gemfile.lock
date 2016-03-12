@@ -64,6 +64,8 @@ GEM
     builder (3.2.2)
     byebug (8.2.2)
     choice (0.2.0)
+    codeclimate-test-reporter (0.5.0)
+      simplecov (>= 0.7.1, < 1.0.0)
     coderay (1.1.1)
     concurrent-ruby (1.0.0)
     coveralls (0.8.11)
@@ -292,6 +294,7 @@ DEPENDENCIES
   api_helper (~> 0.1.1)
   awesome_print
   byebug
+  codeclimate-test-reporter
   coveralls
   database_cleaner
   devise (~> 4.0.0.rc1)

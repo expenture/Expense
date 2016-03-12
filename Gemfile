@@ -75,6 +75,7 @@ group :development, :test do
   gem 'email_spec'
   gem 'simplecov', require: false
   gem 'coveralls', require: false
+  gem 'codeclimate-test-reporter', require: false
   gem 'webmock', require: false
   gem 'timecop'
 end
