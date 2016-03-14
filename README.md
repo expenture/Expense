@@ -568,7 +568,7 @@ PASSCODE_INFO = {
     description: 'Your data inquire password for the account',
     required: true
   },
-  2 => {
+  3 => {
     name: 'Verification Code',
     description: 'The verification code, if you\'ve set it',
     required: false
