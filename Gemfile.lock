@@ -63,7 +63,15 @@ GEM
     bcrypt (3.1.10)
     builder (3.2.2)
     byebug (8.2.2)
+    capybara (2.6.2)
+      addressable
+      mime-types (>= 1.16)
+      nokogiri (>= 1.3.3)
+      rack (>= 1.0.0)
+      rack-test (>= 0.5.4)
+      xpath (~> 2.0)
     choice (0.2.0)
+    cliver (0.3.2)
     codeclimate-test-reporter (0.5.0)
       simplecov (>= 0.7.1, < 1.0.0)
     coderay (1.1.1)
@@ -95,6 +103,7 @@ GEM
       htmlentities (~> 4.3.3)
       launchy (~> 2.1)
       mail (~> 2.6.3)
+    encryptor (2.0.0)
     erubis (2.7.0)
     factory_girl (4.5.0)
       activesupport (>= 3.0.0)
@@ -167,6 +176,11 @@ GEM
       omnicat (~> 0.3.0)
     orm_adapter (0.5.0)
     pg (0.18.4)
+    poltergeist (1.9.0)
+      capybara (~> 2.1)
+      cliver (~> 0.3.1)
+      multi_json (~> 1.0)
+      websocket-driver (>= 0.2.0)
     pry (0.10.3)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -223,6 +237,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
       netrc (~> 0.7)
+    rmagick (2.15.4)
     rspec-core (3.1.7)
       rspec-support (~> 3.1.0)
     rspec-expectations (3.1.2)
@@ -242,6 +257,8 @@ GEM
       rspec-mocks (~> 3.1.0)
       rspec-support (~> 3.1.0)
     rspec-support (3.1.2)
+    rtesseract (1.3.3)
+      nokogiri
     ruby-graphviz (1.2.2)
     safe_yaml (1.0.4)
     shoulda-matchers (3.1.1)
@@ -286,6 +303,8 @@ GEM
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
+    xpath (2.0.0)
+      nokogiri (~> 1.3)
 
 PLATFORMS
   ruby
@@ -294,6 +313,7 @@ DEPENDENCIES
   api_helper (~> 0.1.1)
   awesome_print
   byebug
+  capybara
   codeclimate-test-reporter
   coveralls
   database_cleaner
@@ -301,6 +321,7 @@ DEPENDENCIES
   doorkeeper!
   dotenv-rails
   email_spec
+  encryptor
   factory_girl_rails
   faker
   geocoder
@@ -310,9 +331,11 @@ DEPENDENCIES
   kaminari
   letter_opener
   newrelic_rpm
+  nokogiri
   omniauth-facebook
   omnicat-bayes
   pg
+  poltergeist
   pry-byebug
   pry-rails
   puma
@@ -323,8 +346,10 @@ DEPENDENCIES
   redis (~> 3.0)
   remote_syslog_logger
   rest-client
+  rmagick
   rspec-its
   rspec-rails
+  rtesseract
   shoulda-matchers
   simplecov
   spring

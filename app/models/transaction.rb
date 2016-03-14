@@ -1,6 +1,8 @@
 class Transaction < ApplicationRecord
   belongs_to :account,
              primary_key: :uid, foreign_key: :account_uid
+  has_many :synchronizer_parsed_data, class_name: 'Synchronizer::ParsedData',
+                                      primary_key: :uid, foreign_key: :transaction_uid
 
   validates :account, :uid, :amount, :datetime, presence: true
 

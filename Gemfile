@@ -17,6 +17,9 @@ gem 'jbuilder', '~> 2.4'
 # Action Cable dependencies for the Redis adapter
 gem 'redis', '~> 3.0'
 
+# Wrapper for the standard Ruby OpenSSL library
+gem 'encryptor'
+
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
@@ -44,6 +47,13 @@ gem 'timezone'
 
 # Auto classification lib
 gem 'omnicat-bayes'
+
+# Syncer tools
+gem 'nokogiri'
+gem 'capybara'
+gem 'poltergeist'
+gem 'rmagick'
+gem 'rtesseract'
 
 # Use Pry as the Rails console
 gem 'pry-rails'

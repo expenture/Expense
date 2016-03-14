@@ -11,6 +11,7 @@ class User < ApplicationRecord
                                optional: true
   has_many :transactions, through: :accounts
   has_many :transaction_categorization_cases
+  has_many :synchronizers
 
   validates :default_account, presence: true, on: :update
 

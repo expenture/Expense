@@ -23,7 +23,7 @@ module Expense
     # -- all .rb files in that directory are automatically loaded.
 
     # Load additional directories for the app
-    %w(objects services).each do |dir|
+    %w(objects services synchronizers).each do |dir|
       config.paths.add File.join('app', dir), glob: File.join('**', '*.rb')
       config.autoload_paths += Dir[Rails.root.join('app', dir, '*')]
     end

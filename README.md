@@ -18,12 +18,17 @@ An expense managing application to make life more easier and free. This is the b
     - [Transaction Management](#transaction-management)
     - [Transaction Category Set Management](#transaction-category-set-management)
 - [Architecture](#architecture)
-  - [Domain Model ERD Diagram](#domain-model-erd-diagram)
   - [Environment Variables](#environment-variables)
+  - [Domain Model ERD Diagram](#domain-model-erd-diagram)
   - [The Settings Model](#the-settings-model)
   - [Objects](#objects-value-objects-parameter-objects-etc)
+    - [Transaction Category Set](#transactioncategoryset-transaction-categorizing)
   - [Service Modules](#service-modules)
   - [Backing Services](#backing-services)
+  - [Synchronizers](#synchronizers)
+    - [Collector](#collector)
+    - [Parser](#parser)
+    - [Organizer](#organizer)
   - [Specs](#specs)
     - [Module Specs](#module-specs)
     - [Request Specs](#request-specs)
@@ -464,21 +469,22 @@ Sample response:
 }
 ```
 
+
 ## Architecture
 
 This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devise](https://github.com/plataformatec/devise), [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper/), [Jbuilder](https://github.com/rails/jbuilder) and many others. Tests are done by [RSpec](http://rspec.info/). The architecture of this app is briefly explained in the sections below:
+
+### Environment Variables
+
+By following [The Twelve Factor App](http://12factor.net/) pattern, this application should be [configurable via environment variables](http://12factor.net/config).
+
+Available environment variable, "ENVs", should be listed in `.env.sample` with their sample values.
 
 ### Domain Model ERD Diagram
 
 ![Domain Model ERD Diagram](https://raw.githubusercontent.com/Neson/Expense/master/erd.png?token=ADm_71Ifa7vq1QTmzrWclqSeHpCZUG-kks5W7aHqwA%3D%3D)
 
 > Note: This diagram is generated with the command `bin/erd`.
-
-### Environment Variables
-
-By following [The Twelve Factor App](http://12factor.net/) pattern, this application should be [configurable via environment variables](http://12factor.net/config).
-
-Available environment variable, ENVs, should be listed in `.env.sample` with their sample values.
 
 ### The Settings Model
 
@@ -490,20 +496,9 @@ Note that making direct changes to `Settings` is not recommended. While doing th
 
 A variant kinds of pure objects are used in this app: [Value Objects](http://refactoring.com/catalog/replaceDataValueWithObject.html), [Parameter Objects](http://refactoring.com/catalog/introduceParameterObject.html) and so on. These objects lives under `app/objects`.
 
-### Service Modules
+#### `TransactionCategorySet`: Transaction Categorizing
 
-Service Modules (or "Service Objects") encapsulate operations that are used widely over the application. These operations often meets one or more of the following criteria:
-
-- Complex.
-- Interacts with an external service.
-- Interacts with multiple models.
-- Not a core concern of the interacted model.
-
-These modules lives under `app/services`.
-
-### Transaction Categorizing
-
-A class, `TransactionCategorySet`, is used to manage transaction categories, both for this app and each user.
+The `TransactionCategorySet` is used to manage transaction categories, both for this app and each user.
 
 Class methods `.hash` and `.hash=` can be used to get and set the category set defined by this app.
 
@@ -528,11 +523,78 @@ The functionality of `#categorize` is based on records in the model `Transaction
 
 New `TransactionCategorizationCase`s are automatically created with an `user_id` while the user uses `PUT /me/accounts/<account_id>/transactions/<transaction_id>` or `PATCH /me/accounts/<account_id>/transactions/<transaction_id>` to update a transaction with a specified `category_code`. Exploring `TransactionCategorizationCase` and clear the `user_id` for those are a general case is a way to improve the correct rate of the auto-transaction-categorizing feature for all users.
 
+### Service Modules
+
+Service Modules (or "Service Objects") encapsulate operations that are used widely over the application. These operations often meets one or more of the following criteria:
+
+- Complex.
+- Interacts with an external service.
+- Interacts with multiple models.
+- Not a core concern of the interacted model.
+
+These modules lives under `app/services`.
+
 ### Backing Services
 
 Communication with backing services, such as database, file storage, outbound email service, Facebook connection, Apple Push Notification Service and GCM, are all wrapped in external gems or service objects to provide united API, logic arrangement and easy testing. That is to say, there are hardly any direct `RestClient.get ...` or other TCP, HTTP connections be fired in models, controllers or jobs. They're at least wrapped into service-oriented service object or gems, or further more, wrapped as functionality-oriented libs for a more high-level API.
 
 These type of service objects written in this app will provide a `mock_mode` module attr. While it is set to `true`, no real connections to those backing services will be established, and mock data will be used for return value. This is normally used for testing. And the mock data written in those modules can also act as documentation.
+
+### Synchronizers
+
+Synchronizers ("Syncers") does the auto expense logging. It syncs from real-word expense record _(such as credit card bills, banking websites, receipt emails, etc.)_ to the transaction record in this app. They lives under `app/synchronizers` and do their jobs mostly in scheduled background workers.
+
+Synchronizers are service-oriented. A synchronizer class maintains transaction records coming from a specific bank, store, or other service. Some synchronizer manages accounts _(such as credit card bill syncer or bank log syncer)_, while some doesn't _(such as receipt email syncer)_. Synchronizers that doesn't manage accounts should be used with a existing account.
+
+All Synchronizers inherits the class `Synchronizer`, a `ActiveRecord` based model locates at `app/models/synchronizer.rb`. They use the Rails STI mechanism to share the same database table.
+
+Each synchronizer has their `CODE`, `REGION_CODE`, `NAME`, `DESCRIPTION`, `PASSCODE_INFO` defined:
+
+- [`Symbol`] `CODE`: An unique identifier of the syncer.
+- [`Symbol`] `REGION_CODE`: The region code. This can be `nil`.
+- [`String`] `NAME`: The display name.
+- [`String`] `DESCRIPTION`: A description of the syncer.
+- [`Hash`] `PASSCODE_INFO`: A hash that states the usage of passcode for this syncer. An example is:
+
+```ruby
+PASSCODE_INFO = {
+  1 => {
+    name: 'Account Name',
+    description: 'Your account name for Xxx Bank',
+    required: true
+  },
+  2 => {
+    name: 'Password',
+    description: 'Your data inquire password for the account',
+    required: true
+  },
+  2 => {
+    name: 'Verification Code',
+    description: 'The verification code, if you\'ve set it',
+    required: false
+  }
+}.freeze
+```
+
+The implementation synchronizer is constructed by three parts: `Collector`, `Parser` and `Organizer`. The `Synchronizer` class defines these three abstract sub-class, while each inherited children should implement them:
+
+#### Collector
+
+The collector collects raw data and saves them into the `Synchronizer::CollectedPage` model.
+
+A `Collector` class should define to public methods: `run` and `recieve`.
+
+The `run` method starts the collector to collect data. To control the deepness of collecting data _(for example, we want to collect [the webpages updated today] hourly, [webpages that may change recently] daily and [the whole website] monthly)_, it must take an key argument: `level`, this argument can be passed in symbols `:normal`, `:light` or `:complete`, to determine that this collecting should be normal, light or complete.
+
+The `recieve` method will be called if data is sent in proactively (for example, by billing email). It takes an argument `data` and a key argument `type`. The `data` will be the page body and `type` as the data type.
+
+#### Parser
+
+The parser parses new data in the `Synchronizer::CollectedPage` model, and saves the parsed data into the `Synchronizer::ParsedData` model.
+
+#### Organizer
+
+The organizer reads data from `Synchronizer::ParsedData` and manages (create or update) transcations and accounts.
 
 ### Specs
 

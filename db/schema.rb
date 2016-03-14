@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160302150939) do
+ActiveRecord::Schema.define(version: 20160314114631) do
 
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                     null: false
@@ -75,6 +75,64 @@ ActiveRecord::Schema.define(version: 20160302150939) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.index ["thing_type", "thing_id", "var"], name: "index_settings_on_thing_type_and_thing_id_and_var", unique: true
+  end
+
+  create_table "synchronizer_collected_pages", force: :cascade do |t|
+    t.string   "synchronizer_uid", null: false
+    t.string   "attribute_1"
+    t.string   "attribute_2"
+    t.text     "header"
+    t.text     "body"
+    t.datetime "parsed_at"
+    t.datetime "skipped_at"
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
+    t.index ["parsed_at"], name: "index_synchronizer_collected_pages_on_parsed_at"
+    t.index ["skipped_at"], name: "index_synchronizer_collected_pages_on_skipped_at"
+    t.index ["synchronizer_uid"], name: "index_synchronizer_collected_pages_on_synchronizer_uid"
+  end
+
+  create_table "synchronizer_parsed_data", force: :cascade do |t|
+    t.integer  "collected_page_id"
+    t.string   "synchronizer_uid",  null: false
+    t.string   "transaction_uid"
+    t.string   "account_uid"
+    t.string   "attribute_1"
+    t.string   "attribute_2"
+    t.text     "raw_data"
+    t.datetime "organized_at"
+    t.datetime "created_at",        null: false
+    t.datetime "updated_at",        null: false
+    t.index ["account_uid"], name: "index_synchronizer_parsed_data_on_account_uid"
+    t.index ["collected_page_id"], name: "index_synchronizer_parsed_data_on_collected_page_id"
+    t.index ["organized_at"], name: "index_synchronizer_parsed_data_on_organized_at"
+    t.index ["synchronizer_uid"], name: "index_synchronizer_parsed_data_on_synchronizer_uid"
+    t.index ["transaction_uid"], name: "index_synchronizer_parsed_data_on_transaction_uid"
+  end
+
+  create_table "synchronizers", force: :cascade do |t|
+    t.integer  "user_id",                               null: false
+    t.string   "account_uid"
+    t.string   "uid",                                   null: false
+    t.string   "type",                                  null: false
+    t.boolean  "enabled",               default: true,  null: false
+    t.string   "name"
+    t.string   "status",                default: "new", null: false
+    t.string   "encrypted_passcode_1"
+    t.string   "encrypted_passcode_2"
+    t.string   "encrypted_passcode_3"
+    t.string   "encrypted_passcode_4"
+    t.string   "passcode_encrypt_salt",                 null: false
+    t.datetime "last_collected_at"
+    t.datetime "last_parsed_at"
+    t.datetime "last_synced_at"
+    t.datetime "created_at",                            null: false
+    t.datetime "updated_at",                            null: false
+    t.index ["account_uid"], name: "index_synchronizers_on_account_uid"
+    t.index ["last_synced_at"], name: "index_synchronizers_on_last_synced_at"
+    t.index ["type"], name: "index_synchronizers_on_type"
+    t.index ["uid"], name: "index_synchronizers_on_uid", unique: true
+    t.index ["user_id"], name: "index_synchronizers_on_user_id"
   end
 
   create_table "transaction_categorization_cases", force: :cascade do |t|
