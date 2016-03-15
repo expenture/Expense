@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160314114631) do
+ActiveRecord::Schema.define(version: 20160314180634) do
 
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                     null: false
@@ -148,22 +148,26 @@ ActiveRecord::Schema.define(version: 20160314114631) do
   end
 
   create_table "transactions", force: :cascade do |t|
-    t.string   "uid",                                  null: false
-    t.string   "account_uid",                          null: false
-    t.integer  "amount",                               null: false
+    t.string   "uid",                                    null: false
+    t.string   "account_uid",                            null: false
+    t.integer  "amount",                                 null: false
     t.text     "description"
     t.string   "category_code"
     t.string   "tags"
     t.text     "note"
-    t.datetime "datetime",                             null: false
+    t.datetime "datetime",                               null: false
     t.float    "latitude"
     t.float    "longitude"
-    t.boolean  "ignore_in_statistics", default: false, null: false
-    t.datetime "created_at",                           null: false
-    t.datetime "updated_at",                           null: false
+    t.boolean  "ignore_in_statistics",   default: false, null: false
+    t.datetime "created_at",                             null: false
+    t.datetime "updated_at",                             null: false
+    t.boolean  "separated",              default: false, null: false
+    t.string   "parent_transaction_uid"
     t.index ["account_uid"], name: "index_transactions_on_account_uid"
     t.index ["category_code"], name: "index_transactions_on_category_code"
     t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"
+    t.index ["parent_transaction_uid"], name: "index_transactions_on_parent_transaction_uid"
+    t.index ["separated"], name: "index_transactions_on_separated"
     t.index ["uid"], name: "index_transactions_on_uid", unique: true
   end
 

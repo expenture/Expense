@@ -184,9 +184,9 @@ describe "User's Accounts Management API" do
     end
   end
 
-  describe "PUT /me/accounts/<account_uid>/transcation_categorization_suggestion" do
+  describe "PUT /me/accounts/<account_uid>/transaction_categorization_suggestion" do
     subject do
-      get "/me/accounts/#{user.accounts.last.uid}/transcation_categorization_suggestion", {
+      get "/me/accounts/#{user.accounts.last.uid}/transaction_categorization_suggestion", {
         headers: {
           'Authorization' => "Bearer #{access_token.token}"
         },

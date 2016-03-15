@@ -6,7 +6,7 @@ Rails.application.routes.draw do
 
   namespace :me, defaults: { format: :json } do
     resources :accounts, only: [:index, :update, :destroy] do
-      get :transcation_categorization_suggestion, to: 'accounts#transcation_categorization_suggestion'
+      get :transaction_categorization_suggestion, to: 'accounts#transaction_categorization_suggestion'
       resources :transactions, controller: 'accounts/transactions',
                                only: [:index, :update, :destroy]
     end

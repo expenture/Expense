@@ -350,7 +350,7 @@ Each transaction can be categorize into one category by their `category_code`. T
 
 The attributes of a category are `code`, `name`, `priority` and `hidden`. The `code` is a unique identifier of the category. The `priority` decides the order of that category to be show on UI, while it should be hidden on the UI with `hidden` set to `true`. Every category are filed under a parent-category, parent-categories also has the attributes `code`, `name`, `priority` and `hidden`.
 
-This app will define a default set of categories. All user's category settings will inherit this set. Users are free to create, update or delete any custom categories. But predefined categories, or categories having at least one transcation can not be deleted, they can just set to be `hide` ([spec](https://github.com/Neson/Expense/blob/master/spec/services/transaction_category_service_spec.rb)).
+This app will define a default set of categories. All user's category settings will inherit this set. Users are free to create, update or delete any custom categories. But predefined categories, or categories having at least one transaction can not be deleted, they can just set to be `hide` ([spec](https://github.com/Neson/Expense/blob/master/spec/services/transaction_category_service_spec.rb)).
 
 Updating the category set on the backend server side can let users access their category set everywhere. The user defined category set will also be used for auto-categorizing.
 
@@ -455,10 +455,10 @@ Content-Type: application/json
 }
 ```
 
-##### Get Transcation Categorization Suggestion For Some Words
+##### Get Transaction Categorization Suggestion For Some Words
 
 ```http
-GET /me/accounts/<account_id>/transcation_categorization_suggestion?words=<some_words>
+GET /me/accounts/<account_id>/transaction_categorization_suggestion?words=<some_words>
 ```
 
 Sample response:
@@ -594,7 +594,7 @@ The parser parses new data in the `Synchronizer::CollectedPage` model, and saves
 
 #### Organizer
 
-The organizer reads data from `Synchronizer::ParsedData` and manages (create or update) transcations and accounts.
+The organizer reads data from `Synchronizer::ParsedData` and manages (create or update) transactions and accounts.
 
 ### Specs
 

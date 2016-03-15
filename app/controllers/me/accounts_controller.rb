@@ -35,7 +35,7 @@ class Me::AccountsController < ApplicationAPIController
     end
   end
 
-  def transcation_categorization_suggestion
+  def transaction_categorization_suggestion
     if params[:words].blank?
       @error = { message: 'Please provide the param "words".' }
       render status: 400

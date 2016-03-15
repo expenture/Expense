@@ -44,7 +44,7 @@ class TransactionCategorySet
     old_codes = self.class.codes(old_set)
     new_codes = self.class.codes(new_set)
 
-    # Categories with transcations can't be deleted
+    # Categories with transactions can't be deleted
     deleted_codes = old_codes - new_codes
     deleted_codes.each do |deleted_code|
       next unless @user.transactions.exists?(category_code: deleted_code)
