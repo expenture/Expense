@@ -11,17 +11,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160314180634) do
+ActiveRecord::Schema.define(version: 20160316125722) do
 
   create_table "accounts", force: :cascade do |t|
-    t.integer  "user_id",                     null: false
-    t.string   "uid",                         null: false
-    t.string   "type",       default: "cash", null: false
-    t.string   "name",                        null: false
-    t.string   "currency",   default: "TWD",  null: false
-    t.integer  "balance",    default: 0,      null: false
-    t.datetime "created_at",                  null: false
-    t.datetime "updated_at",                  null: false
+    t.integer  "user_id",                           null: false
+    t.string   "uid",                               null: false
+    t.string   "type",             default: "cash", null: false
+    t.string   "name",                              null: false
+    t.string   "currency",         default: "TWD",  null: false
+    t.integer  "balance",          default: 0,      null: false
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
+    t.string   "kind"
+    t.string   "synchronizer_uid"
+    t.index ["kind"], name: "index_accounts_on_kind"
+    t.index ["synchronizer_uid"], name: "index_accounts_on_synchronizer_uid"
     t.index ["type"], name: "index_accounts_on_type"
     t.index ["uid"], name: "index_accounts_on_uid", unique: true
     t.index ["user_id"], name: "index_accounts_on_user_id"
@@ -161,11 +165,13 @@ ActiveRecord::Schema.define(version: 20160314180634) do
     t.boolean  "ignore_in_statistics",   default: false, null: false
     t.datetime "created_at",                             null: false
     t.datetime "updated_at",                             null: false
-    t.boolean  "separated",              default: false, null: false
+    t.boolean  "separated"
     t.string   "parent_transaction_uid"
+    t.string   "kind"
     t.index ["account_uid"], name: "index_transactions_on_account_uid"
     t.index ["category_code"], name: "index_transactions_on_category_code"
     t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"
+    t.index ["kind"], name: "index_transactions_on_kind"
     t.index ["parent_transaction_uid"], name: "index_transactions_on_parent_transaction_uid"
     t.index ["separated"], name: "index_transactions_on_separated"
     t.index ["uid"], name: "index_transactions_on_uid", unique: true

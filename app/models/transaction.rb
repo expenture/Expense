@@ -1,4 +1,6 @@
 class Transaction < ApplicationRecord
+  self.inheritance_column = :kind
+
   scope :ignore_in_statistics, -> { where(ignore_in_statistics: false, separated: false) }
 
   belongs_to :account,
@@ -104,6 +106,26 @@ class Transaction < ApplicationRecord
       self.separated = true
     else
       self.separated = false
+    end
+  end
+
+  class << self
+    # Override Rails STI class finding
+    # @api private
+    def find_sti_class(type_name)
+      case type_name
+      when 'synced'
+        SyncedTransaction
+      end
+    end
+
+    # Override Rails STI class name
+    # @api private
+    def sti_name
+      case name
+      when 'SyncedTransaction'
+        'synced'
+      end
     end
   end
 end

@@ -154,6 +154,7 @@ class Synchronizer < ApplicationRecord
     # Override Rails STI class finding
     # @api private
     def find_sti_class(type_name)
+      return self if type_name == 'base'
       Synchronizer.syncer_classes[type_name]
     end
 
@@ -172,6 +173,8 @@ class Synchronizer < ApplicationRecord
                              primary_key: :uid, foreign_key: :synchronizer_uid
   has_many :parsed_data, class_name: 'Synchronizer::ParsedData',
                          primary_key: :uid, foreign_key: :synchronizer_uid
+  has_many :accounts, class_name: 'SyncingAccount',
+                      primary_key: :uid, foreign_key: :synchronizer_uid
   validates :user, :uid, :name, presence: true
   validates :uid, uniqueness: true
   after_initialize :init_passcode_encrypt_salt

@@ -14,6 +14,7 @@ class User < ApplicationRecord
   has_many :synchronizers
 
   validates :default_account, presence: true, on: :update
+  validate :default_account_is_not_a_syncing_one, on: :update
 
   after_create :create_default_account
   before_validation :check_password
@@ -61,6 +62,12 @@ class User < ApplicationRecord
     else
       self.password_set_at = Time.now if encrypted_password_changed?
     end
+  end
+
+  def default_account_is_not_a_syncing_one
+    return unless default_account_uid_changed?
+    return unless default_account && default_account.kind == 'syncing'
+    errors.add(:default_account_uid, 'can not be a syncing account')
   end
 
   class << self
