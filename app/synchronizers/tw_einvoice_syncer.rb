@@ -1,3 +1,17 @@
+# 台灣財政部電子發票整合服務平台 - 手機條碼載具電子發票消費記錄同步器
+#
+# 依照電子發票資料一經開出便不再修改的特性，在解析 (parse) 階段若發現相同的發票已經被解析過，
+# 便會略過該張發票的解析。因此 `parsed_data` 將能維持不重複、一張發票對應一筆資料。
+#
+# == 帳戶管理規則:
+# 每張電子發票中可以抓取到載具類別以及代碼 (詳見 `TWEInvoiceSyncer::KNOWN_ACCOUNT_TYPES`
+# 常數)。帳戶會依照查詢到的電子發票紀錄自動建立，uid 編碼方式為:
+# `<user_id>-<account_type>-<載具代碼>`，其中 `account_type` 為本程式編制的通用帳戶種類
+# 代碼，例如悠遊卡為 `tw_eazycard`，`載具代碼` 是電子發票系統中提供的載具代碼。
+#
+# == 交易記錄 uid 規則:
+# `<帳戶 id>-<發票號碼>`
+#
 class TWEInvoiceSyncer < Synchronizer
   CODE = :tw_einvoice
   REGION_CODE = :tw
@@ -14,6 +28,12 @@ class TWEInvoiceSyncer < Synchronizer
       description: '「財政部電子發票整合服務平台」登入驗證碼 (等同密碼)',
       required: true
     }
+  }.freeze
+  KNOWN_ACCOUNT_TYPES = {
+    # 手機條碼
+    '3J0002' => 'tw_einvoice_general_carrier',
+    # 悠遊卡
+    '1K0001' => 'tw_eazycard'
   }.freeze
 
   class Collector < Worker
@@ -87,22 +107,38 @@ class TWEInvoiceSyncer < Synchronizer
     end
 
     def collect_page(year, month)
-      @session.visit('https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/QueryInv')
-      @session.evaluate_script("document.getElementById('queryInvDate').value = '#{format('%04d', year)}/#{format('%02d', month)}';")
-      @session.click_on('查詢')
+      navigate_to_query_page(year, month)
 
       html_doc = Nokogiri::HTML(@session.driver.source)
       query_js_codes = html_doc.css('#invoiceTable tr td:nth-child(4) a').map { |a| a.attribute('href').try(:value) }.compact.map { |s| s.gsub(/^javascript:/, '') }
 
       query_js_codes.each do |query_js_code|
-        puts query_js_code
-        @session.evaluate_script(query_js_code)
-        sleep 0.8
-        html_doc = Nokogiri::HTML(@session.driver.source)
-        collected_pages.create!(body: html_doc.css('#QueryInv').to_html.gsub(%r{[\t\n]}, ''))
-        @session.evaluate_script("window.history.back();")
-        sleep 0.8
+        body = nil
+        get_data_tries = 12
+
+        while body.blank?
+          raise if get_data_tries == 0
+
+          puts query_js_code
+          navigate_to_query_page(year, month) if get_data_tries < 10
+          @session.evaluate_script(query_js_code)
+          sleep 0.8
+          html_doc = Nokogiri::HTML(@session.driver.source)
+          body = html_doc.css('#QueryInv').to_html.gsub(/[\t\n]/, '')
+          @session.evaluate_script("window.history.back();")
+          sleep 0.8
+
+          get_data_tries -= 1
+        end
+
+        collected_pages.create!(body: body, attribute_1: query_js_code)
       end
+    end
+
+    def navigate_to_query_page(year, month)
+      @session.visit('https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/QueryInv')
+      @session.evaluate_script("document.getElementById('queryInvDate').value = '#{format('%04d', year)}/#{format('%02d', month)}';")
+      @session.click_on('查詢')
     end
   end
 
@@ -110,13 +146,28 @@ class TWEInvoiceSyncer < Synchronizer
     def run
       collected_pages.unparsed.find_each do |collected_page|
         html_doc = Nokogiri::HTML(collected_page.body)
-
         if html_doc.css('.cp table').blank?
           collected_page.skipped!
           next
         end
 
+        query_js_code = collected_page.attribute_1
+        m = query_js_code.match(/queryDetail\(\'[^']*', *'[^']*', *'[^']*', *'[^']*', *'[^']*', *'[^']*', *'[^']*', *'(?<type>[^']*)', *'(?<code>[^']*)'/)
+        if m.blank?
+          collected_page.skipped!
+          next
+        end
+        account_type = m[:type]
+        account_type = KNOWN_ACCOUNT_TYPES[account_type] || account_type
+        account_uid = "#{user_id}-#{account_type}-#{m[:code]}"
+
         invoice_code = html_doc.css('.cp table tr:nth-child(2) td:nth-child(1)').text.strip
+
+        if parsed_data.exists?(attribute_1: invoice_code)
+          collected_page.skipped!
+          next
+        end
+
         date_string = html_doc.css('.cp table tr:nth-child(2) td:nth-child(2)').text.strip
         seller_name = html_doc.css('.cp table tr:nth-child(2) td:nth-child(3)').text.strip + ' ' + html_doc.css('.cp table tr:nth-child(2) td:nth-child(4)').text.strip
         amount = html_doc.css('.cp table tr:nth-child(2) td:nth-child(5)').text.to_i * 1_000
@@ -127,8 +178,11 @@ class TWEInvoiceSyncer < Synchronizer
         day = date_string_m[:day].to_i
         datetime = Time.new(year, month, day, 0, 0, 0, '+08:00')
 
-        details = html_doc.css('#invoiceDetailTable tbody tr').map do |tr|
+        transaction_uid = "#{account_uid}-#{invoice_code}"
+
+        details = html_doc.css('#invoiceDetailTable tbody tr').each_with_index.map do |tr, i|
           {
+            uid: "#{transaction_uid}-#{i}",
             name: tr.css('td:nth-child(1)').text.strip,
             count: tr.css('td:nth-child(2)').text.to_i,
             price: tr.css('td:nth-child(3)').text.to_i * 1_000,
@@ -136,15 +190,19 @@ class TWEInvoiceSyncer < Synchronizer
           }
         end
 
-        parsed_data = collected_page.parsed_data.build
-        parsed_data.data = {
+        new_parsed_data = collected_page.parsed_data.build
+        new_parsed_data.data = {
+          account_uid: account_uid,
+          account_type: account_type,
+          uid: transaction_uid,
           invoice_code: invoice_code,
           seller_name: seller_name,
           amount: amount,
           datetime: datetime,
           details: details
         }
-        parsed_data.save!
+        new_parsed_data.attribute_1 = invoice_code
+        new_parsed_data.save!
         collected_page.parsed!
       end
     end

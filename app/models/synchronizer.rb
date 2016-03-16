@@ -19,7 +19,7 @@ class Synchronizer < ApplicationRecord
                    :name, :status,
                    :passcode_1, :passcode_2, :passcode_3, :passcode_4,
                    :last_collected_at, :last_parsed_at, :last_synced_at,
-                   :collected_pages
+                   :collected_pages, :parsed_data
 
     def initialize(synchronizer)
       @synchronizer = synchronizer
