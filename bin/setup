@@ -15,15 +15,25 @@ chdir APP_ROOT do
   # Add necessary setup steps to this file.
 
   puts '== Installing system packages =='
-  if RUBY_PLATFORM['x86_64-darwin']
-    system!('brew install imagemagick')
+  # We don't need these system packages if we're not running integration tests
+  if ENV['INTEGRATION_TEST'] == 'false'
+    puts "Skipping due to INTEGRATION_TEST=false"
   else
-    puts "Warning: we can't install imagemagick automatically for OS: #{RUBY_PLATFORM}, please install it manually"
-  end
-  if RUBY_PLATFORM['x86_64-darwin']
-    system!('brew install tesseract')
-  else
-    puts "Warning: we can't install tesseract automatically for OS: #{RUBY_PLATFORM}, please install it manually"
+    if RUBY_PLATFORM['x86_64-darwin'] && system('which brew')
+      system!('brew install imagemagick')
+    elsif RUBY_PLATFORM['x86_64-linux'] && system('sudo which apt-get')
+      system!('sudo apt-get -y install imagemagick')
+    else
+      puts "Warning: we can't install imagemagick automatically for OS: #{RUBY_PLATFORM}, please install it manually"
+    end
+
+    if RUBY_PLATFORM['x86_64-darwin'] && system('which brew')
+      system!('brew install tesseract')
+    elsif RUBY_PLATFORM['x86_64-linux'] && system('sudo which apt-get')
+      system!('sudo apt-get -y install tesseract-ocr')
+    else
+      puts "Warning: we can't install tesseract automatically for OS: #{RUBY_PLATFORM}, please install it manually"
+    end
   end
 
   puts '== Installing dependencies =='
