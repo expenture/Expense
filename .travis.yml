@@ -1,8 +1,15 @@
 language:
   - ruby
+sudo: false
 rvm:
   - 2.3.0
-sudo: false
+env:
+  - INTEGRATION_TEST=false
+  - INTEGRATION_TEST=true
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: INTEGRATION_TEST=true
 cache:
   bundler: true
   directories:
