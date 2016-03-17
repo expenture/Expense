@@ -13,7 +13,8 @@ matrix:
 cache:
   bundler: true
   directories:
-    - ~/.rvm
+    - ~/.rvm/gems/ruby-2.3.0
+    - ~/.rvm/rubies/ruby-2.3.0
 before_install:
   - "echo 'gem: --no-document' > ~/.gemrc"
   - export DATABASE_URL=postgres://postgres@localhost/database
