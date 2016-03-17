@@ -33,7 +33,9 @@ class TWEInvoiceSyncer < Synchronizer
     # 手機條碼
     '3J0002' => 'tw_einvoice_general_carrier',
     # 悠遊卡
-    '1K0001' => 'tw_eazycard'
+    '1K0001' => 'tw_eazycard',
+    # iCash
+    '2G0001' => 'tw_icash'
   }.freeze
 
   class Collector < Worker
@@ -143,8 +145,14 @@ class TWEInvoiceSyncer < Synchronizer
   end
 
   class Parser < Worker
-    def run
-      collected_pages.unparsed.find_each do |collected_page|
+    def run(level: :normal)
+      if level == :complete
+        cps = collected_pages.all
+      else
+        cps = collected_pages.unparsed
+      end
+
+      cps.find_each do |collected_page|
         html_doc = Nokogiri::HTML(collected_page.body)
         if html_doc.css('.cp table').blank?
           collected_page.skipped!
@@ -191,6 +199,8 @@ class TWEInvoiceSyncer < Synchronizer
         end
 
         new_parsed_data = collected_page.parsed_data.build
+        new_parsed_data.account_uid = account_uid
+        new_parsed_data.transaction_uid = transaction_uid
         new_parsed_data.data = {
           account_uid: account_uid,
           account_type: account_type,
@@ -209,6 +219,67 @@ class TWEInvoiceSyncer < Synchronizer
   end
 
   class Organizer < Worker
+    def run(level: :normal)
+      if level == :complete
+        pds = parsed_data.all
+      else
+        pds = parsed_data.unorganized
+      end
+
+      pds.find_each do |the_parsed_data|
+        data = the_parsed_data.data
+        account = accounts.find_or_create_by(uid: data[:account_uid]) do |new_account|
+          new_account.type = data[:account_type]
+          case data[:account_type]
+          when 'tw_einvoice_general_carrier'
+            new_account.name = "電子發票"
+          when 'tw_eazycard'
+            new_account.name = "悠遊卡 (電子發票)"
+          when 'tw_icash'
+            new_account.name = "iCash (電子發票)"
+          end
+        end
+
+        if account.transactions.exists?(uid: data[:uid])
+          the_parsed_data.skipped!
+        else
+          # TODO: log seller_name
+          transaction = account.transactions.create!(
+            uid: data[:uid],
+            description: "在 #{data[:seller_name]} 消費 NT$ #{(data[:amount] / 1_000).to_i}",
+            amount: -data[:amount],
+            datetime: data[:datetime],
+            note: (
+              <<-EOD.strip_heredoc
+                發票號碼：#{data[:invoice_code]}
+                發票開立日期：#{DateTime.parse(data[:datetime]).strftime('%Y/%m/%d')}
+                賣方名稱與統編：#{data[:seller_name]}
+                發票金額：#{(data[:amount] / 1_000).to_i}
+                消費明細：
+              EOD
+            ) + data[:details].map { |d| "#{d[:name]}：NT$ #{d[:price]/1000} × #{d[:count]} = NT$ #{d[:amount]/1000}" }.join("\n")
+          )
+
+          data[:details].each do |detail|
+            if detail[:amount] < 0
+              category_code = 'discounts'
+            else
+              @tcs ||= user.transaction_category_set
+              category_code = @tcs.categorize(detail[:name], datetime: DateTime.parse(data[:datetime]), latitude: 23.5, longitude: 121)
+            end
+
+            transaction.separating_children.create!(
+              uid: detail[:uid],
+              description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),
+              amount: -detail[:amount],
+              category_code: category_code
+            )
+          end
+
+          the_parsed_data.organized!
+        end
+      end
+    end
   end
 
   Synchronizer.register(self)

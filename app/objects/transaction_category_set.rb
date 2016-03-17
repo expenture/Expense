@@ -287,9 +287,39 @@ class TransactionCategorySet
         }
       }
     },
+    income: {
+      name: "Income",
+      priority: 2,
+      categories: {
+        salary: {
+          priority: 1,
+          name: "Salary"
+        },
+        dividends: {
+          priority: 2,
+          name: "Dividends"
+        },
+        part_time_income: {
+          priority: 3,
+          name: "Part Time Income"
+        },
+        investment_income: {
+          priority: 4,
+          name: "Investment Income"
+        },
+        rental_income: {
+          priority: 5,
+          name: "Rental Income"
+        },
+        discounts: {
+          priority: 6,
+          name: "Discounts"
+        }
+      }
+    },
     food: {
       name: "Food",
-      priority: 2,
+      priority: 3,
       categories: {
         breakfast: {
           name: "Breakfast",
@@ -326,6 +356,86 @@ class TransactionCategorySet
         snacks: {
           name: "Snacks",
           priority: 9
+        }
+      }
+    },
+    clothing: {
+      name: "Clothing",
+      priority: 4,
+      categories: {}
+    },
+    housing: {
+      name: "Housing",
+      priority: 5,
+      categories: {}
+    },
+    travel: {
+      name: "Travel",
+      priority: 6,
+      categories: {}
+    },
+    network: {
+      name: "Network",
+      priority: 7,
+      categories: {}
+    },
+    trip: {
+      name: "Trip",
+      priority: 8,
+      categories: {}
+    },
+    education: {
+      name: "Education",
+      priority: 9,
+      categories: {}
+    },
+    entertainment: {
+      name: "Entertainment",
+      priority: 10,
+      categories: {}
+    },
+    business: {
+      name: "Business",
+      priority: 11,
+      categories: {}
+    },
+    health: {
+      name: "Health",
+      priority: 12,
+      categories: {}
+    },
+    medical: {
+      name: "Medical",
+      priority: 13,
+      categories: {}
+    },
+    insurance: {
+      name: "Insurance",
+      priority: 14,
+      categories: {}
+    },
+    investment: {
+      name: "Investment",
+      priority: 15,
+      categories: {}
+    },
+    taxes: {
+      name: "Taxes",
+      priority: 16,
+      categories: {}
+    },
+    fees: {
+      name: "Fees",
+      priority: 17,
+      categories: {}
+    },
+    others: {
+      name: "Others",
+      priority: 18,
+      categories: {
+        others: {
+          name: "Others",
+          priority: 1
         }
       }
     }

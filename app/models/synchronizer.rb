@@ -19,7 +19,7 @@ class Synchronizer < ApplicationRecord
                    :name, :status,
                    :passcode_1, :passcode_2, :passcode_3, :passcode_4,
                    :last_collected_at, :last_parsed_at, :last_synced_at,
-                   :collected_pages, :parsed_data
+                   :collected_pages, :parsed_data, :accounts
 
     def initialize(synchronizer)
       @synchronizer = synchronizer
@@ -53,7 +53,7 @@ class Synchronizer < ApplicationRecord
     # Run the parser and parses the unparse collected data, save the parsed
     # data for further organizing
     # @abstract
-    def run
+    def run(level: :normal)
       raise NotImplementedError,
             "#{self.class.name}#run is not yet implemented!"
     end
@@ -64,7 +64,7 @@ class Synchronizer < ApplicationRecord
   class Organizer < Worker
     # Run the organizer and update records in the database
     # @abstract
-    def run
+    def run(level: :normal)
       raise NotImplementedError,
             "#{self.class.name}#run is not yet implemented!"
     end
@@ -86,9 +86,9 @@ class Synchronizer < ApplicationRecord
 
   # Run the data parsing process of the syncer
   # (Step 2 of syncing)
-  def run_parse
+  def run_parse(level: :normal)
     parse_start
-    parser.run
+    parser.run(level: level)
     parse_done
   rescue NotImplementedError
     raise NotImplementedError,
@@ -100,9 +100,9 @@ class Synchronizer < ApplicationRecord
 
   # Run the record organizing process of the syncer
   # (Step 3 of syncing)
-  def run_organize
+  def run_organize(level: :normal)
     organize_start
-    organizer.run
+    organizer.run(level: level)
     organize_done
   rescue NotImplementedError
     raise NotImplementedError,

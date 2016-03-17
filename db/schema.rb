@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160316125722) do
+ActiveRecord::Schema.define(version: 20160316152843) do
 
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                           null: false
@@ -107,9 +107,11 @@ ActiveRecord::Schema.define(version: 20160316125722) do
     t.datetime "organized_at"
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
+    t.datetime "skipped_at"
     t.index ["account_uid"], name: "index_synchronizer_parsed_data_on_account_uid"
     t.index ["collected_page_id"], name: "index_synchronizer_parsed_data_on_collected_page_id"
     t.index ["organized_at"], name: "index_synchronizer_parsed_data_on_organized_at"
+    t.index ["skipped_at"], name: "index_synchronizer_parsed_data_on_skipped_at"
     t.index ["synchronizer_uid"], name: "index_synchronizer_parsed_data_on_synchronizer_uid"
     t.index ["transaction_uid"], name: "index_synchronizer_parsed_data_on_transaction_uid"
   end
@@ -165,7 +167,7 @@ ActiveRecord::Schema.define(version: 20160316125722) do
     t.boolean  "ignore_in_statistics",   default: false, null: false
     t.datetime "created_at",                             null: false
     t.datetime "updated_at",                             null: false
-    t.boolean  "separated"
+    t.boolean  "separated",              default: false, null: false
     t.string   "parent_transaction_uid"
     t.string   "kind"
     t.index ["account_uid"], name: "index_transactions_on_account_uid"

@@ -16,7 +16,10 @@ RSpec.describe SyncingAccount, type: :model do
     end
 
     describe "transaction" do
-      subject(:transaction) { syncing_account.transactions.create!(uid: SecureRandom.uuid, amount: 100_000) }
+      subject(:transaction) do
+        t = syncing_account.transactions.create!(uid: SecureRandom.uuid, amount: 100_000)
+        Transaction.find(t.id)
+      end
 
       its(:kind) { is_expected.to eq('synced') }
       its(:class) { is_expected.to eq(SyncedTransaction) }

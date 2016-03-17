@@ -20,7 +20,7 @@ class Transaction < ApplicationRecord
   validate :immutable_parent_transaction_uid, on: :update
 
   before_validation :set_default_date, :standardize_attrs,
-                    :set_account_for_separating_children
+                    :set_account_for_separating_children, :set_kind
   after_create :update_account_on_create
   before_update :update_account_on_update
   after_touch :set_separated_if_having_separating_children
@@ -61,6 +61,13 @@ class Transaction < ApplicationRecord
   def set_account_for_separating_children
     return unless parent_transaction.present?
     self.account_uid ||= parent_transaction.account_uid
+  end
+
+  def set_kind
+    return if account.blank?
+    if account.kind == 'syncing' && parent_transaction_uid.nil?
+      self.kind = 'synced'
+    end
   end
 
   def update_account_on_create

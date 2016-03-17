@@ -1,5 +1,5 @@
 class Synchronizer::ParsedData < ApplicationRecord
-  scope :organized, -> { where(organized_at: nil) }
+  scope :unorganized, -> { where(organized_at: nil) }
 
   belongs_to :synchronizer, primary_key: :uid, foreign_key: :synchronizer_uid
   belongs_to :collected_page, class_name: 'Synchronizer::CollectedPage'
@@ -16,5 +16,15 @@ class Synchronizer::ParsedData < ApplicationRecord
     data = HashWithIndifferentAccess.new(data) unless data.is_a? HashWithIndifferentAccess
     @data = data
     self.raw_data = data.to_json
+  end
+
+  def organized!
+    self.organized_at = Time.now
+    save!
+  end
+
+  def skipped!
+    self.skipped_at = Time.now
+    save!
   end
 end

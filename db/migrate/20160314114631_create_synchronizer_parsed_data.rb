@@ -9,6 +9,7 @@ class CreateSynchronizerParsedData < ActiveRecord::Migration[5.0]
       t.string :attribute_2
       t.text :raw_data
       t.datetime :organized_at
+      t.datetime :skipped_at
 
       t.timestamps
     end
@@ -18,5 +19,6 @@ class CreateSynchronizerParsedData < ActiveRecord::Migration[5.0]
     add_index :synchronizer_parsed_data, :transaction_uid
     add_index :synchronizer_parsed_data, :account_uid
     add_index :synchronizer_parsed_data, :organized_at
+    add_index :synchronizer_parsed_data, :skipped_at
   end
 end
