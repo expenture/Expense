@@ -1,23 +1,24 @@
 language:
   - ruby
 sudo: false
-rvm:
-  - 2.3.0
 env:
   - INTEGRATION_TEST=false
-  - INTEGRATION_TEST=true
 matrix:
+  include:
+    - env: INTEGRATION_TEST=true
+      sudo: true
   fast_finish: true
   allow_failures:
     - env: INTEGRATION_TEST=true
 cache:
   bundler: true
   directories:
-    - ~/.rvm/gems
+    - ~/.rvm
 before_install:
   - "echo 'gem: --no-document' > ~/.gemrc"
   - export DATABASE_URL=postgres://postgres@localhost/database
 install:
+  - rvm use "$(grep "^ruby '.*'" < Gemfile | cut -d "'" -f 2)" --install --binary
   - travis_retry bin/setup
 script: bin/rspec
 services:
