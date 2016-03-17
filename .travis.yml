@@ -3,7 +3,10 @@ language:
 rvm:
   - 2.3.0
 sudo: false
-cache: bundler
+cache:
+  bundler: true
+  directories:
+    - ~/.rvm/gems
 before_install:
   - "echo 'gem: --no-document' > ~/.gemrc"
   - export DATABASE_URL=postgres://postgres@localhost/database
