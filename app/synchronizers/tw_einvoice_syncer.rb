@@ -21,7 +21,8 @@ class TWEInvoiceSyncer < Synchronizer
     1 => {
       name: '手機號碼',
       description: '您的「財政部電子發票整合服務平台」註冊手機號碼',
-      required: true
+      required: true,
+      format: /09\d{8}/
     },
     2 => {
       name: '驗證碼',
@@ -87,6 +88,8 @@ class TWEInvoiceSyncer < Synchronizer
       sleep rand
       @session.evaluate_script("maintain();")
       sleep rand * 3
+
+      raise Synchronizer::ServiceAuthenticationError if @session.driver.source.match('手機或驗證碼錯誤')
     end
 
     def login?

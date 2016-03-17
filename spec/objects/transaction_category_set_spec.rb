@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe TransactionCategorySet, type: :service do
+RSpec.describe TransactionCategorySet, type: :object do
   let(:user) { create(:user) }
   let(:user2) { create(:user) }
 

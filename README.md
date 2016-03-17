@@ -5,6 +5,7 @@ An expense managing application to make life more easier and free. This is the b
 **Table of Contents**
 
 - [Development Setup](#development-setup)
+- [Testing](#testing)
 - [Deploy](#deploy)
 - [API](#api)
   - [Conventions](#conventions)
@@ -46,6 +47,13 @@ $ bin/setup
 Configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`, enter the console by `bin/console`, or run the tests by `bin/rspec`.
 
 > Note: After updating (i.e. pulling a new version from the remote repo), be sure to run `bin/update` before you do anything.
+
+
+## Testing
+
+Run `bin/rspec spec` to execute the RSpec test suite.
+
+Integrations test that require communications with real-world web services are skipped by default. Set the `INTEGRATION_TEST` environment variable to run them: `INTEGRATION_TEST=true bin/rspec spec`.
 
 
 ## Deploy
@@ -561,7 +569,8 @@ PASSCODE_INFO = {
   1 => {
     name: 'Account Name',
     description: 'Your account name for Xxx Bank',
-    required: true
+    required: true,
+    format: /\d{4}-\d{8}/
   },
   2 => {
     name: 'Password',

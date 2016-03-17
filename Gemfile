@@ -79,8 +79,8 @@ group :development, :test do
   # RSpec
   gem 'rspec-rails'
   gem 'spring-commands-rspec'
-  gem 'shoulda-matchers', require: false
-  gem 'rspec-its', require: false
+  gem 'shoulda-matchers'
+  gem 'rspec-its'
   gem 'database_cleaner'
   gem 'email_spec'
   gem 'simplecov', require: false

@@ -58,4 +58,8 @@ RSpec.configure do |config|
   config.include(EmailSpec::Helpers)
   config.include(EmailSpec::Matchers)
   config.include(Requests::JsonHelpers, type: :request)
+
+  if ENV['INTEGRATION_TEST'] != 'true'
+    config.filter_run_excluding integration: true
+  end
 end

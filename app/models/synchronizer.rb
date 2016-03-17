@@ -80,7 +80,11 @@ class Synchronizer < ApplicationRecord
     raise NotImplementedError,
           "#{self.class.name}::Collector#run is not yet implemented!"
   rescue Exception => e
-    collect_faild
+    if e.is_a? ServiceAuthenticationError
+      collect_faild(:bad_passcode)
+    else
+      collect_faild
+    end
     raise e
   end
 
@@ -145,8 +149,8 @@ class Synchronizer < ApplicationRecord
       if syncer_class::PASSCODE_INFO.is_a? Hash
         syncer_class::PASSCODE_INFO.each_pair do |k, v|
           next unless v.is_a? Hash
-          next unless v[:required]
-          syncer_class.validates "passcode_#{k}", presence: true
+          syncer_class.validates "passcode_#{k}", presence: true if v[:required]
+          syncer_class.validates "passcode_#{k}", format: v[:format] if v[:format].present?
         end
       end
     end
@@ -188,9 +192,19 @@ class Synchronizer < ApplicationRecord
     end
 
     define_method "passcode_#{i}=" do |passcode|
+      return if passcode.blank?
       encrypted_data = Encryptor.encrypt(passcode, salt: passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: passcode_encrypt_salt)
       self["encrypted_passcode_#{i}"] = Base64.encode64(encrypted_data)
     end
+  end
+
+  # Rewirte the getter of passcode_encrypt_salt to init the salt immediately
+  # if the salt is blank
+  def passcode_encrypt_salt
+    salt = super
+    return salt if salt.present?
+    init_passcode_encrypt_salt
+    super
   end
 
   # An error class used for raising while something isn't fully implemented
@@ -198,10 +212,16 @@ class Synchronizer < ApplicationRecord
   class NotImplementedError < StandardError
   end
 
+  # An error class used for raising on synchronization while
+  # authenticating failure (normally by incorrect passcodes)
+  class ServiceAuthenticationError < StandardError
+  end
+
   private
 
   def init_passcode_encrypt_salt
-    self.passcode_encrypt_salt ||= SecureRandom.hex(16)
+    return if self[:passcode_encrypt_salt].present?
+    self.passcode_encrypt_salt = SecureRandom.hex(16)
   end
 
   def collect_start
@@ -215,8 +235,12 @@ class Synchronizer < ApplicationRecord
     save!
   end
 
-  def collect_faild
-    self.status = 'collect_error'
+  def collect_faild(reason = nil)
+    if reason.present?
+      self.status = reason
+    else
+      self.status = 'collect_error'
+    end
     save!
   end
 
