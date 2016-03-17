@@ -1,9 +1,19 @@
 language:
   - ruby
+sudo: false
 rvm:
   - 2.3.0
-sudo: false
-cache: bundler
+env:
+  - INTEGRATION_TEST=false
+  - INTEGRATION_TEST=true
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: INTEGRATION_TEST=true
+cache:
+  bundler: true
+  directories:
+    - ~/.rvm/gems
 before_install:
   - "echo 'gem: --no-document' > ~/.gemrc"
   - export DATABASE_URL=postgres://postgres@localhost/database
