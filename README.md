@@ -564,28 +564,49 @@ Each synchronizer has their `CODE`, `REGION_CODE`, `NAME`, `DESCRIPTION`, `PASSC
 - [`String`] `DESCRIPTION`: A description of the syncer.
 - [`Hash`] `PASSCODE_INFO`: A hash that states the usage of passcode for this syncer. An example is:
 
-```ruby
-PASSCODE_INFO = {
-  1 => {
-    name: 'Account Name',
-    description: 'Your account name for Xxx Bank',
-    required: true,
-    format: /\d{4}-\d{8}/
-  },
-  2 => {
-    name: 'Password',
-    description: 'Your data inquire password for the account',
-    required: true
-  },
-  3 => {
-    name: 'Verification Code',
-    description: 'The verification code, if you\'ve set it',
-    required: false
-  }
-}.freeze
-```
+  ```ruby
+  PASSCODE_INFO = {
+    1 => {
+      name: 'Account Name',
+      description: 'Your account name for Xxx Bank',
+      required: true,
+      format: /\d{4}-\d{8}/
+    },
+    2 => {
+      name: 'Password',
+      description: 'Your data inquire password for the account',
+      required: true
+    },
+    3 => {
+      name: 'Verification Code',
+      description: 'The verification code, if you\'ve set it',
+      required: false
+    }
+  }.freeze
+  ```
 
-The implementation synchronizer is constructed by three parts: `Collector`, `Parser` and `Organizer`. The `Synchronizer` class defines these three abstract sub-class, while each inherited children should implement them:
+- [`Hash`] `SCHEDULE_INFO`: A hash that states the running schedule of this syncer, it must contains exactly three `Array`s of `String`s with keys `normal`, `high_frequency` and `low_frequency`, specifying the times of day to run. All time zones are in UTC. The minute must be a multiple of 10. An example is:
+
+  ```ruby
+  SCHEDULE_INFO = {
+    normal: {
+      %w(16:00 22:00 04:00 10:00),
+      description: 'Four times a day'
+    },
+    high_frequency: {
+      %w(**:00),
+      description: 'Every hour'
+    },
+    low_frequency: {
+      %w(16:00 04:00),
+      description: 'Twice a day'
+    }
+  }.freeze
+  ```
+
+All enabled syncers will run on the specified times of a day. The schedule (Synchronizer#schedule) is defaulted to `normal`, while users can set to use `high_frequency` or `low_frequency`. Running is triggered by the `clock` process (see `Procfile` under the project root directory, and `lib/clock.rb`).
+
+The implementation of each synchronizer is constructed by three parts: `Collector`, `Parser` and `Organizer`. The `Synchronizer` class defines these three abstract sub-class, while each inherited children should implement them:
 
 #### Collector
 

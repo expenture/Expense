@@ -38,6 +38,20 @@ class TWEInvoiceSyncer < Synchronizer
     # iCash
     '2G0001' => 'tw_icash'
   }.freeze
+  SCHEDULE_INFO = {
+    normal: {
+      description: '一天兩次－中午與午夜',
+      times: %w(00:00 12:00)
+    },
+    high_frequency: {
+      description: '每小時',
+      times: %w(**:00)
+    },
+    low_frequency: {
+      description: '每天午夜',
+      times: %w(00:00)
+    }
+  }.freeze
 
   class Collector < Worker
     def run(level: :normal)

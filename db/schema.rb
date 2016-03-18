@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160316152843) do
+ActiveRecord::Schema.define(version: 20160318043609) do
 
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                           null: false
@@ -117,25 +117,29 @@ ActiveRecord::Schema.define(version: 20160316152843) do
   end
 
   create_table "synchronizers", force: :cascade do |t|
-    t.integer  "user_id",                               null: false
+    t.integer  "user_id",                                  null: false
     t.string   "account_uid"
-    t.string   "uid",                                   null: false
-    t.string   "type",                                  null: false
-    t.boolean  "enabled",               default: true,  null: false
+    t.string   "uid",                                      null: false
+    t.string   "type",                                     null: false
+    t.boolean  "enabled",               default: true,     null: false
     t.string   "name"
-    t.string   "status",                default: "new", null: false
+    t.string   "status",                default: "new",    null: false
     t.string   "encrypted_passcode_1"
     t.string   "encrypted_passcode_2"
     t.string   "encrypted_passcode_3"
     t.string   "encrypted_passcode_4"
-    t.string   "passcode_encrypt_salt",                 null: false
+    t.string   "passcode_encrypt_salt",                    null: false
     t.datetime "last_collected_at"
     t.datetime "last_parsed_at"
     t.datetime "last_synced_at"
-    t.datetime "created_at",                            null: false
-    t.datetime "updated_at",                            null: false
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
+    t.string   "schedule",              default: "normal", null: false
+    t.datetime "last_errored_at"
     t.index ["account_uid"], name: "index_synchronizers_on_account_uid"
+    t.index ["last_errored_at"], name: "index_synchronizers_on_last_errored_at"
     t.index ["last_synced_at"], name: "index_synchronizers_on_last_synced_at"
+    t.index ["schedule"], name: "index_synchronizers_on_schedule"
     t.index ["type"], name: "index_synchronizers_on_type"
     t.index ["uid"], name: "index_synchronizers_on_uid", unique: true
     t.index ["user_id"], name: "index_synchronizers_on_user_id"

@@ -11,6 +11,8 @@ class Synchronizer < ApplicationRecord
   DESCRIPTION = ''.freeze
   # The passcode description that should be defined in all synchronizers
   PASSCODE_INFO = {}.freeze
+  # The statement of the running schedule of this syncer
+  SCHEDULE_INFO = {}.freeze
 
   # The base class for Collector, Parser and Organizer
   class Worker
@@ -133,6 +135,16 @@ class Synchronizer < ApplicationRecord
     log_info "Queued sync of level #{level}"
   end
 
+  # Perform the sync if in schedule
+  def perform_sync_if_in_schedule(time, level: :normal)
+    return unless schedule_times.map { |t| Regexp.new(t.tr('*', '.')) }.map { |r| r.match(time) }.any?
+    perform_sync(level: level)
+  end
+
+  def schedule_times
+    self.class::SCHEDULE_INFO[self.schedule.to_sym][:times]
+  end
+
   # Returns the +Collector+ instance of the syncer
   def collector
     @collector ||= self.class::Collector.new(self)
@@ -157,7 +169,7 @@ class Synchronizer < ApplicationRecord
   end
 
   def log_info(message)
-    logger.info "#{message}"
+    logger.info "#{self.class.name}: #{uid}: #{message}"
   end
 
   def log_error(message)
@@ -179,12 +191,40 @@ class Synchronizer < ApplicationRecord
       @syncer_classes ||= HashWithIndifferentAccess.new
       @syncer_classes[syncer_class::CODE] = syncer_class
 
-      if syncer_class::PASSCODE_INFO.is_a? Hash
+      if syncer_class::PASSCODE_INFO.present?
+        raise "#{syncer_class.name}::PASSCODE_INFO should be a hash" unless syncer_class::PASSCODE_INFO.is_a? Hash
         syncer_class::PASSCODE_INFO.each_pair do |k, v|
-          next unless v.is_a? Hash
+          raise "#{syncer_class.name}::PASSCODE_INFO[#{k}] is invalid" unless v.is_a? Hash
+          raise "#{syncer_class.name}::PASSCODE_INFO[#{k}][:name] must not be blank" unless v[:name].present?
+          raise "#{syncer_class.name}::PASSCODE_INFO[#{k}][:description] must not be blank" unless v[:name].present?
+          raise "#{syncer_class.name}::PASSCODE_INFO[#{k}][:name] must be a string" unless v[:name].is_a? String
+          raise "#{syncer_class.name}::PASSCODE_INFO[#{k}][:description] must be a string" unless v[:description].is_a? String
           syncer_class.validates "passcode_#{k}", presence: true if v[:required]
           syncer_class.validates "passcode_#{k}", format: v[:format] if v[:format].present?
         end
+      end
+
+      if syncer_class::SCHEDULE_INFO.present?
+        raise "#{syncer_class.name}::SCHEDULE_INFO should be a hash" unless syncer_class::SCHEDULE_INFO.is_a? Hash
+        raise "#{syncer_class.name}::SCHEDULE_INFO has invalid keys" if syncer_class::SCHEDULE_INFO.keys.uniq.sort != [:normal, :high_frequency, :low_frequency].uniq.sort
+        syncer_class::SCHEDULE_INFO.each_pair do |k, v|
+          raise "#{syncer_class.name}::SCHEDULE_INFO[:#{k}] is invalid" unless v.is_a? Hash
+          raise "#{syncer_class.name}::SCHEDULE_INFO[:#{k}][:times] must not be blank" unless v[:times].present?
+          raise "#{syncer_class.name}::SCHEDULE_INFO[:#{k}][:times] must be a array" unless v[:times].is_a? Array
+          raise "#{syncer_class.name}::SCHEDULE_INFO[:#{k}][:description] must not be blank" unless v[:description].present?
+          v[:times].each do |t|
+            raise "#{syncer_class.name}::SCHEDULE_INFO[:#{k}][:times] time #{t} is not a correct format" unless t.match(/[\d\*]{2}:[\d\*][0\*]/)
+          end
+        end
+      end
+    end
+
+    # Schedule syncers to run in background workers for a specified time
+    def schedule_syncers_for_time(time)
+      logger.info "#{self.name}: Scheduling syncers for time: #{time}"
+
+      enabled.find_each do |syncer|
+        syncer.perform_sync_if_in_schedule(time)
       end
     end
 
@@ -200,9 +240,14 @@ class Synchronizer < ApplicationRecord
     def sti_name
       self::CODE
     end
+
+    def logger
+      Rails.logger
+    end
   end
 
   # General ActiveRecord relations, validations and callbacks
+  scope :enabled, -> { where(enabled: true) }
   belongs_to :user
   belongs_to :account,
              primary_key: :uid, foreign_key: :account_uid
@@ -214,6 +259,7 @@ class Synchronizer < ApplicationRecord
                       primary_key: :uid, foreign_key: :synchronizer_uid
   validates :user, :uid, :name, presence: true
   validates :uid, uniqueness: true
+  validates :schedule, inclusion: { in: %w(normal high_frequency low_frequency), message: "%{value} is not a valid schedule, must be one of: normal, high_frequency or low_frequency" }
   after_initialize :init_passcode_encrypt_salt
 
   # Virtual attrs for getting and setting plaintext passcodes
@@ -273,6 +319,7 @@ class Synchronizer < ApplicationRecord
       self.status = reason
     else
       self.status = 'collect_error'
+      self.last_errored_at = Time.now
     end
     save!
   end
@@ -290,6 +337,7 @@ class Synchronizer < ApplicationRecord
 
   def parse_faild
     self.status = 'parse_error'
+    self.last_errored_at = Time.now
     save!
   end
 
@@ -306,6 +354,7 @@ class Synchronizer < ApplicationRecord
 
   def organize_faild
     self.status = 'organize_error'
+    self.last_errored_at = Time.now
     save!
   end
 end

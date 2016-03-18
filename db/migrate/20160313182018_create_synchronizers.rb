@@ -6,6 +6,7 @@ class CreateSynchronizers < ActiveRecord::Migration[5.0]
       t.string :uid, null: false
       t.string :type, null: false
       t.boolean :enabled, null: false, default: true
+      t.string :schedule, null: false, default: 'normal'
       t.string :name
       t.string :status, null: false, default: 'new'
       t.string :encrypted_passcode_1
@@ -16,6 +17,7 @@ class CreateSynchronizers < ActiveRecord::Migration[5.0]
       t.datetime :last_collected_at
       t.datetime :last_parsed_at
       t.datetime :last_synced_at
+      t.datetime :last_errored_at
 
       t.timestamps
     end
@@ -24,7 +26,9 @@ class CreateSynchronizers < ActiveRecord::Migration[5.0]
     add_index :synchronizers, :uid, unique: true
     add_index :synchronizers, :type
     add_index :synchronizers, :last_synced_at
+    add_index :synchronizers, :last_errored_at
     add_index :synchronizers, :account_uid
+    add_index :synchronizers, :schedule
 
     add_foreign_key :synchronizers, :users
   end
