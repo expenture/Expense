@@ -77,7 +77,7 @@ class TWEInvoiceSyncer < Synchronizer
       verification_code = RTesseract.new(verification_image_file_name).to_s
       system "rm #{verification_image_file_name}"
       verification_code.gsub!(/[^A-Za-z0-9]/, '')
-      puts verification_code
+      log_debug "Using verification_code: #{verification_code}"
       return if verification_code.length < 5
 
       @session.evaluate_script("document.getElementById('mobile').value = '#{passcode_1}';")

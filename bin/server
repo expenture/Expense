@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
 BASEDIR=$(dirname "$0")
 cd "$(dirname "$BASEDIR")" || exit
-./bin/rails server
+source .env
+bundle exec foreman start --port "${PORT:-3000}"

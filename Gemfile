@@ -14,8 +14,11 @@ gem 'pg'
 gem 'puma'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.4'
-# Action Cable dependencies for the Redis adapter
+# Redis
 gem 'redis', '~> 3.0'
+gem 'redis-namespace'
+
+gem 'sinatra', github: 'sinatra/sinatra', branch: 'master', require: false
 
 # Wrapper for the standard Ruby OpenSSL library
 gem 'encryptor'
@@ -31,6 +34,10 @@ gem 'rest-client'
 
 # In-database key-value storage
 gem 'rails-settings-cached', github: 'Neson/rails-settings-cached'
+
+# Job runner and clock
+gem 'sidekiq', '~> 3.4.2'
+gem 'clockwork', '~> 1.2.0'
 
 # User authentication
 gem 'devise', '~> 4.0.0.rc1'
@@ -58,9 +65,9 @@ gem 'rtesseract'
 # Use Pry as the Rails console
 gem 'pry-rails'
 gem 'pry-byebug'
-gem 'awesome_print', :require => false
-gem 'hirb', :require => false
-gem 'hirb-unicode', :require => false
+gem 'awesome_print', require: false
+gem 'hirb', require: false
+gem 'hirb-unicode', require: false
 
 # Model factory and tools
 gem 'factory_girl_rails'
@@ -68,7 +75,7 @@ gem 'faker'
 
 # Logger
 gem 'remote_syslog_logger'
-gem 'rails_stdout_logging', :require => false
+gem 'rails_stdout_logging', require: false
 
 # Monitoring
 gem 'newrelic_rpm'
@@ -93,8 +100,11 @@ end
 group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
+  # Manage Procfile-based applications
+  gem 'foreman'
   # Open the sent email directly in the browser while development
   gem 'letter_opener'
+  # Generate ERD diagram
   gem 'rails-erd'
 end
 

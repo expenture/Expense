@@ -19,7 +19,8 @@ class Synchronizer < ApplicationRecord
                    :name, :status,
                    :passcode_1, :passcode_2, :passcode_3, :passcode_4,
                    :last_collected_at, :last_parsed_at, :last_synced_at,
-                   :collected_pages, :parsed_data, :accounts
+                   :collected_pages, :parsed_data, :accounts,
+                   :logger, :log_debug, :log_info, :log_error
 
     def initialize(synchronizer)
       @synchronizer = synchronizer
@@ -73,17 +74,21 @@ class Synchronizer < ApplicationRecord
   # Run the data collecting process of the syncer
   # (Step 1 of syncing)
   def run_collect(level: :normal)
+    log_info "Running collect of level #{level}"
     collect_start
     collector.run(level: level)
     collect_done
+    log_info "Done collect of level #{level}"
   rescue NotImplementedError
     raise NotImplementedError,
           "#{self.class.name}::Collector#run is not yet implemented!"
   rescue Exception => e
     if e.is_a? ServiceAuthenticationError
       collect_faild(:bad_passcode)
+      log_info "Bad passcode on running collect of level #{level}"
     else
       collect_faild
+      log_error "Failed on running collect of level #{level}, exception: #{e}"
     end
     raise e
   end
@@ -91,29 +96,41 @@ class Synchronizer < ApplicationRecord
   # Run the data parsing process of the syncer
   # (Step 2 of syncing)
   def run_parse(level: :normal)
+    log_info "Running parse of level #{level}"
     parse_start
     parser.run(level: level)
     parse_done
+    log_info "Done parse of level #{level}"
   rescue NotImplementedError
     raise NotImplementedError,
           "#{self.class.name}::Parser#run is not yet implemented!"
   rescue Exception => e
     parse_faild
+    log_error "Failed on running parse of level #{level}, exception: #{e}"
     raise e
   end
 
   # Run the record organizing process of the syncer
   # (Step 3 of syncing)
   def run_organize(level: :normal)
+    log_info "Running organize of level #{level}"
     organize_start
     organizer.run(level: level)
     organize_done
+    log_info "Done organize of level #{level}"
   rescue NotImplementedError
     raise NotImplementedError,
           "#{self.class.name}::Organizer#run is not yet implemented!"
   rescue Exception => e
     organize_faild
+    log_error "Failed on running organize of level #{level}, exception: #{e}"
     raise e
+  end
+
+  # Perform the sync in background worker
+  def perform_sync(level: :normal)
+    SynchronizerRunCollectJob.perform_later(synchronizer: self, level: level.to_s, auto_continue_syncing: true)
+    log_info "Queued sync of level #{level}"
   end
 
   # Returns the +Collector+ instance of the syncer
@@ -129,6 +146,22 @@ class Synchronizer < ApplicationRecord
   # Returns the +Organizer+ instance of the syncer
   def organizer
     @organizer ||= self.class::Organizer.new(self)
+  end
+
+  def logger
+    Rails.logger
+  end
+
+  def log_debug(message)
+    logger.debug "#{self.class.name}: #{uid}: #{message}"
+  end
+
+  def log_info(message)
+    logger.info "#{message}"
+  end
+
+  def log_error(message)
+    logger.error "#{self.class.name}: #{uid}: #{message}"
   end
 
   # Class methods for managing registered syncers

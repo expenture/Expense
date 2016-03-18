@@ -17,6 +17,17 @@ Rails.application.routes.draw do
     resources :transactions, only: [:index]
   end
 
+  # Sidekiq
+  require 'sidekiq/web'
+  Sidekiq::Web.use(Rack::Session::Cookie, secret: Rails.application.config.secret_token)
+  Sidekiq::Web.instance_eval { @middleware.reverse! }
+  Sidekiq::Web.use(Rack::Auth::Basic) do |username, password|
+    ENV['ADMIN_USERNAME'].present? && ENV['ADMIN_PASSWORD'].present? &&
+      username == ENV['ADMIN_USERNAME'] &&
+      password == ENV['ADMIN_PASSWORD']
+  end
+  mount Sidekiq::Web => '/jobs'
+
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
   # Serve websocket cable requests in-process
