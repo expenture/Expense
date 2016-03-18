@@ -27,7 +27,7 @@ gem 'encryptor'
 # gem 'capistrano-rails', group: :development
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
-# gem 'rack-cors'
+gem 'rack-cors'
 
 # HTTP client
 gem 'rest-client'
@@ -88,6 +88,7 @@ group :development, :test do
   gem 'spring-commands-rspec'
   gem 'shoulda-matchers'
   gem 'rspec-its'
+  gem 'airborne'
   gem 'database_cleaner'
   gem 'email_spec'
   gem 'simplecov', require: false

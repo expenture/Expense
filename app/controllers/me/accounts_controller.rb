@@ -8,8 +8,8 @@ class Me::AccountsController < ApplicationAPIController
   def update
     if request.put?
       @account = current_user.accounts.find_or_initialize_by(uid: params[:id])
-      @account.assign_attributes(empty_account_param_set.merge(account_params.to_h))
-    else request.patch?
+      @account.assign_attributes(empty_account_params.merge(account_params.to_h))
+    elsif request.patch?
       @account = current_user.accounts.find_by!(uid: params[:id])
       @account.assign_attributes(account_params)
     end
@@ -19,8 +19,8 @@ class Me::AccountsController < ApplicationAPIController
     if @account.save
       render status: status
     else
-      @error = { messages: @account.errors }
-      render status: 400
+      @error = Error.new(@account.errors)
+      render status: @error.status
     end
   end
 
@@ -30,17 +30,13 @@ class Me::AccountsController < ApplicationAPIController
     if @account.destroy
       render
     else
-      @error = { messages: @account.errors }
-      render status: 400
+      @error = Error.new(@account.errors)
+      render status: @error.status
     end
   end
 
   def transaction_categorization_suggestion
-    if params[:words].blank?
-      @error = { message: 'Please provide the param "words".' }
-      render status: 400
-      return
-    end
+    params.require(:words)
 
     req = Rack::Request.new(request.env)
     request_location = req.safe_location
@@ -56,15 +52,15 @@ class Me::AccountsController < ApplicationAPIController
 
   private
 
-  def permitted_account_param_names
-    %w(type name currency balance)
-  end
-
   def account_params
     params.require(:account).permit(permitted_account_param_names)
   end
 
-  def empty_account_param_set
-    HashWithIndifferentAccess[permitted_account_param_names.map { |v| [v, nil] }]
+  def empty_account_params
+    Account.new.serializable_hash.slice(*permitted_account_param_names)
+  end
+
+  def permitted_account_param_names
+    %w(type name currency balance)
   end
 end

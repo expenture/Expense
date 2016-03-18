@@ -16,3 +16,5 @@ else
   json.created_at transaction.created_at
   json.updated_at transaction.updated_at
 end
+
+json.errors transaction.errors if transaction.errors.present?

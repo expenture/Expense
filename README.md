@@ -18,6 +18,7 @@ An expense managing application to make life more easier and free. This is the b
     - [Account Management](#account-management)
     - [Transaction Management](#transaction-management)
     - [Transaction Category Set Management](#transaction-category-set-management)
+    - [Synchronizer Management](#synchronizer-management)
 - [Architecture](#architecture)
   - [Environment Variables](#environment-variables)
   - [Domain Model ERD Diagram](#domain-model-erd-diagram)
@@ -139,20 +140,20 @@ Pass the user's email as the username and the password with the request like thi
 ```http
 POST /oauth/token?
      grant_type=password&
-     username=<email>&
-     password=<password>
+     username={email}&
+     password={password}
 ```
 
 Sample response:
 
 ```json
 {
-  "access_token": "xxxxxxx",
+  "access_token": "2fd434f0f4835c5f810256ed04c117b33b90a35c3c6da0b6a5b773fce98b4ff6",
   "token_type": "bearer",
   "expires_in": 7200,
-  "refresh_token": "xxxxxxxxxx",
+  "refresh_token": "4f9cb068d2b2c5f86bae4d21ea17949a6a0aa9f8634c9226d14419ad178e6b9e",
   "scope": "default",
-  "created_at": 00000000
+  "created_at": 1458313774
 }
 ```
 
@@ -168,7 +169,7 @@ To achieve "loggin in with Facebook", a vaild Facebook access token is also avai
 POST /oauth/token?
      grant_type=password&
      username=facebook:access_token&
-     password=<facebook_access_token>
+     password={facebook_access_token}
 ```
 
 If the corresponding user does not exists, a new user will with blank password be created and link to that Facebook account automatically. The automatically created user will not be able to login using password unless they use the reset password API to set their password.
@@ -184,19 +185,19 @@ The refresh token is used for obtending a new access token after the current one
 ```http
 POST /oauth/token?
      grant_type=refresh_token&
-     refresh_token=xxxxxxx
+     refresh_token={4f9cb068d2b2c5f86bae4d21ea17949a6a0aa9f8634c9226d14419ad178e6b9e}
 ```
 
 the sample response:
 
 ```json
 {
-  "access_token": "xxxxxxx",
+  "access_token": "359eb6e59d78c35b3933f4266ca1680fc733fba5783f5780a191ce4c078c880d",
   "token_type": "bearer",
   "expires_in": 7200,
-  "refresh_token": "xxxxxxxxxx",
+  "refresh_token": "9b3124588e96673563da7ebce13b13c27defdc379b426bb94611c7cd27b1ac1e",
   "scope": "default",
-  "created_at": 00000000
+  "created_at": 1458313916
 }
 ```
 
@@ -206,7 +207,7 @@ the sample response:
 
 All the transactions (the log of expense or income) are filed under accounts. A default cash account with the name "default" and type "cash" will be created with the new user ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)) and set as the default account ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)). Default accounts cannot be deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/account_spec.rb)). Operations for managing the user's accounts are listed below:
 
-##### Getting The List of Accounts
+##### Listing Accessible Accounts
 
 ```http
 GET /me/accounts
@@ -238,7 +239,7 @@ accounts: [
 ##### Creating an Account
 
 ```http
-PUT /me/accounts/<generated_unique_id>
+PUT /me/accounts/{generated_unique_id}
 Content-Type: application/json
 
 {
@@ -254,7 +255,7 @@ Content-Type: application/json
 ##### Updating Info of an Account
 
 ```http
-PATCH /me/accounts/<account_uid>
+PATCH /me/accounts/{account_uid}
 Content-Type: application/json
 
 {
@@ -265,7 +266,7 @@ Content-Type: application/json
 ##### Deleting an Account
 
 ```http
-DELETE /me/accounts/<account_uid>
+DELETE /me/accounts/{account_uid}
 ```
 
 #### Transaction Management
@@ -317,7 +318,7 @@ Sample response:
 ##### Getting All Transactions Under An Account
 
 ```http
-GET /me/accounts/<account_uid>/transactions
+GET /me/accounts/{account_uid}/transactions
 ```
 
 This API is [Paginatable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Paginatable), [Sortable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Sortable) and [Filterable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Filterable).
@@ -327,7 +328,7 @@ The response format is same as `GET /me/transactions`.
 ##### Creating A Transaction
 
 ```http
-PUT /me/accounts/<account_uid>/transactions/<generated_unique_id>
+PUT /me/accounts/{account_uid}/transactions/{generated_unique_id}
 Content-Type: application/json
 
 {
@@ -338,7 +339,7 @@ Content-Type: application/json
 ##### Updating A Transaction
 
 ```http
-PATCH /me/accounts/<account_uid>/transactions/<transaction_uid>
+PATCH /me/accounts/{account_uid}/transactions/{transaction_uid}
 Content-Type: application/json
 
 {
@@ -349,7 +350,7 @@ Content-Type: application/json
 ##### Deleting A Transaction
 
 ```http
-DELETE /me/accounts/<account_uid>/transactions/<transaction_uid>
+DELETE /me/accounts/{account_uid}/transactions/{transaction_uid}
 ```
 
 #### Transaction Category Set Management
@@ -466,7 +467,7 @@ Content-Type: application/json
 ##### Get Transaction Categorization Suggestion For Some Words
 
 ```http
-GET /me/accounts/<account_id>/transaction_categorization_suggestion?words=<some_words>
+GET /me/accounts/{account_id}/transaction_categorization_suggestion?words={some_words}
 ```
 
 Sample response:
@@ -476,6 +477,46 @@ Sample response:
   "category_code": "drinks"
 }
 ```
+
+#### Synchronizer Management
+
+Synchronizers are the bots that collect real-world transaction records and writes transactions for users.
+
+##### Get List of Available Syncers
+
+```http
+GET /synchronizers
+```
+
+##### Get List of User's Syncers
+
+```http
+GET /me/synchronizers
+```
+
+##### Adding A Syncer
+
+```http
+PUT /me/synchronizers/{generated_unique_id}
+Content-Type: application/json
+
+{
+  "synchronizer": <synchronizer_attrs>
+}
+```
+
+##### Updating A Syncer
+
+```http
+PATCH /me/synchronizers/{synchronizer_uid}
+Content-Type: application/json
+
+{
+  "synchronizer": <synchronizer_attrs>
+}
+```
+
+> TODO: Destroy syncer API.
 
 
 ## Architecture
@@ -560,6 +601,7 @@ Each synchronizer has their `CODE`, `REGION_CODE`, `NAME`, `DESCRIPTION`, `PASSC
 
 - [`Symbol`] `CODE`: An unique identifier of the syncer.
 - [`Symbol`] `REGION_CODE`: The region code. This can be `nil`.
+- [`Symbol`] `TYPE`: The syncer type. This can be `nil`.
 - [`String`] `NAME`: The display name.
 - [`String`] `DESCRIPTION`: A description of the syncer.
 - [`Hash`] `PASSCODE_INFO`: A hash that states the usage of passcode for this syncer. An example is:

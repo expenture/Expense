@@ -15,6 +15,7 @@
 class TWEInvoiceSyncer < Synchronizer
   CODE = :tw_einvoice
   REGION_CODE = :tw
+  TYPE = :einvoice
   NAME = '電子發票'.freeze
   DESCRIPTION = '使用電子發票手機條碼，或是悠遊卡、博客來會員等載具，自動歸戶到「財政部電子發票整合服務平台」的電子發票。'.freeze
   PASSCODE_INFO = {

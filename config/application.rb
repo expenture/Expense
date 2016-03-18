@@ -34,6 +34,13 @@ module Expense
     config.api_only = true
     config.session_store = :cookie_store
 
+    config.middleware.insert_before 0, "Rack::Cors" do
+      allow do
+        origins '*'
+        resource '*', headers: :any, methods: :any
+      end
+    end
+
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Flash
 

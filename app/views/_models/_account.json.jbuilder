@@ -13,3 +13,5 @@ else
   json.created_at account.created_at
   json.updated_at account.updated_at
 end
+
+json.errors account.errors if account.errors.present?

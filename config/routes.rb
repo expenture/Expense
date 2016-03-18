@@ -10,12 +10,14 @@ Rails.application.routes.draw do
       resources :transactions, controller: 'accounts/transactions',
                                only: [:index, :update, :destroy]
     end
-
     resource :transaction_category_set, controller: 'transaction_category_set',
                                         only: [:show, :update]
-
     resources :transactions, only: [:index]
+    resources :synchronizers, only: [:index, :update, :destroy],
+                              defaults: { format: :json }
   end
+
+  resources :synchronizers, only: [:index], defaults: { format: :json }
 
   # Sidekiq
   require 'sidekiq/web'

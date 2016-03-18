@@ -63,8 +63,8 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
 
       render status: status
     else
-      @error = { messages: @transaction.errors }
-      render status: 400
+      @error = Error.new(@transaction.errors)
+      render status: @error.status
     end
   end
 
@@ -74,8 +74,8 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
     if @transaction.destroy
       render
     else
-      @error = { messages: @transaction.errors }
-      render status: 400
+      @error = Error.new(@transaction.errors)
+      render status: @error.status
     end
   end
 

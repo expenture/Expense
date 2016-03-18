@@ -30,16 +30,12 @@ describe "User's Transactions Listing API" do
 
     it_behaves_like "a paginatable API", '/me/transactions', 12
     it_behaves_like "a filterable API", '/me/transactions', 'transactions', 'amount',
-                    {
-                      'greater_then(8900000)' => [9000000],
-                      'less_then_or_equal(2000000)' => [2000000, 1000000, 0, -1000000, -2000000],
-                      'between(3000000,5000000)' => [3000000, 4000000, 5000000]
-                    }
+                    'greater_then(8900000)' => [9000000],
+                    'less_then_or_equal(2000000)' => [2000000, 1000000, 0, -1000000, -2000000],
+                    'between(3000000,5000000)' => [3000000, 4000000, 5000000]
     it_behaves_like "a sortable API", '/me/transactions', 'transactions',
-                    {
-                      '-amount' => ['amount', 9000000],
-                      'amount' => ['amount', -2000000]
-                    }
+                    '-amount' => ['amount', 9000000],
+                    'amount' => ['amount', -2000000]
 
     it "sends a list of transactions" do
       get '/me/transactions', api_authorization

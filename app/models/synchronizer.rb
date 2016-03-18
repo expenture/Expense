@@ -5,6 +5,9 @@ class Synchronizer < ApplicationRecord
   # A region code that should be defined in all synchronizers,
   # this should be a symbol
   REGION_CODE = nil
+  # A type that should be defined in all synchronizers,
+  # this should be a symbol
+  TYPE = nil
   # The display name that should be defined in all synchronizers
   NAME = ''.freeze
   # The description of the syncer that should be defined in all synchronizers
@@ -186,6 +189,20 @@ class Synchronizer < ApplicationRecord
       @syncer_classes
     end
 
+    def syncer_classes_as_json
+      Hash[Synchronizer.syncer_classes.map do |code, syncer|
+        [code, {
+          code: syncer::CODE,
+          region_code: syncer::REGION_CODE,
+          type: syncer::TYPE,
+          name: syncer::NAME,
+          description: syncer::DESCRIPTION,
+          passcodes: syncer::PASSCODE_INFO,
+          schedules: syncer::SCHEDULE_INFO
+        }]
+      end]
+    end
+
     # Registers a new syncer
     def register(syncer_class)
       @syncer_classes ||= HashWithIndifferentAccess.new
@@ -257,7 +274,7 @@ class Synchronizer < ApplicationRecord
                          primary_key: :uid, foreign_key: :synchronizer_uid
   has_many :accounts, class_name: 'SyncingAccount',
                       primary_key: :uid, foreign_key: :synchronizer_uid
-  validates :user, :uid, :name, presence: true
+  validates :user, :uid, :name, :type, presence: true
   validates :uid, uniqueness: true
   validates :schedule, inclusion: { in: %w(normal high_frequency low_frequency), message: "%{value} is not a valid schedule, must be one of: normal, high_frequency or low_frequency" }
   after_initialize :init_passcode_encrypt_salt
