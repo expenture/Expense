@@ -32,7 +32,8 @@ describe "User's Accounts Management API" do
                                            enabled: :boolean,
                                            schedule: :string,
                                            name: :string,
-                                           status: :string
+                                           status: :string,
+                                           email_endpoint: :string_or_null
     end
   end
 

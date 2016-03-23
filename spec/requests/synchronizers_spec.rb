@@ -8,11 +8,11 @@ describe "Synchronizers API" do
       expect(response).to be_success
       expect_status(200)
       expect_json_types 'synchronizers.*', code: :string,
-                                           region_code: :string,
-                                           type: :string,
+                                           region_code: :string_or_null,
+                                           type: :string_or_null,
+                                           collect_methods: :array_of_strings,
                                            name: :string,
                                            description: :string,
-                                           passcodes: :object,
                                            schedules: {
                                              normal: {
                                                description: :string,
@@ -26,7 +26,10 @@ describe "Synchronizers API" do
                                                description: :string,
                                                times: :array
                                              }
-                                           }
+                                           },
+                                           passcodes: :object,
+                                           email_endpoint_host: :string_or_null,
+                                           email_endpoint_introduction: :string_or_null
     end
   end
 end

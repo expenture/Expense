@@ -8,14 +8,18 @@ class Synchronizer < ApplicationRecord
   # A type that should be defined in all synchronizers,
   # this should be a symbol
   TYPE = nil
+  # Specify the supported data collecting methods for each synchronizers
+  COLLECT_METHODS = [].freeze
   # The display name that should be defined in all synchronizers
   NAME = ''.freeze
   # The description of the syncer that should be defined in all synchronizers
   DESCRIPTION = ''.freeze
   # The passcode description that should be defined in all synchronizers
   PASSCODE_INFO = {}.freeze
-  # The statement of the running schedule of this syncer
+  # The statement of the running schedule of the synchronizer
   SCHEDULE_INFO = {}.freeze
+  # An introduction about the email endpoint of the synchronizer
+  EMAIL_ENDPOINT_INTRODUCTION = nil
 
   # The base class for Collector, Parser and Organizer
   class Worker
@@ -84,9 +88,12 @@ class Synchronizer < ApplicationRecord
     collector.run(level: level)
     collect_done
     log_info "Done collect of level #{level}"
+  rescue NoMethodError
+    collect_done
+    log_info "Skipping collect: no method"
   rescue NotImplementedError
-    raise NotImplementedError,
-          "#{self.class.name}::Collector#run is not yet implemented!"
+    collect_done
+    log_info "Skipping collect: not implemented"
   rescue Exception => e
     if e.is_a? ServiceAuthenticationError
       collect_faild(:bad_passcode)
@@ -183,9 +190,9 @@ class Synchronizer < ApplicationRecord
   class << self
     # Returns a hash of registered syncers with their code as the key
     def syncer_classes
+      Dir[Rails.root.join("app/synchronizers/**/*.rb")].each { |f| load f } if Rails.env.development? || Rails.env.test?
       return @syncer_classes if @syncer_classes
       @syncer_classes ||= HashWithIndifferentAccess.new
-      Dir[Rails.root.join("app/synchronizers/**/*.rb")].each { |f| require f }
       @syncer_classes
     end
 
@@ -195,10 +202,13 @@ class Synchronizer < ApplicationRecord
           code: syncer::CODE,
           region_code: syncer::REGION_CODE,
           type: syncer::TYPE,
+          collect_methods: syncer::COLLECT_METHODS,
           name: syncer::NAME,
           description: syncer::DESCRIPTION,
+          schedules: syncer::SCHEDULE_INFO,
           passcodes: syncer::PASSCODE_INFO,
-          schedules: syncer::SCHEDULE_INFO
+          email_endpoint_host: (syncer::COLLECT_METHODS.include?(:email) ? ENV['SYNCHRONIZER_RECEIVING_EMAIL_HOST'] : nil),
+          email_endpoint_introduction: syncer::EMAIL_ENDPOINT_INTRODUCTION
         }]
       end]
     end
@@ -207,6 +217,8 @@ class Synchronizer < ApplicationRecord
     def register(syncer_class)
       @syncer_classes ||= HashWithIndifferentAccess.new
       @syncer_classes[syncer_class::CODE] = syncer_class
+
+      # TODO: More rigorous validation
 
       if syncer_class::PASSCODE_INFO.present?
         raise "#{syncer_class.name}::PASSCODE_INFO should be a hash" unless syncer_class::PASSCODE_INFO.is_a? Hash
@@ -292,6 +304,11 @@ class Synchronizer < ApplicationRecord
       encrypted_data = Encryptor.encrypt(passcode, salt: passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: passcode_encrypt_salt)
       self["encrypted_passcode_#{i}"] = Base64.encode64(encrypted_data)
     end
+  end
+
+  def email_endpoint
+    return nil unless self.class::COLLECT_METHODS.include?(:email)
+    "#{uid}@#{ENV['SYNCHRONIZER_RECEIVING_EMAIL_HOST']}"
   end
 
   # Rewirte the getter of passcode_encrypt_salt to init the salt immediately

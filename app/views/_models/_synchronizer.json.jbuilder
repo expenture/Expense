@@ -3,6 +3,7 @@ json.account_uid synchronizer.account_uid
 json.uid synchronizer.uid
 json.type synchronizer.type
 json.enabled synchronizer.enabled
+json.email_endpoint synchronizer.email_endpoint if synchronizer.email_endpoint
 json.schedule synchronizer.schedule
 json.name synchronizer.name
 json.status synchronizer.status

@@ -19,6 +19,12 @@ Rails.application.routes.draw do
 
   resources :synchronizers, only: [:index], defaults: { format: :json }
 
+  namespace :webhook_endpoints, defaults: { format: :json } do
+    namespace :syncer_receiving, defaults: { format: :json } do
+      post 'mailgun', to: 'emails#mailgun_receive'
+    end
+  end
+
   # Sidekiq
   require 'sidekiq/web'
   Sidekiq::Web.use(Rack::Session::Cookie, secret: Rails.application.config.secret_token)

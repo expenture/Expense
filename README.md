@@ -7,6 +7,7 @@ An expense managing application to make life more easier and free. This is the b
 - [Development Setup](#development-setup)
 - [Testing](#testing)
 - [Deploy](#deploy)
+  - [WebHook Endpoints](#webhook-endpoints)
 - [API](#api)
   - [Conventions](#conventions)
     - [HTTP Methouds](#http-methouds)
@@ -60,6 +61,14 @@ Integrations test that require communications with real-world web services are s
 ## Deploy
 
 This application is designed under [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
+
+### WebHook Endpoints
+
+There're a few API endpoints for other service to send data into this app:
+
+#### Inbound Email Receiving for Syncers
+
+- [Mailgun (forwarding URL for routes)](https://documentation.mailgun.com/quickstart-receiving.html#inbound-routes-and-parsing): `/webhook_endpoints/syncer_receiving/mailgun`
 
 
 ## API
@@ -482,6 +491,8 @@ Sample response:
 
 Synchronizers are the bots that collect real-world transaction records and writes transactions for users.
 
+> Note: To make email-receiving syncers to work, you'll need to configure inbound email receiving. See the [Inbound Email Receiving for Syncers](#inbound-email-receiving-for-syncers) section for further info.
+
 ##### Get List of Available Syncers
 
 ```http
@@ -599,11 +610,12 @@ All Synchronizers inherits the class `Synchronizer`, a `ActiveRecord` based mode
 
 Each synchronizer has their `CODE`, `REGION_CODE`, `NAME`, `DESCRIPTION`, `PASSCODE_INFO` defined:
 
-- [`Symbol`] `CODE`: An unique identifier of the syncer.
-- [`Symbol`] `REGION_CODE`: The region code. This can be `nil`.
-- [`Symbol`] `TYPE`: The syncer type. This can be `nil`.
-- [`String`] `NAME`: The display name.
-- [`String`] `DESCRIPTION`: A description of the syncer.
+- [`Symbol`] `CODE`: (Required) An unique identifier of the syncer.
+- [`Symbol`] `REGION_CODE`: The region code.
+- [`Symbol`] `TYPE`: The syncer type.
+- [`Array`] `COLLECT_METHODS`: (Required) An array of symbols, specifying the supported data collecting methods of this syncer. Available symbols are: `:run` and `:email`.
+- [`String`] `NAME`: (Required) The display name.
+- [`String`] `DESCRIPTION`: (Required) A description of the syncer.
 - [`Hash`] `PASSCODE_INFO`: A hash that states the usage of passcode for this syncer. An example is:
 
   ```ruby
@@ -627,7 +639,7 @@ Each synchronizer has their `CODE`, `REGION_CODE`, `NAME`, `DESCRIPTION`, `PASSC
   }.freeze
   ```
 
-- [`Hash`] `SCHEDULE_INFO`: A hash that states the running schedule of this syncer, it must contains exactly three `Array`s of `String`s with keys `normal`, `high_frequency` and `low_frequency`, specifying the times of day to run. All time zones are in UTC. The minute must be a multiple of 10. An example is:
+- [`Hash`] `SCHEDULE_INFO`: (Required) A hash that states the running schedule of this syncer, it must contains exactly three `Array`s of `String`s with keys `normal`, `high_frequency` and `low_frequency`, specifying the times of day to run. All time zones are in UTC. The minute must be a multiple of 10. An example is:
 
   ```ruby
   SCHEDULE_INFO = {
@@ -645,6 +657,8 @@ Each synchronizer has their `CODE`, `REGION_CODE`, `NAME`, `DESCRIPTION`, `PASSC
     }
   }.freeze
   ```
+
+- [`String`] `EMAIL_ENDPOINT_INTRODUCTION`: An introduction about the email endpoint of the synchronizer
 
 All enabled syncers will run on the specified times of a day. The schedule (Synchronizer#schedule) is defaulted to `normal`, while users can set to use `high_frequency` or `low_frequency`. Running is triggered by the `clock` process (see `Procfile` under the project root directory, and `lib/clock.rb`).
 
