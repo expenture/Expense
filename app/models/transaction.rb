@@ -5,14 +5,15 @@ class Transaction < ApplicationRecord
 
   belongs_to :account,
              primary_key: :uid, foreign_key: :account_uid
-  has_many :synchronizer_parsed_data, class_name: 'Synchronizer::ParsedData',
-                                      primary_key: :uid, foreign_key: :transaction_uid
   has_many :separating_children, class_name: 'Transaction',
                                  primary_key: :uid,
                                  foreign_key: :parent_transaction_uid
   belongs_to :parent_transaction, class_name: 'Transaction',
                                   primary_key: :uid,
                                   foreign_key: :parent_transaction_uid
+  belongs_to :synchronizer_parsed_data, class_name: 'Synchronizer::ParsedData',
+                                        primary_key: :uid,
+                                        foreign_key: :synchronizer_parsed_data_uid
 
   validates :account, :uid, :amount, :datetime, presence: true
   validate :separating_children_not_separated,

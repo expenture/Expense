@@ -2,7 +2,6 @@ class CreateSynchronizers < ActiveRecord::Migration[5.0]
   def change
     create_table :synchronizers do |t|
       t.integer :user_id, null: false
-      t.string :account_uid
       t.string :uid, null: false
       t.string :type, null: false
       t.boolean :enabled, null: false, default: true
@@ -27,7 +26,6 @@ class CreateSynchronizers < ActiveRecord::Migration[5.0]
     add_index :synchronizers, :type
     add_index :synchronizers, :last_synced_at
     add_index :synchronizers, :last_errored_at
-    add_index :synchronizers, :account_uid
     add_index :synchronizers, :schedule
 
     add_foreign_key :synchronizers, :users

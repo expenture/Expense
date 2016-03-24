@@ -186,11 +186,11 @@ class TWEInvoiceSyncer < Synchronizer
         end
         account_type = m[:type]
         account_type = KNOWN_ACCOUNT_TYPES[account_type] || account_type
-        account_uid = "#{user_id}-#{account_type}-#{m[:code]}"
+        account_code = m[:code]
 
         invoice_code = html_doc.css('.cp table tr:nth-child(2) td:nth-child(1)').text.strip
 
-        if parsed_data.exists?(attribute_1: invoice_code)
+        if parsed_data.exists?(uid: "#{uid}-#{invoice_code}")
           collected_page.skipped!
           next
         end
@@ -205,11 +205,9 @@ class TWEInvoiceSyncer < Synchronizer
         day = date_string_m[:day].to_i
         datetime = Time.new(year, month, day, 0, 0, 0, '+08:00')
 
-        transaction_uid = "#{account_uid}-#{invoice_code}"
-
         details = html_doc.css('#invoiceDetailTable tbody tr').each_with_index.map do |tr, i|
           {
-            uid: "#{transaction_uid}-#{i}",
+            number: i,
             name: tr.css('td:nth-child(1)').text.strip,
             count: tr.css('td:nth-child(2)').text.to_i,
             price: tr.css('td:nth-child(3)').text.to_i * 1_000,
@@ -217,20 +215,16 @@ class TWEInvoiceSyncer < Synchronizer
           }
         end
 
-        new_parsed_data = collected_page.parsed_data.build
-        new_parsed_data.account_uid = account_uid
-        new_parsed_data.transaction_uid = transaction_uid
+        new_parsed_data = collected_page.parsed_data.build(uid: "#{uid}-#{invoice_code}")
         new_parsed_data.data = {
-          account_uid: account_uid,
           account_type: account_type,
-          uid: transaction_uid,
+          account_code: account_code,
           invoice_code: invoice_code,
           seller_name: seller_name,
           amount: amount,
           datetime: datetime,
           details: details
         }
-        new_parsed_data.attribute_1 = invoice_code
         new_parsed_data.save!
         collected_page.parsed!
       end
@@ -247,55 +241,65 @@ class TWEInvoiceSyncer < Synchronizer
 
       pds.find_each do |the_parsed_data|
         data = the_parsed_data.data
-        account = accounts.find_or_create_by(uid: data[:account_uid]) do |new_account|
-          new_account.type = data[:account_type]
-          case data[:account_type]
-          when 'tw_einvoice_general_carrier'
-            new_account.name = "電子發票"
-          when 'tw_eazycard'
-            new_account.name = "悠遊卡 (電子發票)"
-          when 'tw_icash'
-            new_account.name = "iCash (電子發票)"
-          end
+
+        account_identifier = \
+          account_identifiers.find_or_initialize_by type: data[:account_type],
+                                                    identifier: data[:account_code]
+
+        if !account_identifier.identified? &&
+           (account_identifier.sample_transaction_datetime.blank? ||
+           DateTime.parse(data[:datetime]) > account_identifier.sample_transaction_datetime)
+          account_identifier.sample_transaction_party_name = data[:seller_name]
+          account_identifier.sample_transaction_description = "#{data[:details][0][:name]} × #{data[:details][0][:count]}"
+          account_identifier.sample_transaction_amount = -data[:details][0][:amount]
+          account_identifier.sample_transaction_datetime = data[:datetime]
         end
 
-        if account.transactions.exists?(uid: data[:uid])
-          the_parsed_data.skipped!
-        else
-          # TODO: log seller_name
-          transaction = account.transactions.create!(
-            uid: data[:uid],
-            description: "在 #{data[:seller_name]} 消費 NT$ #{(data[:amount] / 1_000).to_i}",
-            amount: -data[:amount],
-            datetime: data[:datetime],
-            note: (
-              <<-EOD.strip_heredoc
-                發票號碼：#{data[:invoice_code]}
-                發票開立日期：#{DateTime.parse(data[:datetime]).strftime('%Y/%m/%d')}
-                賣方名稱與統編：#{data[:seller_name]}
-                發票金額：#{(data[:amount] / 1_000).to_i}
-                消費明細：
-              EOD
-            ) + data[:details].map { |d| "#{d[:name]}：NT$ #{d[:price]/1000} × #{d[:count]} = NT$ #{d[:amount]/1000}" }.join("\n")
-          )
+        account_identifier.save! if account_identifier.new_record? || account_identifier.changed?
 
-          data[:details].each do |detail|
-            if detail[:amount] < 0
-              category_code = 'discounts'
-            else
-              @tcs ||= user.transaction_category_set
-              category_code = @tcs.categorize(detail[:name], datetime: DateTime.parse(data[:datetime]), latitude: 23.5, longitude: 121)
+        if account_identifier.account.present?
+          account = account_identifier.account
+
+          if account.transactions.exists?(synchronizer_parsed_data_uid: the_parsed_data.uid)
+            the_parsed_data.skipped!
+          else
+            # TODO: log seller_name
+            transaction = account.transactions.create!(
+              synchronizer_parsed_data: the_parsed_data,
+              uid: "#{account.id}-#{uid}-#{data[:invoice_code]}",
+              description: "在 #{data[:seller_name]} 消費 NT$ #{(data[:amount] / 1_000).to_i}",
+              amount: -data[:amount],
+              datetime: data[:datetime],
+              note: (
+                <<-EOD.strip_heredoc
+                  發票號碼：#{data[:invoice_code]}
+                  發票開立日期：#{DateTime.parse(data[:datetime]).strftime('%Y/%m/%d')}
+                  賣方名稱與統編：#{data[:seller_name]}
+                  發票金額：#{(data[:amount] / 1_000).to_i}
+                  消費明細：
+                EOD
+              ) + data[:details].map { |d| "#{d[:name]}：NT$ #{d[:price]/1000} × #{d[:count]} = NT$ #{d[:amount]/1000}" }.join("\n")
+            )
+
+            data[:details].each do |detail|
+              if detail[:amount] < 0
+                category_code = 'discounts'
+              else
+                @tcs ||= user.transaction_category_set
+                category_code = @tcs.categorize(detail[:name], datetime: DateTime.parse(data[:datetime]), latitude: 23.5, longitude: 121)
+              end
+
+              transaction.separating_children.create!(
+                synchronizer_parsed_data: the_parsed_data,
+                uid: "#{account.id}-#{uid}-#{data[:invoice_code]}-#{detail[:number]}",
+                description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),
+                amount: -detail[:amount],
+                category_code: category_code
+              )
             end
 
-            transaction.separating_children.create!(
-              uid: detail[:uid],
-              description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),
-              amount: -detail[:amount],
-              category_code: category_code
-            )
+            the_parsed_data.organized!
           end
-
-          the_parsed_data.organized!
         end
       end
     end

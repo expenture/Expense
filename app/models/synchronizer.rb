@@ -29,6 +29,7 @@ class Synchronizer < ApplicationRecord
                    :passcode_1, :passcode_2, :passcode_3, :passcode_4,
                    :last_collected_at, :last_parsed_at, :last_synced_at,
                    :collected_pages, :parsed_data, :accounts,
+                   :account_identifiers,
                    :logger, :log_debug, :log_info, :log_error
 
     def initialize(synchronizer)
@@ -278,14 +279,13 @@ class Synchronizer < ApplicationRecord
   # General ActiveRecord relations, validations and callbacks
   scope :enabled, -> { where(enabled: true) }
   belongs_to :user
-  belongs_to :account,
-             primary_key: :uid, foreign_key: :account_uid
   has_many :collected_pages, class_name: 'Synchronizer::CollectedPage',
                              primary_key: :uid, foreign_key: :synchronizer_uid
   has_many :parsed_data, class_name: 'Synchronizer::ParsedData',
                          primary_key: :uid, foreign_key: :synchronizer_uid
   has_many :accounts, class_name: 'SyncingAccount',
                       primary_key: :uid, foreign_key: :synchronizer_uid
+  delegate :account_identifiers, to: :user, prefix: false
   validates :user, :uid, :name, :type, presence: true
   validates :uid, uniqueness: true
   validates :schedule, inclusion: { in: %w(normal high_frequency low_frequency), message: "%{value} is not a valid schedule, must be one of: normal, high_frequency or low_frequency" }

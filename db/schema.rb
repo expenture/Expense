@@ -11,7 +11,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160316125722) do
+ActiveRecord::Schema.define(version: 20160323235942) do
+
+  create_table "account_identifiers", force: :cascade do |t|
+    t.integer  "user_id",                        null: false
+    t.string   "type"
+    t.string   "account_uid"
+    t.string   "identifier",                     null: false
+    t.text     "sample_transaction_description"
+    t.string   "sample_transaction_party_name"
+    t.integer  "sample_transaction_amount"
+    t.datetime "sample_transaction_datetime"
+    t.datetime "created_at",                     null: false
+    t.datetime "updated_at",                     null: false
+    t.index ["account_uid"], name: "index_account_identifiers_on_account_uid"
+    t.index ["identifier"], name: "index_account_identifiers_on_identifier"
+    t.index ["type"], name: "index_account_identifiers_on_type"
+    t.index ["user_id"], name: "index_account_identifiers_on_user_id"
+  end
 
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                           null: false
@@ -99,8 +116,7 @@ ActiveRecord::Schema.define(version: 20160316125722) do
   create_table "synchronizer_parsed_data", force: :cascade do |t|
     t.integer  "collected_page_id"
     t.string   "synchronizer_uid",  null: false
-    t.string   "transaction_uid"
-    t.string   "account_uid"
+    t.string   "uid",               null: false
     t.string   "attribute_1"
     t.string   "attribute_2"
     t.text     "raw_data"
@@ -108,17 +124,15 @@ ActiveRecord::Schema.define(version: 20160316125722) do
     t.datetime "skipped_at"
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
-    t.index ["account_uid"], name: "index_synchronizer_parsed_data_on_account_uid"
     t.index ["collected_page_id"], name: "index_synchronizer_parsed_data_on_collected_page_id"
     t.index ["organized_at"], name: "index_synchronizer_parsed_data_on_organized_at"
     t.index ["skipped_at"], name: "index_synchronizer_parsed_data_on_skipped_at"
     t.index ["synchronizer_uid"], name: "index_synchronizer_parsed_data_on_synchronizer_uid"
-    t.index ["transaction_uid"], name: "index_synchronizer_parsed_data_on_transaction_uid"
+    t.index ["uid"], name: "index_synchronizer_parsed_data_on_uid", unique: true
   end
 
   create_table "synchronizers", force: :cascade do |t|
     t.integer  "user_id",                                  null: false
-    t.string   "account_uid"
     t.string   "uid",                                      null: false
     t.string   "type",                                     null: false
     t.boolean  "enabled",               default: true,     null: false
@@ -136,7 +150,6 @@ ActiveRecord::Schema.define(version: 20160316125722) do
     t.datetime "last_errored_at"
     t.datetime "created_at",                               null: false
     t.datetime "updated_at",                               null: false
-    t.index ["account_uid"], name: "index_synchronizers_on_account_uid"
     t.index ["last_errored_at"], name: "index_synchronizers_on_last_errored_at"
     t.index ["last_synced_at"], name: "index_synchronizers_on_last_synced_at"
     t.index ["schedule"], name: "index_synchronizers_on_schedule"
@@ -158,28 +171,30 @@ ActiveRecord::Schema.define(version: 20160316125722) do
   end
 
   create_table "transactions", force: :cascade do |t|
-    t.string   "uid",                                    null: false
-    t.string   "account_uid",                            null: false
-    t.integer  "amount",                                 null: false
+    t.string   "uid",                                          null: false
+    t.string   "account_uid",                                  null: false
+    t.integer  "amount",                                       null: false
     t.text     "description"
     t.string   "category_code"
     t.string   "tags"
     t.text     "note"
-    t.datetime "datetime",                               null: false
+    t.datetime "datetime",                                     null: false
     t.float    "latitude"
     t.float    "longitude"
-    t.boolean  "ignore_in_statistics",   default: false, null: false
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
-    t.boolean  "separated",              default: false, null: false
+    t.boolean  "ignore_in_statistics",         default: false, null: false
+    t.datetime "created_at",                                   null: false
+    t.datetime "updated_at",                                   null: false
+    t.boolean  "separated",                    default: false, null: false
     t.string   "parent_transaction_uid"
     t.string   "kind"
+    t.string   "synchronizer_parsed_data_uid"
     t.index ["account_uid"], name: "index_transactions_on_account_uid"
     t.index ["category_code"], name: "index_transactions_on_category_code"
     t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"
     t.index ["kind"], name: "index_transactions_on_kind"
     t.index ["parent_transaction_uid"], name: "index_transactions_on_parent_transaction_uid"
     t.index ["separated"], name: "index_transactions_on_separated"
+    t.index ["synchronizer_parsed_data_uid"], name: "index_transactions_on_synchronizer_parsed_data_uid"
     t.index ["uid"], name: "index_transactions_on_uid", unique: true
   end
 

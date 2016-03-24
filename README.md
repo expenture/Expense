@@ -12,6 +12,7 @@ An expense managing application to make life more easier and free. This is the b
   - [Conventions](#conventions)
     - [HTTP Methouds](#http-methouds)
     - [Value Unit](#value-unit)
+    - [JSON Schema](#json-schema)
   - [Authentication Related APIs](#authentication-related-apis)
     - [User Registration](#user-registration)
     - [User Authentication (OAuth)](#user-authentication)
@@ -20,6 +21,7 @@ An expense managing application to make life more easier and free. This is the b
     - [Transaction Management](#transaction-management)
     - [Transaction Category Set Management](#transaction-category-set-management)
     - [Synchronizer Management](#synchronizer-management)
+    - [Account Identifier Management](#account-identifier-management)
 - [Architecture](#architecture)
   - [Environment Variables](#environment-variables)
   - [Domain Model ERD Diagram](#domain-model-erd-diagram)
@@ -46,7 +48,7 @@ Just run:
 $ bin/setup
 ```
 
-Configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`, enter the console by `bin/console`, or run the tests by `bin/rspec`.
+Then configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`, enter the console by `bin/console`, or run the tests by `bin/rspec`.
 
 > Note: After updating (i.e. pulling a new version from the remote repo), be sure to run `bin/update` before you do anything.
 
@@ -55,12 +57,12 @@ Configure the application by editing the environment variables in `.env`. After 
 
 Run `bin/rspec spec` to execute the RSpec test suite.
 
-Integrations test that require communications with real-world web services are skipped by default. Set the `INTEGRATION_TEST` environment variable to run them: `INTEGRATION_TEST=true bin/rspec spec`.
+Integration tests that requires communication with real-world web services are skipped by default. Set the `INTEGRATION_TEST` environment variable to `true` to run them: `INTEGRATION_TEST=true bin/rspec spec`.
 
 
 ## Deploy
 
-This application is designed under [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
+This application is designed with [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
 
 ### WebHook Endpoints
 
@@ -75,7 +77,7 @@ There're a few API endpoints for other service to send data into this app:
 
 Most APIs provided by this app are RESTful JSON APIs, and OAuth 2.0 is used for authentication.
 
-Note that although most examples are using URL query parameters to pass data, form-data or raw body with JSON can also be used. Also, the OAuth access token can be passed using HTTP `Authorization` header (`Authorization: Bearer <access_token>`) instead of the `access_token` query parameter.
+> Note: **URL query parameters**, **form-data** or **raw body with JSON** are all available ways for passing data. Also, the OAuth access token can be hand over using HTTP the `Authorization` header (`Authorization: Bearer <access_token>`) instead of the `access_token` query parameter. Examples in this documentation might use any of the above ways for clarity, but you have the freedom to choice which method to use while making API requests.
 
 ### Conventions
 
@@ -83,12 +85,12 @@ Note that although most examples are using URL query parameters to pass data, fo
 
 ##### Using `PUT` for Resource Creation
 
-Since this is an mobile oriented application, one considerations on API design is to make requests retryable (we assume that the internet is unstable). The traditional `POST` method is not retryable since it will create n duplicated resource after retrying n times.
+Since this is a mobile oriented application, one consider on API design is to make requests retryable (we assume that the internet is unstable). The traditional `POST` method is not retryable since it will create `n` duplicated resource after retrying `n` times.
 
 By using the `PUT` method (its definition is "replace or create"), we can make creating resource retryable by:
 
-  1. Generate the unique ID of that resource on the client side.
-  2. Send the request `PUT /resources/<generated_uid>` to create the resource.
+  1. Generate a unique ID (uid) of that resource on the client side.
+  2. Send the request `PUT /resources/{uid}` to create that resource.
 
 If the client thinks the request has failed, it can just retry step 2 without the worry of creating duplicated resources on the server side. Because the definition of `PUT` request is "replace or create", if that resource is already created successfully, resending the same request will simply "replace" that resource with the same data - making no changes to the final result.
 
@@ -106,11 +108,59 @@ For this reason, `PUT` methods are not provided for some APIs.
 
 All money values like `amount` or `balance` are integers represented in 1,000/1 degrees, irrelevant to currency. That is, the programmatic money value `1234567` should be displayed as `$ 1,234.567`.
 
+#### JSON Schema
+
+The returned resource will be wrapped in a `object`, with their `type` as the key:
+
+```json
+{
+  "account": {
+    ...
+  }
+}
+```
+
+```json
+{
+  "accounts": [
+    { ... },
+    { ... },
+    { ... }
+  ]
+}
+```
+
+##### Error Object
+
+If the response is considered to have an error, a top-level `error` object will be returned in the JSON:
+
+```json
+{
+  "error": {
+    "status": 400,
+    "code": "bad_attributes",
+    "message": "Account: Name can't be blank"
+  },
+  "account": {
+    "uid": "a991c2e2-2999-a136-3f05-db20c3c455d2",
+    "type": "cash",
+    "name": null,
+    ...
+    "errors": {
+      "name": [
+        "can't be blank"
+      ]
+    }
+  }
+}```
+
+The `status` of the error object is the HTTP code. The `code` is an error code and the `message` is a friendly error message.
+
 ### Authentication Related APIs
 
 #### User Registration
 
-New users can be registered using their email and password ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/users_spec.rb)).
+New users can be registered using their email and a password ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/users_spec.rb)).
 
 ```http
 POST /users?
@@ -124,7 +174,8 @@ Sample response:
 ```json
 {
   "user": {
-    "email": "someone@somewhere.com"
+    "email": "someone@somewhere.com",
+    ...
   },
   "status": "confirmation_pending"
 }
@@ -261,7 +312,7 @@ Content-Type: application/json
 }
 ```
 
-##### Updating Info of an Account
+##### Updating an Account
 
 ```http
 PATCH /me/accounts/{account_uid}
@@ -282,7 +333,7 @@ DELETE /me/accounts/{account_uid}
 
 The log of an expense or income is a transaction. Transactions are filed under accounts, and the account balance will be auto updated after a transaction has been created, updated or deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/transaction_spec.rb)). Transactions are categorized into categories and can add tags onto, which provide ways for filter and analyzing. Operations for managing transactions are listed below:
 
-##### Getting All Transactions
+##### Listing Transactions
 
 ```http
 GET /me/transactions
@@ -324,7 +375,7 @@ Sample response:
 
 > Note that the `amount` attribute is represented in 1,000/1 degrees.
 
-##### Getting All Transactions Under An Account
+##### Listing Transactions Under An Account
 
 ```http
 GET /me/accounts/{account_uid}/transactions
@@ -337,7 +388,7 @@ The response format is same as `GET /me/transactions`.
 ##### Creating A Transaction
 
 ```http
-PUT /me/accounts/{account_uid}/transactions/{generated_unique_id}
+PUT /me/accounts/{account_uid}/transactions/{uid}
 Content-Type: application/json
 
 {
@@ -348,7 +399,7 @@ Content-Type: application/json
 ##### Updating A Transaction
 
 ```http
-PATCH /me/accounts/{account_uid}/transactions/{transaction_uid}
+PATCH /me/accounts/{account_uid}/transactions/{uid}
 Content-Type: application/json
 
 {
@@ -359,18 +410,18 @@ Content-Type: application/json
 ##### Deleting A Transaction
 
 ```http
-DELETE /me/accounts/{account_uid}/transactions/{transaction_uid}
+DELETE /me/accounts/{account_uid}/transactions/{uid}
 ```
 
 #### Transaction Category Set Management
 
-Each transaction can be categorize into one category by their `category_code`. This API manages the categories defined by the user.
+Each transaction can be categorize into one category by their `category_code`. This API manages the available category set defined by the user.
 
-The attributes of a category are `code`, `name`, `priority` and `hidden`. The `code` is a unique identifier of the category. The `priority` decides the order of that category to be show on UI, while it should be hidden on the UI with `hidden` set to `true`. Every category are filed under a parent-category, parent-categories also has the attributes `code`, `name`, `priority` and `hidden`.
+The attributes of a category are `code`, `name`, `priority` and `hidden`. The `code` is a unique identifier of the category. The `priority` decides the order of that category to be show on the UI, while it should be hidden with `hidden` set to `true`. Every category are filed under a parent-category, parent-categories also has the attributes `code`, `name`, `priority` and `hidden`.
 
 This app will define a default set of categories. All user's category settings will inherit this set. Users are free to create, update or delete any custom categories. But predefined categories, or categories having at least one transaction can not be deleted, they can just set to be `hide` ([spec](https://github.com/Neson/Expense/blob/master/spec/services/transaction_category_service_spec.rb)).
 
-Updating the category set on the backend server side can let users access their category set everywhere. The user defined category set will also be used for auto-categorizing.
+Updating the category set on the backend server side can let users access their category set everywhere. The user defined category set will also be used for transaction auto-categorizing.
 
 ##### Retrieving The Transaction Category Set
 
@@ -422,7 +473,7 @@ Sample response:
 
 ##### Updating The Transaction Category Set
 
-To update the category set, just send a `PUT` request to `/me/transaction_category_set` with the whole updated data in the request body. The request body format is same as the returned data of `GET /me/transaction_category_set`. To delete a category, just ignore it in the request. To rename or change the `hide` status of a category, just update the object with the same `code`. To create a new category, generate a `code` for that category, and add it to the object with the `code` as the key.
+To update the category set, just send a `PUT` request to `/me/transaction_category_set` with the whole updated data in the request body. The request body format is same as the returned data of `GET /me/transaction_category_set`. To delete a category, just ignore it in the request. To rename or change the `hide` status of a category, update the object with the same `code`. To create a new category, generate a `code` for that category, and add it to the object with the `code` as the key.
 
 ```http
 PUT /me/transaction_category_set
@@ -489,11 +540,13 @@ Sample response:
 
 #### Synchronizer Management
 
-Synchronizers are the bots that collect real-world transaction records and writes transactions for users.
+Synchronizers ("Syncers") does the auto expense logging. They are the bots that collect real-world transaction records _(such as credit card bills, banking websites, receipt emails, etc.)_ and write down transactions automatically.
+
+Synchronizers are service-oriented. A certain synchronizer type maintains transaction records coming from a specific bank, store, or other service. Some synchronizer manages accounts _(such as credit card bill syncer or bank log syncer)_, while some doesn't _(such as receipt email syncer)_.
 
 > Note: To make email-receiving syncers to work, you'll need to configure inbound email receiving. See the [Inbound Email Receiving for Syncers](#inbound-email-receiving-for-syncers) section for further info.
 
-##### Get List of Available Syncers
+##### Get List of Available Syncer Types
 
 ```http
 GET /synchronizers
@@ -508,26 +561,63 @@ GET /me/synchronizers
 ##### Adding A Syncer
 
 ```http
-PUT /me/synchronizers/{generated_unique_id}
+PUT /me/synchronizers/{uid}
 Content-Type: application/json
 
 {
-  "synchronizer": <synchronizer_attrs>
+  "synchronizer": {
+    "name": "My Syncer",
+    "passcode_1": null,
+    "passcode_2": null,
+    ...
+  }
 }
 ```
 
 ##### Updating A Syncer
 
 ```http
-PATCH /me/synchronizers/{synchronizer_uid}
+PATCH /me/synchronizers/{uid}
 Content-Type: application/json
 
 {
-  "synchronizer": <synchronizer_attrs>
+  "synchronizer": {
+    "name": "My Syncer",
+    "enabled": true,
+    "schedule": "normal",
+    "passcode_1": null,
+    "passcode_2": null,
+    ...
+  }
 }
 ```
 
 > TODO: Destroy syncer API.
+
+#### Account Identifier Management
+
+The Account Identifier is a way for this app to recognize accounts. Say, a syncer receives an receipt that states the credit card `****-****-****-1234` has been charged, but it have no idea which account `****-****-****-1234` actually is. The syncer will then create a new `AccountIdentifier` with `type`: `credit_card` and `identifier`: `1234`, then skip that data for the user to identify an account later. After the user assigns an account for that `AccountIdentifier`, the syncer can then do its work on its next run.
+
+There is no way for users to create `AccountIdentifier`s manually. `AccountIdentifier`s will only be created when unidentified account appears while the app runs.
+
+##### List User's Account Identifiers
+
+```http
+GET /me/account_identifiers
+```
+
+##### Update a Account Identifier
+
+```http
+PATCH /me/account_identifiers/{id}
+Content-Type: application/json
+
+{
+  "account_identifier": {
+    "account_uid": <an_account_uid>
+  }
+}
+```
 
 
 ## Architecture
@@ -604,7 +694,7 @@ These type of service objects written in this app will provide a `mock_mode` mod
 
 Synchronizers ("Syncers") does the auto expense logging. It syncs from real-word expense record _(such as credit card bills, banking websites, receipt emails, etc.)_ to the transaction record in this app. They lives under `app/synchronizers` and do their jobs mostly in scheduled background workers.
 
-Synchronizers are service-oriented. A synchronizer class maintains transaction records coming from a specific bank, store, or other service. Some synchronizer manages accounts _(such as credit card bill syncer or bank log syncer)_, while some doesn't _(such as receipt email syncer)_. Synchronizers that doesn't manage accounts should be used with a existing account.
+Synchronizers are service-oriented. A synchronizer class maintains transaction records coming from a specific bank, store, or other service. Some synchronizer manages accounts _(such as credit card bill syncer or bank log syncer)_, while some doesn't _(such as receipt email syncer)_.
 
 All Synchronizers inherits the class `Synchronizer`, a `ActiveRecord` based model locates at `app/models/synchronizer.rb`. They use the Rails STI mechanism to share the same database table.
 
@@ -679,6 +769,8 @@ The `recieve` method will be called if data is sent in proactively (for example,
 The parser parses new data in the `Synchronizer::CollectedPage` model, and saves the parsed data into the `Synchronizer::ParsedData` model.
 
 The `run` method starts the parser to parse data. This method must take an optional key argument: `level`, this argument can be passed in as symbol `:normal` or `:complete`. While `:normal` will parse just unparse pages, `:complete` is expected to parse all saved pages.
+
+Note that the `ParsedData` model MUST be one-to-one correspond to the actual data. Unlike `CollectedPage`, duplication is not allowed for `ParsedData`. This makes `ParsedData` re-organizable, and `ParsedData` must be re-organizable in case of the user wants to change some syncer related configurations (for example, an `AccountIdentifier`).
 
 #### Organizer
 

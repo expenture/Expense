@@ -1,5 +1,4 @@
 json.user_id synchronizer.user_id
-json.account_uid synchronizer.account_uid
 json.uid synchronizer.uid
 json.type synchronizer.type
 json.enabled synchronizer.enabled

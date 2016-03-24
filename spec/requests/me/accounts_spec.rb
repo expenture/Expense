@@ -1,6 +1,6 @@
 require "rails_helper"
 
-describe "User's Accounts Management API" do
+describe "User's Account Management API" do
   it_behaves_like "requiring a valid access token", [
     [:get, '/me/accounts']
   ]

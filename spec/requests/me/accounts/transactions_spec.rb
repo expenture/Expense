@@ -1,6 +1,6 @@
 require "rails_helper"
 
-describe "Transactions Management API" do
+describe "User's Transaction Management API for a Specific Account" do
   let(:user) { create(:user, :confirmed) }
   let(:access_token) { create(:oauth_access_token, resource_owner_id: user.id) }
   let!(:account) { user.accounts.create!(uid: 'account_uid', name: "account") }

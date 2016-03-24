@@ -1,3 +1,5 @@
+# This class is used for handling request errors, it can be initialized with an
+# `Exception`, or by manually giving the error status, code and message
 class Error < HashWithIndifferentAccess
   def initialize(obj)
     self.status = 500

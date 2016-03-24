@@ -3,10 +3,10 @@ class Synchronizer::ParsedData < ApplicationRecord
 
   belongs_to :synchronizer, primary_key: :uid, foreign_key: :synchronizer_uid
   belongs_to :collected_page, class_name: 'Synchronizer::CollectedPage'
-  belongs_to :the_transaction, primary_key: :uid, foreign_key: :transaction_uid
-  belongs_to :account, primary_key: :uid, foreign_key: :account_uid
+  has_many :transactions, primary_key: :uid,
+                          foreign_key: :synchronizer_parsed_data_uid
 
-  validates :synchronizer, presence: true
+  validates :uid, :synchronizer, presence: true
 
   def data
     @data ||= HashWithIndifferentAccess.new(raw_data && JSON.parse(raw_data))

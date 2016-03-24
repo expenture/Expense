@@ -13,14 +13,14 @@ Rails.application.routes.draw do
     resource :transaction_category_set, controller: 'transaction_category_set',
                                         only: [:show, :update]
     resources :transactions, only: [:index]
-    resources :synchronizers, only: [:index, :update, :destroy],
-                              defaults: { format: :json }
+    resources :synchronizers, only: [:index, :update, :destroy]
+    resources :account_identifiers, only: [:index, :update]
   end
 
   resources :synchronizers, only: [:index], defaults: { format: :json }
 
   namespace :webhook_endpoints, defaults: { format: :json } do
-    namespace :syncer_receiving, defaults: { format: :json } do
+    namespace :syncer_receiving do
       post 'mailgun', to: 'emails#mailgun_receive'
     end
   end
