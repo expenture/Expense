@@ -381,7 +381,7 @@ class Synchronizer < ApplicationRecord
   end
 
   def organize_done
-    self.status = 'done'
+    self.status = 'synced'
     self.last_synced_at = last_parsed_at
     save!
   end

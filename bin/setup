@@ -41,11 +41,11 @@ chdir APP_ROOT do
   system('bundle check') or system!('bundle install')
 
   puts "\n== Copying sample files =="
-  unless File.exist?('.env')
+  if File.exist?('.env')
+    puts "The environment variables file: .env already exists"
+  else
     puts "Copying sample environment variables file: .env"
     cp '.env.sample', '.env'
-  else
-    puts "The environment variables file: .env already exists"
   end
 
   puts "\n== Preparing database =="

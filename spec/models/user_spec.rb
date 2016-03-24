@@ -1,6 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
+  it { is_expected.to have_many(:accounts) }
+  it { is_expected.to belong_to(:default_account) }
+  it { is_expected.to have_many(:transactions) }
+  it { is_expected.to have_many(:transaction_categorization_cases) }
+  it { is_expected.to have_many(:synchronizers) }
+  it { is_expected.to have_many(:account_identifiers) }
+
   describe "instance" do
     subject(:user) { create(:user) }
 
