@@ -22,7 +22,7 @@ before_install:
   - export DATABASE_URL=postgres://postgres@localhost/database
 install:
   - travis_retry bin/setup
-script: bin/rspec
+script: rake
 services:
   - postgresql
   - redis-server

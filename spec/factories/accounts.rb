@@ -11,5 +11,11 @@ FactoryGirl.define do
         user.save!
       end
     end
+
+    # Warning: this factory is only for testing, syncing accounts should be
+    # create by a syncer in normal situations
+    trait :syncing do
+      synchronizer_uid { create(:synchronizer).uid }
+    end
   end
 end

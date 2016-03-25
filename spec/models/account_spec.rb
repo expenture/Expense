@@ -49,4 +49,11 @@ RSpec.describe Account, type: :model do
       end
     end
   end
+
+  describe "default builded transaction" do
+    let(:account) { create(:account) }
+    subject(:transaction) { account.transactions.build }
+
+    its(:on_record) { is_expected.to eq(true) }
+  end
 end

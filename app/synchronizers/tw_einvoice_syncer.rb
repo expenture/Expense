@@ -289,7 +289,7 @@ class TWEInvoiceSyncer < Synchronizer
                 category_code = @tcs.categorize(detail[:name], datetime: DateTime.parse(data[:datetime]), latitude: 23.5, longitude: 121)
               end
 
-              transaction.separating_children.create!(
+              transaction.separating_transaction.create!(
                 synchronizer_parsed_data: the_parsed_data,
                 uid: "#{account.id}-#{uid}-#{data[:invoice_code]}-#{detail[:number]}",
                 description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),

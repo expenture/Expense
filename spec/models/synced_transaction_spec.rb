@@ -5,8 +5,8 @@ RSpec.describe SyncedTransaction, type: :model do
     let(:synchronizer) { create(:synchronizer) }
     let(:syncing_account) { synchronizer.accounts.create!(uid: SecureRandom.uuid, name: 'A Syncing Account') }
     subject(:synced_transaction) do
-      t = syncing_account.transactions.create!(uid: SecureRandom.uuid, amount: -100_000)
-      Transaction.find(t)
+      t = syncing_account.transactions.create!(uid: SecureRandom.uuid, amount: -100_000, on_record: true)
+      Transaction.find(t.id)
     end
 
     its(:kind) { is_expected.to eq('synced') }

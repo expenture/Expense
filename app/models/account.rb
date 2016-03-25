@@ -18,12 +18,13 @@ class Account < ApplicationRecord
     user.default_account_uid == uid
   end
 
+  def syncing?
+    kind == 'syncing'
+  end
+
   def destroy
     if default?
       errors.add :base, 'Cannot destroy a default account'
-      return false
-    elsif kind == 'syncing'
-      errors.add :base, 'Cannot destroy a syncing account'
       return false
     else
       super

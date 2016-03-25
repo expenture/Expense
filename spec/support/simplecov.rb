@@ -16,6 +16,10 @@ SimpleCov.profiles.define :app do
   add_filter "/app/synchronizers/"
   add_filter "/lib/clock.rb"
 
+  if ENV['INTEGRATION_TEST'] != 'true'
+    add_filter "/app/services/facebook_service.rb"
+  end
+
   add_group "Controllers", "app/controllers"
   add_group "Models", "app/models"
   add_group "Objects", "app/objects"

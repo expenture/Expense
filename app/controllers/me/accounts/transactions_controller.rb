@@ -43,6 +43,7 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
           end
         end
       rescue Exception => e
+        Rails.logger.error(e)
       end
     elsif request.patch?
       @transaction = resource_collection.find_by!(uid: params[:id])
@@ -86,7 +87,7 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
   end
 
   def permitted_transaction_param_names
-    %w(amount description category_code note datetime latitude longitude ignore_in_statistics)
+    %w(amount description category_code note datetime latitude longitude separate_transaction_uid ignore_in_statistics)
   end
 
   def transaction_params

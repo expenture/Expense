@@ -84,4 +84,3 @@ RSpec.configure do |config|
 end
 
 $VERBOSE = nil unless ENV['DISABLE_RUBY_WARNINGS'] == 'false'
-

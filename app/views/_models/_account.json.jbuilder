@@ -3,8 +3,8 @@ json.type account.type
 json.name account.name
 json.currency account.currency
 json.balance account.balance
-
 json.default account.default?
+json.syncing account.syncing?
 
 if time_format == 'integer'
   json.created_at account.created_at_as_i

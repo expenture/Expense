@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160323235942) do
+ActiveRecord::Schema.define(version: 20160324122055) do
 
   create_table "account_identifiers", force: :cascade do |t|
     t.integer  "user_id",                        null: false
@@ -185,14 +185,18 @@ ActiveRecord::Schema.define(version: 20160323235942) do
     t.datetime "created_at",                                   null: false
     t.datetime "updated_at",                                   null: false
     t.boolean  "separated",                    default: false, null: false
-    t.string   "parent_transaction_uid"
+    t.string   "separate_transaction_uid"
     t.string   "kind"
     t.string   "synchronizer_parsed_data_uid"
+    t.boolean  "on_record"
+    t.string   "record_transaction_uid"
     t.index ["account_uid"], name: "index_transactions_on_account_uid"
     t.index ["category_code"], name: "index_transactions_on_category_code"
     t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"
     t.index ["kind"], name: "index_transactions_on_kind"
-    t.index ["parent_transaction_uid"], name: "index_transactions_on_parent_transaction_uid"
+    t.index ["on_record"], name: "index_transactions_on_on_record"
+    t.index ["record_transaction_uid"], name: "index_transactions_on_record_transaction_uid"
+    t.index ["separate_transaction_uid"], name: "index_transactions_on_separate_transaction_uid"
     t.index ["separated"], name: "index_transactions_on_separated"
     t.index ["synchronizer_parsed_data_uid"], name: "index_transactions_on_synchronizer_parsed_data_uid"
     t.index ["uid"], name: "index_transactions_on_uid", unique: true

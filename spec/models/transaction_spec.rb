@@ -1,8 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe Transaction, type: :model do
-  describe "instance" do
-    let(:account) { create(:account, balance: 0) }
+  let(:account) { create(:account, balance: 0) }
+
+  describe "a normal transaction instance" do
     subject(:transaction) { create(:transaction, account: account, amount: -100_000) }
 
     context "after created" do
@@ -73,43 +74,73 @@ RSpec.describe Transaction, type: :model do
       end
     end
 
-    context "has an separated children created" do
+    context "has an separating transaction created" do
       before do
-        transaction.separating_children.create!(uid: SecureRandom.uuid, description: 'Some description', amount: 100_000)
+        transaction.separating_transactions.create!(uid: SecureRandom.uuid, description: 'Some description', amount: 100_000)
         transaction.reload
       end
 
       it { is_expected.to be_separated }
     end
 
-    context "has all separated children removed" do
+    context "has all separating transaction removed" do
       before do
-        transaction.separating_children.create!(uid: SecureRandom.uuid, description: 'Some description', amount: 100_000)
-        transaction.separating_children.create!(uid: SecureRandom.uuid, description: 'Some description', amount: 100_000)
-        transaction.separating_children.destroy_all
+        transaction.separating_transactions.create!(uid: SecureRandom.uuid, description: 'Some description', amount: 100_000)
+        transaction.separating_transactions.create!(uid: SecureRandom.uuid, description: 'Some description', amount: 100_000)
+        transaction.separating_transactions.destroy_all
       end
 
       it { is_expected.not_to be_separated }
     end
 
-    describe "parent_transaction_uid" do
+    describe "separate_transaction_uid attribute" do
       it "should be immutable" do
         expect do
-          transaction.parent_transaction_uid = create(:transaction).uid
+          transaction.separate_transaction_uid = create(:transaction).uid
+          transaction.save!
+        end.to raise_error
+      end
+    end
+
+    describe "on_record attribute" do
+      it "defaults to true" do
+        expect(transaction.on_record).to eq(true)
+      end
+
+      it "should be immutable" do
+        expect do
+          transaction.on_record = false
+          transaction.save!
+        end.to raise_error
+      end
+    end
+
+    describe "record_transaction_uid attribute" do
+      it "must be blank" do
+        expect do
+          transaction.record_transaction_uid = create(:transaction, account: account, amount: -100_000).uid
           transaction.save!
         end.to raise_error
       end
     end
   end
 
-  describe "instance that is a separated children" do
-    let(:account) { create(:account, balance: 0) }
-    subject(:parent_transaction) { create(:transaction, account: account, amount: -100_000) }
-    subject(:transaction) { create(:transaction, account: account, amount: -100_000, parent_transaction: parent_transaction) }
+  describe "instance that is a virtual transaction (i.e. separating transaction)" do
+    let(:separated_transaction) { create(:transaction, account: account, amount: -100_000) }
+    subject(:transaction) do
+      # If a transaction has its separate_transaction_uid set,
+      # then it is considered to be a virtual transaction
+      create(:transaction, account: account, amount: -100_000, separate_transaction_uid: separated_transaction.uid)
+    end
+
+    its(:kind) { should eq('virtual') }
+    # A virtual transaction will not be considered to be on_record or not,
+    # so its on_record value must be nil
+    its(:on_record) { is_expected.to be_nil }
 
     context "after created" do
       it "does not update the account balance" do
-        parent_transaction
+        separated_transaction
         expect(account.balance).to eq(-100_000)
 
         transaction
@@ -117,11 +148,31 @@ RSpec.describe Transaction, type: :model do
 
         expect(account.balance).to eq(-100_000)
       end
+
+      it "lets the separated transaction to be ignore_in_statistics" do
+        separated_transaction
+        expect(separated_transaction.ignore_in_statistics).to eq(false)
+
+        transaction
+        separated_transaction.reload
+
+        expect(separated_transaction.ignore_in_statistics).to eq(true)
+      end
+
+      it "lets the separated transaction to be separated" do
+        separated_transaction
+        expect(separated_transaction.separated).to eq(false)
+
+        transaction
+        separated_transaction.reload
+
+        expect(separated_transaction.separated).to eq(true)
+      end
     end
 
     context "after updated" do
       it "does not update the account balance" do
-        parent_transaction
+        separated_transaction
         transaction
         expect(account.balance).to eq(-100_000)
 
@@ -141,7 +192,7 @@ RSpec.describe Transaction, type: :model do
 
     context "after destroyed" do
       it "does not update the account balance" do
-        parent_transaction
+        separated_transaction
         transaction
 
         expect(account.balance).to eq(-100_000)
@@ -151,25 +202,85 @@ RSpec.describe Transaction, type: :model do
 
         expect(account.balance).to eq(-100_000)
       end
+
+      it "lets the separated transaction to be not separated" do
+        transaction
+        separated_transaction.reload
+
+        expect(separated_transaction.separated).to eq(true)
+
+        transaction.destroy!
+        separated_transaction.reload
+
+        expect(separated_transaction.separated).to eq(false)
+      end
     end
 
     it "can't have separated children" do
       expect do
-        transaction.separating_children.create!(uid: SecureRandom.uuid, description: 'Some description', amount: 100_000)
+        transaction.separating_transactions.create!(uid: SecureRandom.uuid, description: 'Some description', amount: 100_000)
       end.to raise_error
 
       expect do
-        create(:transaction, account: account, amount: -100_000, parent_transaction: transaction)
+        create(:transaction, account: account, amount: -100_000, separate_transaction: transaction)
       end.to raise_error
     end
 
-    describe "parent_transaction_uid" do
+    describe "separate_transaction_uid" do
       it "should be immutable" do
         expect do
-          transaction.parent_transaction_uid = nil
+          transaction.separate_transaction_uid = nil
           transaction.save!
         end.to raise_error
       end
+    end
+  end
+
+  describe "instance that is a not-on-record transaction" do
+    subject(:transaction) { create(:transaction, account: account, amount: -100_000, on_record: false) }
+
+    its(:kind) { should eq('not_on_record') }
+
+    describe "record_transaction_uid" do
+      it "can be set" do
+        transaction.record_transaction_uid = create(:transaction, account: account, amount: -100_000).uid
+        transaction.save!
+      end
+
+      it "will be validated" do
+        expect do
+          transaction.record_transaction_uid = 'xxx'
+          transaction.save!
+        end.to raise_error
+
+        expect do
+          transaction.record_transaction_uid = create(:transaction).uid
+          transaction.save!
+        end.to raise_error
+
+        expect do
+          transaction.record_transaction_uid = create(:transaction, account: account, amount: -100_000, on_record: false).uid
+          transaction.save!
+        end.to raise_error
+      end
+    end
+
+    context "has an on-record transaction" do
+      before do
+        transaction.record_transaction_uid = create(:transaction, account: account, amount: -100_000).uid
+        transaction.save!
+      end
+
+      its(:ignore_in_statistics) { is_expected.to be(true) }
+    end
+
+    context "does not have an on-record transaction" do
+      before do
+        transaction.record_transaction_uid = nil
+        transaction.save!
+      end
+
+      its(:ignore_in_statistics) { is_expected.to be(false) }
     end
   end
 end

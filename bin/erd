@@ -10,9 +10,19 @@ cat app/models/user.rb_org | \
   sed "s/.*optional: true.*//g" \
   > app/models/user.rb
 
+SYNCER_CLASS_NAMES=$(echo "require 'active_support/inflector'; require './config/initializers/inflections.rb'; syncer_file_names = '$(ls -m app/synchronizers)'; puts syncer_file_names.split(', ').map { |s| s.gsub(/\.rb$/, '').classify }.join(',')" | ruby)
+
 bundle exec rake erd \
-  notation=bachman inheritance=false polymorphism=false filetype=dot \
-  exclude='Settings,RailsSettings::Settings,RailsSettings::ScopedSettings,RailsSettings::CachedSettings,Doorkeeper::Application,Doorkeeper::AccessGrant,Doorkeeper::AccessToken' && \
+  notation=bachman inheritance=true polymorphism=false filetype=dot \
+  exclude="Settings,RailsSettings::Settings,RailsSettings::ScopedSettings,RailsSettings::CachedSettings,Doorkeeper::Application,Doorkeeper::AccessGrant,Doorkeeper::AccessToken,$SYNCER_CLASS_NAMES" && \
+
+  mv -f erd.dot erd.dot_org && \
+  cat erd.dot_org | \
+    sed "s/concentrate = \"true\";/concentrate = \"false\";/g" | \
+    sed '$!N; /^\(.*\)\n\1$/!P; D' \
+    > erd.dot && \
+  rm erd.dot_org && \
+
   dot -Tpng erd.dot -o erd.png && \
   dot -Tpdf erd.dot > erd.pdf && \
   open erd.pdf

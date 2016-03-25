@@ -171,6 +171,20 @@ describe "User's Account Management API" do
         expect(json).to have_key('error')
       end
     end
+
+    context "destroying a syncing account" do
+      let(:account) do
+        create(:syncing_account, user: user)
+      end
+
+      it "returns an error with 400" do
+        subject
+
+        expect(response).not_to be_success
+        expect(response.status).to eq(400)
+        expect(json).to have_key('error')
+      end
+    end
   end
 
   describe "PUT /me/accounts/{account_uid}/transaction_categorization_suggestion" do
