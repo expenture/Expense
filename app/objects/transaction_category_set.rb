@@ -74,17 +74,22 @@ class TransactionCategorySet
 
   # Conjecture a category_code by the given words, datetime and location
   def categorize(words, datetime: nil, latitude: nil, longitude: nil)
+    return transaction_categorization_codes[0] if transaction_categorization_codes.count < 2
     code = classifier.classify(words).to_hash[:top_score_key]
 
-    if code == 'meal' && datetime.is_a?(Time)
-      if latitude && longitude
-        timezone = Timezone::Zone.new latlon: [latitude, longitude]
-        hour = timezone.time(datetime).hour
-      else
-        hour = datetime.hour
-      end
+    begin
+      if code == 'meal' && datetime.is_a?(Time)
+        if latitude && longitude
+          timezone = Timezone::Zone.new latlon: [latitude, longitude]
+          hour = timezone.time(datetime).hour
+        else
+          hour = datetime.hour
+        end
 
-      code = meal_name_from_hour(hour)
+        code = meal_name_from_hour(hour)
+      end
+    rescue Timezone::Error::Base => e
+      Rails.logger.error(e)
     end
 
     code
@@ -155,7 +160,7 @@ class TransactionCategorySet
 
     # Return the category codes that a category set contains
     def codes(category_set = hash)
-      category_set.values.delete_if { |pc| !pc[:categories].is_a?(Hash) }.map { |pc| pc[:categories].keys }.reduce { |a, e| a.concat(e) } || []
+      category_set.values.delete_if { |pc| pc.blank? || !pc[:categories].is_a?(Hash) }.map { |pc| pc[:categories].keys }.reduce { |a, e| a.concat(e) } || []
     end
 
     # Return the available (not hidden) category codes that a

@@ -13,6 +13,7 @@ describe "Synchronizer Types API" do
                                                 collect_methods: :array_of_strings,
                                                 name: :string,
                                                 description: :string,
+                                                introduction: :string,
                                                 schedules: {
                                                   normal: {
                                                     description: :string,

@@ -4,7 +4,7 @@ module AccountOrganizingService
       account.reload
 
       account.transactions.not_on_record.find_each do |transaction|
-        record_transaction = account.transactions.on_record.order(datetime: :desc).find_by(amount: transaction.amount, datetime: (transaction.datetime - 25.hours)..(transaction.datetime + 25.hours))
+        record_transaction = account.transactions.on_record.order(datetime: :desc).possible_copy(transaction.amount, transaction.datetime).first
         next unless record_transaction
 
         transaction.record_transaction = record_transaction

@@ -236,4 +236,45 @@ describe "User's Synchronizer Management API" do
       end
     end
   end
+
+  describe "POST /me/synchronizers/{synchronizer_uid}/_perform_sync" do
+    before { allow(SynchronizerRunCollectJob).to receive(:perform_later) }
+    let(:synchronizer) { create(:synchronizer, user: user) }
+    subject(:request) do
+      post "/me/synchronizers/#{synchronizer.uid}/_perform_sync", authorization_header
+    end
+
+    it "do perform sync and returns 202" do
+      request
+      expect(response).to be_success
+      expect(response.status).to eq(202)
+      expect(json).to have_key('synchronizer')
+    end
+
+    context "the syncer is not in a performable status" do
+      before do
+        synchronizer.perform_sync
+      end
+
+      it "returns a error with status 400" do
+        request
+        expect(response).not_to be_success
+        expect(response.status).to eq(400)
+        expect(json).to have_key('error')
+        expect(json).to have_key('synchronizer')
+      end
+    end
+
+    context "synchronizer not found" do
+      let(:synchronizer) { create(:synchronizer) }
+
+      it "returns an error with status 404" do
+        request
+        expect(response).not_to be_success
+        expect(response.status).to eq(404)
+        expect(json).to have_key('error')
+        expect(json).not_to have_key('synchronizer')
+      end
+    end
+  end
 end

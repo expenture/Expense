@@ -15,7 +15,9 @@ Rails.application.routes.draw do
     resource :transaction_category_set, controller: 'transaction_category_set',
                                         only: [:show, :update]
     resources :transactions, only: [:index]
-    resources :synchronizers, only: [:index, :update, :destroy]
+    resources :synchronizers, only: [:index, :update, :destroy] do
+      post :_perform_sync, to: 'synchronizers#perform_sync'
+    end
     resources :account_identifiers, only: [:index, :update]
   end
 

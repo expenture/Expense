@@ -5,6 +5,8 @@ class AppleReceiptSyncer < Synchronizer
   COLLECT_METHODS = [:email].freeze
   NAME = 'Receipts from Apple'.freeze
   DESCRIPTION = 'Email receipts for the App Store, iTunes, iBooks from Apple inc.'.freeze
+  INTRODUCTION = <<-EOF.strip_heredoc
+  EOF
   SCHEDULE_INFO = {
     normal: {
       description: '每小時',

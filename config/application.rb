@@ -71,6 +71,7 @@ module Expense
   begin
     if ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'postgresql'
       Rails.application.config.active_record.schema_format = :sql
+      puts "Using PostgreSQL database"
     else
       Rails.application.config.active_record.schema_format = :ruby
     end

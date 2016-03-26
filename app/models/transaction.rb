@@ -51,6 +51,9 @@ class Transaction < ApplicationRecord
   scope :not_separated, -> { where(separated: false) }
   scope :on_record, -> { where(on_record: true) }
   scope :not_on_record, -> { where(on_record: false) }
+  scope :possible_copy,
+        -> (amount, datetime) { where(amount: amount, datetime: (datetime - 25.hours)..(datetime + 25.hours)) }
+  scope :possible_on_record_copy, -> (amount, datetime) { on_record.possible_copy(amount, datetime) }
 
   belongs_to :account,
              primary_key: :uid, foreign_key: :account_uid
@@ -66,7 +69,8 @@ class Transaction < ApplicationRecord
                                         foreign_key: :synchronizer_parsed_data_uid
 
   validates :account, :uid, :amount, :datetime, presence: true
-  validate :not_separating_a_virtual_transaction
+  validate :separate_transaction_uid_is_valid,
+           :not_separating_a_virtual_transaction
   validate :immutable_separate_transaction_uid, on: :update
   validate :record_transaction_uid_must_be_nil_if_on_record,
            :record_transaction_is_valid_if_record_transaction_uid_is_set
@@ -136,10 +140,19 @@ class Transaction < ApplicationRecord
     @record_transaction ||= Transaction.find_by(uid: record_transaction_uid)
   end
 
+  def separate_transaction_uid_is_valid
+    return if separate_transaction_uid.blank?
+    if separate_transaction.blank? ||
+       separate_transaction.account_uid != account_uid
+      errors.add(:separate_transaction_uid, 'is invalid, the specified transaction does not exists')
+    end
+  end
+
   def not_separating_a_virtual_transaction
     return unless virtual?
+    return if separate_transaction.blank?
     return unless separate_transaction.virtual?
-    errors.add(:separate_transaction, 'is a virtual transaction, can\'t separate a virtual transaction')
+    errors.add(:separate_transaction_uid, 'is pointed to a virtual transaction, can\'t separate a virtual transaction')
   end
 
   def immutable_separate_transaction_uid

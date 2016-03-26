@@ -66,6 +66,12 @@ Integration tests that requires communication with real-world web services are s
 
 This application is designed with [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
 
+The major system dependencies to run this app are: `ruby`, `bundler`, `imagemagick` and `tesseract`. A `phantomjs` executable for `linux` and `darwin` is included in this code base.
+
+Primary configurations of this app are controlled by environment variables (ENVs). A sample `.env` file listing primary ENVs is located at `.env.sample`. This app relies on several backing services (with their connection configured using ENVs), Some of them might need to send data to this app by using WebHooks, more details about this are described in the [WebHook Endpoints](#webHook-endpoints) section below.
+
+There are three process types for this app: web servers (`web`), background job workers (`worker`) and the clock `clock`. See the `Procfile` to learn about how to start the processes in a general case.
+
 ### WebHook Endpoints
 
 There're a few API endpoints for other service to send data into this app:
@@ -652,14 +658,6 @@ Sample response:
 }
 ```
 
-#### Account Organizing Service
-
-`AccountOrganizingService` is a service module that provides two methods for organizing accounts: `clean` and `merge`.
-
-The `clean` method takes an `Account` instance as the argument, it finds duplication between on-record transactions not-on-record transactions (by the same amount and datetime differences within 25 hours), then links the not-on-record transaction to its on-record transaction, i.e. cleans that account. This method can be also used to clean syncing accounts by syncers.
-
-The `merge` method is used if the user wants to merge transactions from a old account (source account) to a new one (target account). It will copy all the old transactions from the source account and place them as not-on-record transactions on the target one, after that, the `clean` method is used to clean the target account.
-
 #### Synchronizer Management
 
 Synchronizers ("Syncers") syncs data from your bank accounts, card accounts or bills to transactions in this app automatically (i.e. does the auto expense logging for you).
@@ -673,7 +671,7 @@ Synchronizers has different types, different types of syncers syncs data from di
 Returns the available syncer types and their details in this app.
 
 ```http
-GET /synchronizers
+GET /synchronizer_types
 ```
 
 ##### Listing User's Syncers
@@ -724,6 +722,18 @@ Content-Type: application/json
 ```
 
 > TODO: Destroy syncer API.
+
+##### Manually Run A Syncer
+
+Calls a syncer perform synchronization immediately.
+
+```http
+POST /me/synchronizers/{uid}/_perform_sync
+```
+
+This request will return `202` if the syncer has be successfully prepared for running, or return `400` if there's an error occured while starting the syncer.
+
+> TODO: Stop syncing API.
 
 #### Account Identifier Management
 
@@ -802,7 +812,7 @@ _▴ Demo of using `TransactionCategorySet#categorize`._
 
 The functionality of `#categorize` is based on records in the model `TransactionCategorizationCase`. `TransactionCategorizationCase` has attribute `words`, `category_code` and a optional `user_id`. For each example case, `words` is the sample words of an transcaion that should be categorize into `category_code`. `TransactionCategorizationCase`s without an `user_id` are shared by all users, while those with a specified `user_id` only effects that user.
 
-New `TransactionCategorizationCase`s are automatically created with an `user_id` while the user uses `PUT /me/accounts/<account_id>/transactions/<transaction_id>` or `PATCH /me/accounts/<account_id>/transactions/<transaction_id>` to update a transaction with a specified `category_code`. Exploring `TransactionCategorizationCase` and clear the `user_id` for those are a general case is a way to improve the correct rate of the auto-transaction-categorizing feature for all users.
+New `TransactionCategorizationCase`s are automatically created with an `user_id` while the user uses `PUT /me/accounts/{account_id}/transactions/{transaction_id}` or `PATCH /me/accounts/{account_id}/transactions/{transaction_id}` to update a transaction with a specified `category_code`. Exploring `TransactionCategorizationCase` and clear the `user_id` for those are a general case is a way to improve the correct rate of the auto-transaction-categorizing feature for all users.
 
 ### Service Modules
 
@@ -821,6 +831,14 @@ Communication with backing services, such as database, file storage, outbound em
 
 These type of service objects written in this app will provide a `mock_mode` module attr. While it is set to `true`, no real connections to those backing services will be established, and mock data will be used for return value. This is normally used for testing. And the mock data written in those modules can also act as documentation.
 
+#### Account Organizing Service
+
+`AccountOrganizingService` is a service module that provides two methods for organizing accounts: `clean` and `merge`.
+
+The `clean` method takes an `Account` instance as the argument, it finds duplication between on-record transactions not-on-record transactions (by the same amount and datetime differences within 25 hours), then links the not-on-record transaction to its on-record transaction, i.e. cleans that account. This method can be also used to clean syncing accounts by syncers.
+
+The `merge` method is used if the user wants to merge transactions from a old account (source account) to a new one (target account). It will copy all the old transactions from the source account and place them as not-on-record transactions on the target one, after that, the `clean` method is used to clean the target account.
+
 ### Synchronizers
 
 Synchronizers ("Syncers") does the auto expense logging. It syncs from real-word expense record _(such as credit card bills, banking websites, receipt emails, etc.)_ to the transaction record in this app. They lives under `app/synchronizers` and do their jobs mostly in scheduled background workers.
@@ -837,6 +855,7 @@ Each synchronizer has their `CODE`, `REGION_CODE`, `NAME`, `DESCRIPTION`, `PASSC
 - [`Array`] `COLLECT_METHODS`: (Required) An array of symbols, specifying the supported data collecting methods of this syncer. Available symbols are: `:run` and `:email`.
 - [`String`] `NAME`: (Required) The display name.
 - [`String`] `DESCRIPTION`: (Required) A description of the syncer.
+- [`String`] `INTRODUCTION`: (Required) A longer introduction about the syncer.
 - [`Hash`] `PASSCODE_INFO`: A hash that states the usage of passcode for this syncer. An example is:
 
   ```ruby

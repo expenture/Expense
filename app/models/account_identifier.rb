@@ -43,6 +43,19 @@ class AccountIdentifier < ApplicationRecord
     account_uid.present?
   end
 
+  def update_sample_data_if_needed(amount:, datetime:, description: nil, party_name: nil)
+    return if identified?
+    return unless sample_transaction_datetime.blank? ||
+                  datetime > sample_transaction_datetime
+
+    self.sample_transaction_party_name = party_name
+    self.sample_transaction_description = description
+    self.sample_transaction_amount = amount
+    self.sample_transaction_datetime = datetime
+
+    save! if new_record? || changed?
+  end
+
   private
 
   def account_exists_if_account_uid_is_not_blank

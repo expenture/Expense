@@ -366,6 +366,7 @@ CREATE TABLE synchronizers (
     encrypted_passcode_3 character varying,
     encrypted_passcode_4 character varying,
     passcode_encrypt_salt character varying NOT NULL,
+    last_scheduled_at timestamp without time zone,
     last_collected_at timestamp without time zone,
     last_parsed_at timestamp without time zone,
     last_synced_at timestamp without time zone,

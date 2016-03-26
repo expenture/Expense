@@ -181,6 +181,21 @@ describe "User's Account Transaction Management API" do
         separated_transaction.reload
         expect(separated_transaction.ignore_in_statistics).to eq(true)
       end
+
+      context "the specified separated transaction doesn't exists" do
+        before do
+          separated_transaction.destroy!
+        end
+
+        it "returns an error with status 400" do
+          subject
+
+          expect(response).not_to be_success
+          expect(response.status).to eq(400)
+
+          expect(json).to have_key('error')
+        end
+      end
     end
   end
 

@@ -8,6 +8,7 @@ json.name synchronizer.name
 json.status synchronizer.status
 
 if time_format == 'integer'
+  json.last_scheduled_at (synchronizer.last_scheduled_at && synchronizer.last_scheduled_at.to_i * 1000)
   json.last_collected_at (synchronizer.last_collected_at && synchronizer.last_collected_at.to_i * 1000)
   json.last_parsed_at (synchronizer.last_parsed_at && synchronizer.last_parsed_at.to_i * 1000)
   json.last_synced_at (synchronizer.last_synced_at && synchronizer.last_synced_at.to_i * 1000)
@@ -15,6 +16,7 @@ if time_format == 'integer'
   json.created_at synchronizer.created_at_as_i
   json.updated_at synchronizer.updated_at_as_i
 else
+  json.last_scheduled_at synchronizer.last_scheduled_at
   json.last_collected_at synchronizer.last_collected_at
   json.last_parsed_at synchronizer.last_parsed_at
   json.last_synced_at synchronizer.last_synced_at

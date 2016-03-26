@@ -7,6 +7,7 @@ json.note transaction.note
 json.datetime transaction.datetime
 json.latitude transaction.latitude
 json.longitude transaction.longitude
+json.separated transaction.separated?
 json.virtual transaction.virtual?
 json.separate_transaction_uid transaction.separate_transaction_uid
 json.on_record transaction.on_record

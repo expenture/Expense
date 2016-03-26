@@ -25,6 +25,16 @@ class Me::SynchronizersController < ApplicationAPIController
     end
   end
 
+  def perform_sync
+    @synchronizer = current_user.synchronizers.find_by!(uid: params[:synchronizer_id])
+    if @synchronizer.perform_sync
+      render status: 202
+    else
+      @error = Error.new(status: 400, code: 'not_performable', message: 'The syncer is not in a performable status')
+      render status: @error.status
+    end
+  end
+
   private
 
   def synchronizer_params

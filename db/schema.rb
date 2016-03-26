@@ -144,6 +144,7 @@ ActiveRecord::Schema.define(version: 20160323223854) do
     t.string   "encrypted_passcode_3"
     t.string   "encrypted_passcode_4"
     t.string   "passcode_encrypt_salt",                    null: false
+    t.datetime "last_scheduled_at"
     t.datetime "last_collected_at"
     t.datetime "last_parsed_at"
     t.datetime "last_synced_at"

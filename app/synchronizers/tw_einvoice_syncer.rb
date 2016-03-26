@@ -1,16 +1,23 @@
 # 台灣財政部電子發票整合服務平台 - 手機條碼載具電子發票消費記錄同步器
 #
 # 依照電子發票資料一經開出便不再修改的特性，在解析 (parse) 階段若發現相同的發票已經被解析過，
-# 便會略過該張發票的解析。因此 `parsed_data` 將能維持不重複、一張發票對應一筆資料。
+# 便會略過該張發票的解析。因此 `parsed_data` 將維持不重複、一張發票對應一筆資料。
 #
-# == 帳戶管理規則:
+# == 資料來源
+# 由使用者交付電子發票手機號碼 (`passcode_1`) 及驗證碼 (`passcode_2`)，透過使用者代理爬蟲，
+# 自動抓取發票查詢頁面，並將每一頁發票資料存入資料庫。
+#
+# == 發票 (`parsed_data`) 格式:
+# 一張發票會對應到一筆 `parsed_data`。其 `uid` 格式為 `{同步器 uid}-{發票號碼}`。因此在解析
+# 資料時，會先抓出發票號碼，並以 `uid` 判斷同一張發票是否已被解析過，若是則會直接略過。
+# 發票明細、賣方、日期等資料將一同被解析後存入 `parsed_data`。
+#
+# == 交易紀錄帳戶歸檔:
 # 每張電子發票中可以抓取到載具類別以及代碼 (詳見 `TWEInvoiceSyncer::KNOWN_ACCOUNT_TYPES`
-# 常數)。帳戶會依照查詢到的電子發票紀錄自動建立，uid 編碼方式為:
-# `<user_id>-<account_type>-<載具代碼>`，其中 `account_type` 為本程式編制的通用帳戶種類
-# 代碼，例如悠遊卡為 `tw_eazycard`，`載具代碼` 是電子發票系統中提供的載具代碼。
-#
-# == 交易記錄 uid 規則:
-# `<帳戶 id>-<發票號碼>`
+# 常數)。針對每張發票發票，會由 `AccountIdentifier` 來推測該張發票的所屬帳戶，並將交易寫入該
+# 帳戶內。若無法推斷帳戶，將會先行略過該張發票，待使用者指定帳戶後再繼續。寫入交易紀錄到帳戶前，會
+# 先檢查是否可能已經有寫入的交易紀錄 (可能是由使用者手動記錄，或是由其他同步器寫入)。若有，就不會再
+# 新增重複的紀錄，而是幫舊紀錄補上詳細資料。若沒有，則會寫入新的交易紀錄。
 #
 class TWEInvoiceSyncer < Synchronizer
   CODE = :tw_einvoice
@@ -18,7 +25,10 @@ class TWEInvoiceSyncer < Synchronizer
   TYPE = :einvoice
   COLLECT_METHODS = [:run].freeze
   NAME = '電子發票'.freeze
-  DESCRIPTION = '使用電子發票手機條碼，或是悠遊卡、博客來會員等載具，自動歸戶到「財政部電子發票整合服務平台」的電子發票。'.freeze
+  DESCRIPTION = '使用電子發票手機條碼，或是悠遊卡、博客來會員等載具，自動歸戶到「財政部電子發票整合服務平台」的電子發票'.freeze
+  INTRODUCTION = <<-EOF.strip_heredoc
+    使用電子發票手機條碼，或是悠遊卡、博客來會員等載具，自動歸戶到「財政部電子發票整合服務平台」的電子發票。
+  EOF
   SCHEDULE_INFO = {
     normal: {
       description: '一天兩次－中午與午夜',
@@ -55,6 +65,7 @@ class TWEInvoiceSyncer < Synchronizer
     '2G0001' => 'tw_icash'
   }.freeze
 
+  # 爬取
   class Collector < Worker
     def run(level: :normal)
       @level = level
@@ -163,6 +174,7 @@ class TWEInvoiceSyncer < Synchronizer
     end
   end
 
+  # 解析
   class Parser < Worker
     def run(level: :normal)
       if level == :complete
@@ -231,6 +243,7 @@ class TWEInvoiceSyncer < Synchronizer
     end
   end
 
+  # 整理、寫入交易紀錄
   class Organizer < Worker
     def run(level: :normal)
       if level == :complete
@@ -239,68 +252,114 @@ class TWEInvoiceSyncer < Synchronizer
         pds = parsed_data.unorganized
       end
 
+      # For each parsed data
       pds.find_each do |the_parsed_data|
         data = the_parsed_data.data
+        data[:datetime] = DateTime.parse(data[:datetime])
 
+        # Find account
         account_identifier = \
           account_identifiers.find_or_initialize_by type: data[:account_type],
                                                     identifier: data[:account_code]
 
-        if !account_identifier.identified? &&
-           (account_identifier.sample_transaction_datetime.blank? ||
-           DateTime.parse(data[:datetime]) > account_identifier.sample_transaction_datetime)
-          account_identifier.sample_transaction_party_name = data[:seller_name]
-          account_identifier.sample_transaction_description = "#{data[:details][0][:name]} × #{data[:details][0][:count]}"
-          account_identifier.sample_transaction_amount = -data[:details][0][:amount]
-          account_identifier.sample_transaction_datetime = data[:datetime]
+        account_identifier.update_sample_data_if_needed(
+          amount: -data[:details][0][:amount],
+          datetime: data[:datetime],
+          description: "#{data[:details][0][:name]} × #{data[:details][0][:count]}",
+          party_name: data[:seller_name]
+        )
+
+        account = account_identifier.account
+        next unless account.present?
+
+        # Skip if a created transaction exists
+        if account.transactions.exists?(synchronizer_parsed_data_uid: the_parsed_data.uid)
+          the_parsed_data.skipped!
+          next
         end
 
-        account_identifier.save! if account_identifier.new_record? || account_identifier.changed?
+        invoice_description = (
+          <<-EOD.strip_heredoc
+            發票號碼：#{data[:invoice_code]}
+            發票開立日期：#{data[:datetime].strftime('%Y/%m/%d')}
+            賣方名稱與統編：#{data[:seller_name]}
+            發票金額：#{(data[:amount] / 1_000).to_i}
+            消費明細：
+          EOD
+        ) + data[:details].map { |d| "#{d[:name]}：NT$ #{d[:price]/1000} × #{d[:count]} = NT$ #{d[:amount]/1000}" }.join("\n")
 
-        if account_identifier.account.present?
-          account = account_identifier.account
+        # Find if possible on record copy exists
+        possible_on_record_copy = account.transactions.possible_on_record_copy(-data[:amount], data[:datetime]).last
 
-          if account.transactions.exists?(synchronizer_parsed_data_uid: the_parsed_data.uid)
-            the_parsed_data.skipped!
+        if possible_on_record_copy.present?
+          possible_on_record_copy.synchronizer_parsed_data ||= the_parsed_data
+
+          if possible_on_record_copy.manually_edited? &&
+             (possible_on_record_copy.description.present? ||
+             possible_on_record_copy.note.present?)
+
+            possible_on_record_copy.note += "\n\n" + invoice_description
+            possible_on_record_copy.save!
+
           else
             # TODO: log seller_name
-            transaction = account.transactions.create!(
-              synchronizer_parsed_data: the_parsed_data,
-              uid: "#{account.id}-#{uid}-#{data[:invoice_code]}",
-              description: "在 #{data[:seller_name]} 消費 NT$ #{(data[:amount] / 1_000).to_i}",
-              amount: -data[:amount],
-              datetime: data[:datetime],
-              note: (
-                <<-EOD.strip_heredoc
-                  發票號碼：#{data[:invoice_code]}
-                  發票開立日期：#{DateTime.parse(data[:datetime]).strftime('%Y/%m/%d')}
-                  賣方名稱與統編：#{data[:seller_name]}
-                  發票金額：#{(data[:amount] / 1_000).to_i}
-                  消費明細：
-                EOD
-              ) + data[:details].map { |d| "#{d[:name]}：NT$ #{d[:price]/1000} × #{d[:count]} = NT$ #{d[:amount]/1000}" }.join("\n")
-            )
+            possible_on_record_copy.description ||= "在 #{data[:seller_name]} 消費 NT$ #{(data[:amount] / 1_000).to_i}"
+            possible_on_record_copy.note += invoice_description
+            possible_on_record_copy.save!
 
-            data[:details].each do |detail|
-              if detail[:amount] < 0
-                category_code = 'discounts'
-              else
-                @tcs ||= user.transaction_category_set
-                category_code = @tcs.categorize(detail[:name], datetime: DateTime.parse(data[:datetime]), latitude: 23.5, longitude: 121)
+            unless possible_on_record_copy.separated?
+              data[:details].each do |detail|
+                if detail[:amount] < 0
+                  category_code = 'discounts'
+                else
+                  @tcs ||= user.transaction_category_set
+                  category_code = @tcs.categorize(detail[:name], datetime: data[:datetime], latitude: 23.5, longitude: 121)
+                end
+
+                possible_on_record_copy.separating_transactions.create!(
+                  synchronizer_parsed_data: the_parsed_data,
+                  uid: "#{account.id}-#{uid}-#{data[:invoice_code]}-#{detail[:number]}",
+                  description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),
+                  amount: -detail[:amount],
+                  category_code: category_code
+                )
               end
-
-              transaction.separating_transaction.create!(
-                synchronizer_parsed_data: the_parsed_data,
-                uid: "#{account.id}-#{uid}-#{data[:invoice_code]}-#{detail[:number]}",
-                description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),
-                amount: -detail[:amount],
-                category_code: category_code
-              )
             end
-
-            the_parsed_data.organized!
           end
+
+          possible_on_record_copy.save! if possible_on_record_copy.changed?
+          next
         end
+
+        # Create the transaction
+        # TODO: log seller_name
+        transaction = account.transactions.create!(
+          synchronizer_parsed_data: the_parsed_data,
+          uid: "#{account.id}-#{uid}-#{data[:invoice_code]}",
+          description: "在 #{data[:seller_name]} 消費 NT$ #{(data[:amount] / 1_000).to_i}",
+          amount: -data[:amount],
+          datetime: data[:datetime],
+          note: invoice_description
+        )
+
+        data[:details].each do |detail|
+          if detail[:amount] < 0
+            category_code = 'discounts'
+          else
+            @tcs ||= user.transaction_category_set
+            category_code = @tcs.categorize(detail[:name], datetime: data[:datetime], latitude: 23.5, longitude: 121)
+          end
+
+          transaction.separating_transactions.create!(
+            synchronizer_parsed_data: the_parsed_data,
+            uid: "#{account.id}-#{uid}-#{data[:invoice_code]}-#{detail[:number]}",
+            description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),
+            amount: -detail[:amount],
+            category_code: category_code
+          )
+        end
+
+        the_parsed_data.organized!
       end
     end
   end

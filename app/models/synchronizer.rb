@@ -50,6 +50,9 @@ class Synchronizer < ApplicationRecord
   NAME = ''.freeze
   # The description of the syncer that should be defined in all synchronizers
   DESCRIPTION = ''.freeze
+  # A longer introduction about the syncer
+  INTRODUCTION = <<-EOF.strip_heredoc
+  EOF
   # The passcode description that should be defined in all synchronizers
   PASSCODE_INFO = {}.freeze
   # The statement of the running schedule of the synchronizer
@@ -177,9 +180,28 @@ class Synchronizer < ApplicationRecord
   end
 
   # Perform the sync in background worker
-  def perform_sync(level: :normal)
+  def perform_sync(level: :normal, force: false)
+    unless can_perform_sync?
+      if force ||
+         (last_scheduled_at.blank? || (Time.now - last_scheduled_at) > 10.minutes)
+        # TODO: Try to cancel the possible running job
+      else
+        return false
+      end
+    end
+
     SynchronizerRunCollectJob.perform_later(synchronizer: self, level: level.to_s, auto_continue_syncing: true)
+    scheduled
     log_info "Queued sync of level #{level}"
+    return true
+  end
+
+  def perform_sync!(level: :normal, force: false)
+    raise PerformSyncError unless perform_sync(level: level, force: force)
+  end
+
+  def can_perform_sync?
+    return true if %w(new bad_passcode collect_error parse_error organize_error synced).include?(status)
   end
 
   # Perform the sync if in schedule
@@ -234,23 +256,24 @@ class Synchronizer < ApplicationRecord
     end
 
     def syncer_classes_as_json
-      Hash[Synchronizer.syncer_classes.map do |code, syncer|
+      Hash[Synchronizer.syncer_classes.map do |code, syncer_class|
         [code, {
-          code: syncer::CODE,
-          region_code: syncer::REGION_CODE,
-          type: syncer::TYPE,
-          collect_methods: syncer::COLLECT_METHODS,
-          name: syncer::NAME,
-          description: syncer::DESCRIPTION,
-          schedules: syncer::SCHEDULE_INFO,
-          passcodes: syncer::PASSCODE_INFO,
-          email_endpoint_host: (syncer::COLLECT_METHODS.include?(:email) ? ENV['SYNCHRONIZER_RECEIVING_EMAIL_HOST'] : nil),
-          email_endpoint_introduction: syncer::EMAIL_ENDPOINT_INTRODUCTION
+          code: syncer_class::CODE,
+          region_code: syncer_class::REGION_CODE,
+          type: syncer_class::TYPE,
+          collect_methods: syncer_class::COLLECT_METHODS,
+          name: syncer_class::NAME,
+          description: syncer_class::DESCRIPTION,
+          introduction: syncer_class::INTRODUCTION,
+          schedules: syncer_class::SCHEDULE_INFO,
+          passcodes: syncer_class::PASSCODE_INFO,
+          email_endpoint_host: (syncer_class::COLLECT_METHODS.include?(:email) ? ENV['SYNCHRONIZER_RECEIVING_EMAIL_HOST'] : nil),
+          email_endpoint_introduction: syncer_class::EMAIL_ENDPOINT_INTRODUCTION
         }]
       end]
     end
 
-    # Registers a new syncer
+    # Registers a new syncer class
     def register(syncer_class)
       @syncer_classes ||= HashWithIndifferentAccess.new
       @syncer_classes[syncer_class::CODE] = syncer_class
@@ -324,6 +347,7 @@ class Synchronizer < ApplicationRecord
   delegate :account_identifiers, to: :user, prefix: false
   validates :user, :uid, :name, :type, presence: true
   validates :uid, uniqueness: true
+  validates :status, inclusion: { in: %w(new scheduled collecting collected new bad_passcode collect_error parseing parsed parse_error organizing organize_error synced) }
   validates :schedule, inclusion: { in: %w(normal high_frequency low_frequency), message: "%{value} is not a valid schedule, must be one of: normal, high_frequency or low_frequency" }
   after_initialize :init_passcode_encrypt_salt
 
@@ -366,11 +390,20 @@ class Synchronizer < ApplicationRecord
   class ServiceAuthenticationError < StandardError
   end
 
+  class PerformSyncError < StandardError
+  end
+
   private
 
   def init_passcode_encrypt_salt
     return if self[:passcode_encrypt_salt].present?
     self.passcode_encrypt_salt = SecureRandom.hex(16)
+  end
+
+  def scheduled
+    self.status = 'scheduled'
+    self.last_scheduled_at = Time.now
+    save!
   end
 
   def collect_start
