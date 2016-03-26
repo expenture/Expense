@@ -105,6 +105,8 @@ group :development do
   gem 'foreman'
   # Open the sent email directly in the browser while development
   gem 'letter_opener'
+  # Annotate models
+  gem 'annotate'
   # Generate ERD diagram
   gem 'rails-erd'
 end

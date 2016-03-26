@@ -1,3 +1,30 @@
+# == Schema Information
+#
+# Table name: synchronizer_parsed_data
+#
+# *id*::                <tt>integer, not null, primary key</tt>
+# *collected_page_id*:: <tt>integer</tt>
+# *synchronizer_uid*::  <tt>string, not null</tt>
+# *uid*::               <tt>string, not null</tt>
+# *attribute_1*::       <tt>string</tt>
+# *attribute_2*::       <tt>string</tt>
+# *raw_data*::          <tt>text</tt>
+# *organized_at*::      <tt>datetime</tt>
+# *skipped_at*::        <tt>datetime</tt>
+# *created_at*::        <tt>datetime, not null</tt>
+# *updated_at*::        <tt>datetime, not null</tt>
+#
+# Indexes
+#
+#  index_synchronizer_parsed_data_on_collected_page_id  (collected_page_id)
+#  index_synchronizer_parsed_data_on_organized_at       (organized_at)
+#  index_synchronizer_parsed_data_on_skipped_at         (skipped_at)
+#  index_synchronizer_parsed_data_on_synchronizer_uid   (synchronizer_uid)
+#  index_synchronizer_parsed_data_on_uid                (uid) UNIQUE
+#--
+# == Schema Information End
+#++
+
 class Synchronizer::ParsedData < ApplicationRecord
   scope :unorganized, -> { where(organized_at: nil) }
 

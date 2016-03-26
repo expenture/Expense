@@ -1,3 +1,30 @@
+# == Schema Information
+#
+# Table name: accounts
+#
+# *id*::               <tt>integer, not null, primary key</tt>
+# *user_id*::          <tt>integer, not null</tt>
+# *uid*::              <tt>string, not null</tt>
+# *type*::             <tt>string, default("cash"), not null</tt>
+# *name*::             <tt>string, not null</tt>
+# *currency*::         <tt>string, default("TWD"), not null</tt>
+# *balance*::          <tt>integer, default(0), not null</tt>
+# *created_at*::       <tt>datetime, not null</tt>
+# *updated_at*::       <tt>datetime, not null</tt>
+# *kind*::             <tt>string</tt>
+# *synchronizer_uid*:: <tt>string</tt>
+#
+# Indexes
+#
+#  index_accounts_on_kind              (kind)
+#  index_accounts_on_synchronizer_uid  (synchronizer_uid)
+#  index_accounts_on_type              (type)
+#  index_accounts_on_uid               (uid) UNIQUE
+#  index_accounts_on_user_id           (user_id)
+#--
+# == Schema Information End
+#++
+
 class Account < ApplicationRecord
   self.inheritance_column = :kind
 

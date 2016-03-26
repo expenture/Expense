@@ -1,3 +1,29 @@
+# == Schema Information
+#
+# Table name: account_identifiers
+#
+# *id*::                             <tt>integer, not null, primary key</tt>
+# *user_id*::                        <tt>integer, not null</tt>
+# *type*::                           <tt>string</tt>
+# *account_uid*::                    <tt>string</tt>
+# *identifier*::                     <tt>string, not null</tt>
+# *sample_transaction_description*:: <tt>text</tt>
+# *sample_transaction_party_name*::  <tt>string</tt>
+# *sample_transaction_amount*::      <tt>integer</tt>
+# *sample_transaction_datetime*::    <tt>datetime</tt>
+# *created_at*::                     <tt>datetime, not null</tt>
+# *updated_at*::                     <tt>datetime, not null</tt>
+#
+# Indexes
+#
+#  index_account_identifiers_on_account_uid  (account_uid)
+#  index_account_identifiers_on_identifier   (identifier)
+#  index_account_identifiers_on_type         (type)
+#  index_account_identifiers_on_user_id      (user_id)
+#--
+# == Schema Information End
+#++
+
 class AccountIdentifier < ApplicationRecord
   self.inheritance_column = nil
 

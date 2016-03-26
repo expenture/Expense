@@ -1,3 +1,39 @@
+# == Schema Information
+#
+# Table name: synchronizers
+#
+# *id*::                    <tt>integer, not null, primary key</tt>
+# *user_id*::               <tt>integer, not null</tt>
+# *uid*::                   <tt>string, not null</tt>
+# *type*::                  <tt>string, not null</tt>
+# *enabled*::               <tt>boolean, default(TRUE), not null</tt>
+# *schedule*::              <tt>string, default("normal"), not null</tt>
+# *name*::                  <tt>string</tt>
+# *status*::                <tt>string, default("new"), not null</tt>
+# *encrypted_passcode_1*::  <tt>string</tt>
+# *encrypted_passcode_2*::  <tt>string</tt>
+# *encrypted_passcode_3*::  <tt>string</tt>
+# *encrypted_passcode_4*::  <tt>string</tt>
+# *passcode_encrypt_salt*:: <tt>string, not null</tt>
+# *last_collected_at*::     <tt>datetime</tt>
+# *last_parsed_at*::        <tt>datetime</tt>
+# *last_synced_at*::        <tt>datetime</tt>
+# *last_errored_at*::       <tt>datetime</tt>
+# *created_at*::            <tt>datetime, not null</tt>
+# *updated_at*::            <tt>datetime, not null</tt>
+#
+# Indexes
+#
+#  index_synchronizers_on_last_errored_at  (last_errored_at)
+#  index_synchronizers_on_last_synced_at   (last_synced_at)
+#  index_synchronizers_on_schedule         (schedule)
+#  index_synchronizers_on_type             (type)
+#  index_synchronizers_on_uid              (uid) UNIQUE
+#  index_synchronizers_on_user_id          (user_id)
+#--
+# == Schema Information End
+#++
+
 class Synchronizer < ApplicationRecord
   # A unique code that should be defined in all synchronizers,
   # this should be a symbol
