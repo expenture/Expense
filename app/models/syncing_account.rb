@@ -5,14 +5,14 @@
 # *id*::               <tt>integer, not null, primary key</tt>
 # *user_id*::          <tt>integer, not null</tt>
 # *uid*::              <tt>string, not null</tt>
+# *kind*::             <tt>string</tt>
 # *type*::             <tt>string, default("cash"), not null</tt>
 # *name*::             <tt>string, not null</tt>
 # *currency*::         <tt>string, default("TWD"), not null</tt>
 # *balance*::          <tt>integer, default(0), not null</tt>
+# *synchronizer_uid*:: <tt>string</tt>
 # *created_at*::       <tt>datetime, not null</tt>
 # *updated_at*::       <tt>datetime, not null</tt>
-# *kind*::             <tt>string</tt>
-# *synchronizer_uid*:: <tt>string</tt>
 #
 # Indexes
 #

@@ -67,6 +67,15 @@ module Expense
       end
     end
   end
+
+  begin
+    if ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'postgresql'
+      Rails.application.config.active_record.schema_format = :sql
+    else
+      Rails.application.config.active_record.schema_format = :ruby
+    end
+  rescue
+  end
 end
 
 $VERBOSE = nil unless ENV['DISABLE_RUBY_WARNINGS'] == 'false'

@@ -36,7 +36,7 @@ chdir APP_ROOT do
     end
   end
 
-  puts '== Installing dependencies =='
+  puts "\n== Installing dependencies =="
   system! 'gem install bundler --conservative'
   system('bundle check') or system!('bundle install')
 
@@ -50,6 +50,7 @@ chdir APP_ROOT do
 
   puts "\n== Preparing database =="
   system! 'bin/rails db:setup'
+  system! 'bin/rails db:migrate'
   system! 'bundle exec rake dev:prime'
 
   puts "\n== Removing old logs and tempfiles =="

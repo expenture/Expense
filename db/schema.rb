@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160324122055) do
+ActiveRecord::Schema.define(version: 20160323223854) do
 
   create_table "account_identifiers", force: :cascade do |t|
     t.integer  "user_id",                        null: false
@@ -33,14 +33,14 @@ ActiveRecord::Schema.define(version: 20160324122055) do
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                           null: false
     t.string   "uid",                               null: false
+    t.string   "kind"
     t.string   "type",             default: "cash", null: false
     t.string   "name",                              null: false
     t.string   "currency",         default: "TWD",  null: false
     t.integer  "balance",          default: 0,      null: false
+    t.string   "synchronizer_uid"
     t.datetime "created_at",                        null: false
     t.datetime "updated_at",                        null: false
-    t.string   "kind"
-    t.string   "synchronizer_uid"
     t.index ["kind"], name: "index_accounts_on_kind"
     t.index ["synchronizer_uid"], name: "index_accounts_on_synchronizer_uid"
     t.index ["type"], name: "index_accounts_on_type"
@@ -162,9 +162,9 @@ ActiveRecord::Schema.define(version: 20160324122055) do
     t.integer  "user_id"
     t.string   "words"
     t.string   "category_code"
+    t.string   "transaction_uid"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
-    t.string   "transaction_uid"
     t.index ["category_code"], name: "index_transaction_categorization_cases_on_category_code"
     t.index ["transaction_uid"], name: "index_transaction_categorization_cases_on_transaction_uid"
     t.index ["user_id"], name: "index_transaction_categorization_cases_on_user_id"
@@ -173,6 +173,7 @@ ActiveRecord::Schema.define(version: 20160324122055) do
   create_table "transactions", force: :cascade do |t|
     t.string   "uid",                                          null: false
     t.string   "account_uid",                                  null: false
+    t.string   "kind"
     t.integer  "amount",                                       null: false
     t.text     "description"
     t.string   "category_code"
@@ -181,15 +182,14 @@ ActiveRecord::Schema.define(version: 20160324122055) do
     t.datetime "datetime",                                     null: false
     t.float    "latitude"
     t.float    "longitude"
-    t.boolean  "ignore_in_statistics",         default: false, null: false
-    t.datetime "created_at",                                   null: false
-    t.datetime "updated_at",                                   null: false
     t.boolean  "separated",                    default: false, null: false
     t.string   "separate_transaction_uid"
-    t.string   "kind"
-    t.string   "synchronizer_parsed_data_uid"
     t.boolean  "on_record"
     t.string   "record_transaction_uid"
+    t.boolean  "ignore_in_statistics",         default: false, null: false
+    t.string   "synchronizer_parsed_data_uid"
+    t.datetime "created_at",                                   null: false
+    t.datetime "updated_at",                                   null: false
     t.index ["account_uid"], name: "index_transactions_on_account_uid"
     t.index ["category_code"], name: "index_transactions_on_category_code"
     t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"

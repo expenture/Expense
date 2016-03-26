@@ -5,6 +5,7 @@ json.currency account.currency
 json.balance account.balance
 json.default account.default?
 json.syncing account.syncing?
+json.synchronizer_uid account.synchronizer_uid
 
 if time_format == 'integer'
   json.created_at account.created_at_as_i

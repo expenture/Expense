@@ -5,6 +5,7 @@
 # *id*::                           <tt>integer, not null, primary key</tt>
 # *uid*::                          <tt>string, not null</tt>
 # *account_uid*::                  <tt>string, not null</tt>
+# *kind*::                         <tt>string</tt>
 # *amount*::                       <tt>integer, not null</tt>
 # *description*::                  <tt>text</tt>
 # *category_code*::                <tt>string</tt>
@@ -13,15 +14,14 @@
 # *datetime*::                     <tt>datetime, not null</tt>
 # *latitude*::                     <tt>float</tt>
 # *longitude*::                    <tt>float</tt>
-# *ignore_in_statistics*::         <tt>boolean, default(FALSE), not null</tt>
-# *created_at*::                   <tt>datetime, not null</tt>
-# *updated_at*::                   <tt>datetime, not null</tt>
 # *separated*::                    <tt>boolean, default(FALSE), not null</tt>
 # *separate_transaction_uid*::     <tt>string</tt>
-# *kind*::                         <tt>string</tt>
-# *synchronizer_parsed_data_uid*:: <tt>string</tt>
 # *on_record*::                    <tt>boolean</tt>
 # *record_transaction_uid*::       <tt>string</tt>
+# *ignore_in_statistics*::         <tt>boolean, default(FALSE), not null</tt>
+# *synchronizer_parsed_data_uid*:: <tt>string</tt>
+# *created_at*::                   <tt>datetime, not null</tt>
+# *updated_at*::                   <tt>datetime, not null</tt>
 #
 # Indexes
 #
