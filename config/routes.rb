@@ -17,7 +17,7 @@ Rails.application.routes.draw do
     resources :account_identifiers, only: [:index, :update]
   end
 
-  resources :synchronizers, only: [:index], defaults: { format: :json }
+  resources :synchronizer_types, only: [:index], defaults: { format: :json }
 
   namespace :webhook_endpoints, defaults: { format: :json } do
     namespace :syncer_receiving do
