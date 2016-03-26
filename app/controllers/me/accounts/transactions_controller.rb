@@ -50,6 +50,7 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
       @transaction.assign_attributes(transaction_params)
     end
 
+    @transaction.manually_edited = true
     status = @transaction.persisted? ? 200 : 201
 
     if @transaction.save

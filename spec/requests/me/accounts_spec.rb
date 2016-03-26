@@ -202,4 +202,63 @@ describe "User's Account Management API" do
       expect(json).to have_key('category_code')
     end
   end
+
+  describe "POST /me/accounts/{account_uid}/_clean" do
+    before { allow(AccountOrganizingService).to receive(:clean) }
+    let(:account) { create(:account, user: user) }
+
+    it "runs cleaning on the account and returns 200" do
+      post "/me/accounts/#{account.uid}/_clean", authorization_header
+
+      expect(AccountOrganizingService).to have_received(:clean).once
+
+      expect(response).to be_success
+      expect(response.status).to eq(200)
+
+      expect(json).to have_key('account')
+      expect(json['account']['uid']).to eq(account.uid)
+    end
+  end
+
+  describe "POST /me/accounts/{account_uid}/_merge?source_account_uid={source_account_uid}" do
+    before { allow(AccountOrganizingService).to receive(:merge) }
+    let(:source_account) { create(:account, user: user) }
+    let(:target_account) { create(:account, user: user) }
+    let(:other_account) { create(:account, user: user) }
+    subject(:request) do
+      post "/me/accounts/#{target_account.uid}/_merge", authorization_header.merge(
+        params: {
+          source_account_uid: source_account.uid
+        }
+      )
+    end
+
+    it "runs merging on the account and returns 200" do
+      request
+
+      expect(AccountOrganizingService).to have_received(:merge).once
+
+      expect(response).to be_success
+      expect(response.status).to eq(200)
+
+      expect(json).to have_key('account')
+      expect(json['account']['uid']).to eq(target_account.uid)
+      expect(json).to have_key('source_account')
+      expect(json['source_account']['uid']).to eq(source_account.uid)
+    end
+
+    it "updates any account identifier that is pointed to the source account to point to the target account for the user" do
+      account_identifier = create(:account_identifier, user: user, account_uid: source_account.uid)
+      expect(account_identifier.account_uid).to eq(source_account.uid)
+      other_account_identifier = create(:account_identifier, user: user, account_uid: other_account.uid)
+      expect(other_account_identifier.account_uid).to eq(other_account.uid)
+
+      request
+      account_identifier.reload
+      other_account_identifier.reload
+
+      expect(account_identifier.account_uid).to eq(target_account.uid)
+      expect(other_account_identifier.account_uid).to eq(other_account.uid)
+    end
+  end
 end

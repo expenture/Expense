@@ -31,6 +31,7 @@ An expense managing application to make life more easier and free. This is the b
     - [Transaction Category Set](#transactioncategoryset-transaction-categorizing)
   - [Service Modules](#service-modules)
   - [Backing Services](#backing-services)
+  - [Account Organizing Service](#account-organizing-service)
   - [Synchronizers](#synchronizers)
     - [Collector](#collector)
     - [Parser](#parser)
@@ -49,16 +50,16 @@ Just run:
 $ bin/setup
 ```
 
-Then configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`, enter the console by `bin/console`, or run the tests by `bin/rspec`.
+Then configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`, enter the console by `bin/console`, or run the tests by `bin/test`.
 
 > Note: After updating (i.e. pulling a new version from the remote repo), be sure to run `bin/update` before you do anything.
 
 
 ## Testing
 
-Run `bin/rspec spec` to execute the RSpec test suite.
+Run `bin/test` to execute the test suite.
 
-Integration tests that requires communication with real-world web services are skipped by default. Set the `INTEGRATION_TEST` environment variable to `true` to run them: `INTEGRATION_TEST=true bin/rspec spec`.
+Integration tests that requires communication with real-world web services are skipped by default. Set the `INTEGRATION_TEST` environment variable to `true` to run them: `INTEGRATION_TEST=true bin/test`.
 
 
 ## Deploy
@@ -378,6 +379,24 @@ DELETE /me/accounts/{account_uid}
 
 > Note: The default account and [syncing accounts](#api-guide-syncing-accounts) cannot be deleted.
 
+##### Cleaning An Account
+
+Cleans the transactions (find possible matching between not-on-record transactions and on-record transactions to link them together, resolving the duplication) on an account. Normally users don't need to run this manually.
+
+```http
+POST /me/accounts/{account_uid}/_clean
+```
+
+##### Merging Two Accounts
+
+Merges transactions from a source account to a target account. A use case is to merge from a manual managed account to a syncing account, then the user can have old records on their new syncing account, and delete the old manual account. Transactions will be auto merged by coping transactions from the source account to the target account as not-on-record transactions, and cleaning the target account.
+
+```http
+POST /me/accounts/{account_uid}/_merge?source_account_uid={source_account_uid}
+```
+
+> Note that by merging accounts, any account identifier pointed to the source (old) account will be updated to point to the target (new) account automatically for the user. More info about account identifiers are described in the [Account Identifier Management](#account-identifier-management) section later.
+
 #### Transaction Management
 
 Transactions are records of money movements into or out of an account. A transaction with negative amount represent expenses, while those with positive amount represent incomes.
@@ -632,6 +651,14 @@ Sample response:
   "category_code": "drinks"
 }
 ```
+
+#### Account Organizing Service
+
+`AccountOrganizingService` is a service module that provides two methods for organizing accounts: `clean` and `merge`.
+
+The `clean` method takes an `Account` instance as the argument, it finds duplication between on-record transactions not-on-record transactions (by the same amount and datetime differences within 25 hours), then links the not-on-record transaction to its on-record transaction, i.e. cleans that account. This method can be also used to clean syncing accounts by syncers.
+
+The `merge` method is used if the user wants to merge transactions from a old account (source account) to a new one (target account). It will copy all the old transactions from the source account and place them as not-on-record transactions on the target one, after that, the `clean` method is used to clean the target account.
 
 #### Synchronizer Management
 

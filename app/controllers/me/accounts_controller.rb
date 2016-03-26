@@ -35,6 +35,18 @@ class Me::AccountsController < ApplicationAPIController
     end
   end
 
+  def clean
+    @account = current_user.accounts.find_by!(uid: params[:account_id])
+    AccountOrganizingService.clean(@account)
+  end
+
+  def merge
+    @account = current_user.accounts.find_by!(uid: params[:account_id])
+    @source_account = current_user.accounts.find_by!(uid: params.require(:source_account_uid))
+    AccountOrganizingService.merge(@source_account, @account)
+    current_user.account_identifiers.where(account_uid: @source_account.uid).update_all(account_uid: @account.uid)
+  end
+
   def transaction_categorization_suggestion
     params.require(:words)
 

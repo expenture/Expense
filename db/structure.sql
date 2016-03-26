@@ -451,6 +451,7 @@ CREATE TABLE transactions (
     record_transaction_uid character varying,
     ignore_in_statistics boolean DEFAULT false NOT NULL,
     synchronizer_parsed_data_uid character varying,
+    manually_edited_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     CONSTRAINT on_record_type_and_value_match CHECK (((((kind)::text = 'not_on_record'::text) AND (on_record = false)) OR (((kind)::text <> 'not_on_record'::text) AND (on_record = true)))),
@@ -990,6 +991,13 @@ CREATE INDEX index_transactions_on_ignore_in_statistics ON transactions USING bt
 --
 
 CREATE INDEX index_transactions_on_kind ON transactions USING btree (kind);
+
+
+--
+-- Name: index_transactions_on_manually_edited_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_manually_edited_at ON transactions USING btree (manually_edited_at);
 
 
 --

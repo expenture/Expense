@@ -74,6 +74,7 @@ describe "User's Account Transaction Management API" do
         transaction = account.transactions.find_by(uid: transaction_uid)
         expect(transaction).to be_on_record
         expect(transaction.amount).to eq(-120_000)
+        expect(transaction.manually_edited).to eq(true)
       end
     end
 
@@ -91,6 +92,7 @@ describe "User's Account Transaction Management API" do
         transaction = account.transactions.find_by(uid: transaction_uid)
         expect(transaction).to be_on_record
         expect(transaction.amount).to eq(-120_000)
+        expect(transaction.manually_edited).to eq(true)
       end
 
       it "updates the TransactionCategorizationCase" do
@@ -133,6 +135,7 @@ describe "User's Account Transaction Management API" do
         expect(transaction).not_to be_on_record
 
         expect(json['transaction']['on_record']).to eq(false)
+        expect(transaction.manually_edited).to eq(true)
       end
     end
 
@@ -151,22 +154,30 @@ describe "User's Account Transaction Management API" do
         )
       end
 
-      it "returns the data of the virtual transaction" do
+      it "creates a virtual transaction returns its data" do
         subject
+
+        transaction = account.transactions.find_by(uid: transaction_uid)
+        expect(transaction.manually_edited).to eq(true)
+
         expect(json['transaction']['separate_transaction_uid']).to eq(separated_transaction.uid)
         expect(json['transaction']['virtual']).to eq(true)
       end
 
       it "makes the separated transaction marked as separated" do
         expect(separated_transaction.separated).to eq(false)
+
         subject
+
         separated_transaction.reload
         expect(separated_transaction.separated).to eq(true)
       end
 
       it "makes the separated transaction to be ignore_in_statistics" do
         expect(separated_transaction.ignore_in_statistics).to eq(false)
+
         subject
+
         separated_transaction.reload
         expect(separated_transaction.ignore_in_statistics).to eq(true)
       end

@@ -20,6 +20,7 @@
 # *record_transaction_uid*::       <tt>string</tt>
 # *ignore_in_statistics*::         <tt>boolean, default(FALSE), not null</tt>
 # *synchronizer_parsed_data_uid*:: <tt>string</tt>
+# *manually_edited_at*::           <tt>datetime</tt>
 # *created_at*::                   <tt>datetime, not null</tt>
 # *updated_at*::                   <tt>datetime, not null</tt>
 #
@@ -29,6 +30,7 @@
 #  index_transactions_on_category_code                 (category_code)
 #  index_transactions_on_ignore_in_statistics          (ignore_in_statistics)
 #  index_transactions_on_kind                          (kind)
+#  index_transactions_on_manually_edited_at            (manually_edited_at)
 #  index_transactions_on_on_record                     (on_record)
 #  index_transactions_on_record_transaction_uid        (record_transaction_uid)
 #  index_transactions_on_separate_transaction_uid      (separate_transaction_uid)

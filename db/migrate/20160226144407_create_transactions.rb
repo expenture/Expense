@@ -18,6 +18,7 @@ class CreateTransactions < ActiveRecord::Migration[5.0]
       t.string :record_transaction_uid
       t.boolean :ignore_in_statistics, null: false, default: false
       t.string :synchronizer_parsed_data_uid
+      t.datetime :manually_edited_at
 
       t.timestamps
     end
@@ -32,6 +33,7 @@ class CreateTransactions < ActiveRecord::Migration[5.0]
     add_index :transactions, :record_transaction_uid
     add_index :transactions, :ignore_in_statistics
     add_index :transactions, :synchronizer_parsed_data_uid
+    add_index :transactions, :manually_edited_at
 
     add_foreign_key :transactions, :accounts, column: :account_uid,
                                               primary_key: :uid,

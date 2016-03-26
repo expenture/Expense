@@ -20,6 +20,7 @@
 # *record_transaction_uid*::       <tt>string</tt>
 # *ignore_in_statistics*::         <tt>boolean, default(FALSE), not null</tt>
 # *synchronizer_parsed_data_uid*:: <tt>string</tt>
+# *manually_edited_at*::           <tt>datetime</tt>
 # *created_at*::                   <tt>datetime, not null</tt>
 # *updated_at*::                   <tt>datetime, not null</tt>
 #
@@ -29,6 +30,7 @@
 #  index_transactions_on_category_code                 (category_code)
 #  index_transactions_on_ignore_in_statistics          (ignore_in_statistics)
 #  index_transactions_on_kind                          (kind)
+#  index_transactions_on_manually_edited_at            (manually_edited_at)
 #  index_transactions_on_on_record                     (on_record)
 #  index_transactions_on_record_transaction_uid        (record_transaction_uid)
 #  index_transactions_on_separate_transaction_uid      (separate_transaction_uid)
@@ -44,7 +46,7 @@ class Transaction < ApplicationRecord
 
   scope :for_statistics, -> { where(ignore_in_statistics: false) }
   scope :virtual, -> { where.not(separate_transaction_uid: nil) }
-  scope :real, -> { where(separate_transaction_uid: nil) }
+  scope :not_virtual, -> { where(separate_transaction_uid: nil) }
   scope :separated, -> { where(separated: true) }
   scope :not_separated, -> { where(separated: false) }
   scope :on_record, -> { where(on_record: true) }
@@ -92,6 +94,26 @@ class Transaction < ApplicationRecord
 
   def not_on_record_copy?
     !on_record? && record_transaction_uid.present?
+  end
+
+  def synced?
+    kind == 'synced'
+  end
+
+  def manually_edited
+    self.manually_edited_at.present?
+  end
+
+  def manually_edited?
+    self.manually_edited_at.present?
+  end
+
+  def manually_edited=(bool)
+    if bool
+      self.manually_edited_at ||= Time.now
+    else
+      self.manually_edited_at = nil
+    end
   end
 
   private

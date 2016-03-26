@@ -188,12 +188,14 @@ ActiveRecord::Schema.define(version: 20160323223854) do
     t.string   "record_transaction_uid"
     t.boolean  "ignore_in_statistics",         default: false, null: false
     t.string   "synchronizer_parsed_data_uid"
+    t.datetime "manually_edited_at"
     t.datetime "created_at",                                   null: false
     t.datetime "updated_at",                                   null: false
     t.index ["account_uid"], name: "index_transactions_on_account_uid"
     t.index ["category_code"], name: "index_transactions_on_category_code"
     t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"
     t.index ["kind"], name: "index_transactions_on_kind"
+    t.index ["manually_edited_at"], name: "index_transactions_on_manually_edited_at"
     t.index ["on_record"], name: "index_transactions_on_on_record"
     t.index ["record_transaction_uid"], name: "index_transactions_on_record_transaction_uid"
     t.index ["separate_transaction_uid"], name: "index_transactions_on_separate_transaction_uid"
