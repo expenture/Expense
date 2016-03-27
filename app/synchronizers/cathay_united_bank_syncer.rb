@@ -109,6 +109,7 @@ class CathayUnitedBankSyncer < Synchronizer
 
       raise Synchronizer::ServiceAuthenticationError if @session.driver.source.match('連續錯誤次數') ||
                                                         @session.driver.source.match('尚未申請此系統')
+      raise if @session.driver.source.match('目前系統維護中')
     end
 
     def get_verification_code_from_page
