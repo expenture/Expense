@@ -68,15 +68,33 @@ class TWEInvoiceSyncer < Synchronizer
   # 爬取
   class Collector < Worker
     def run(level: :normal)
-      @level = level
+      start_run(level)
       open_session
       try_to_login
       get_available_year_months
       crawl_each_year_months
+    rescue Exception => e
+      handle_error(e)
+    ensure
       quit_session
+      raise_if_error
     end
 
     private
+
+    def start_run(level)
+      @exception = nil
+      @level = level
+    end
+
+    def handle_error(e)
+      log_error e
+      @exception = e
+    end
+
+    def raise_if_error
+      raise @exception if @exception
+    end
 
     def open_session
       @session = Capybara::Session.new(:poltergeist)
@@ -99,10 +117,10 @@ class TWEInvoiceSyncer < Synchronizer
     def login
       @session.visit('https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier!login')
 
-      verification_image_file_name = "/tmp/#{uid}-#{SecureRandom.hex}.png"
-      @session.driver.save_screenshot verification_image_file_name, selector: '.forwardForm img'
-      verification_code = RTesseract.new(verification_image_file_name).to_s
-      system "rm #{verification_image_file_name}"
+      verification_image_file_path = "/tmp/#{Base64.urlsafe_encode64(uid).delete('=')}-#{SecureRandom.hex}.png"
+      @session.driver.save_screenshot verification_image_file_path, selector: '.forwardForm img'
+      verification_code = RTesseract.new(verification_image_file_path).to_s
+      File.delete(verification_image_file_path)
       verification_code.gsub!(/[^A-Za-z0-9]/, '')
       log_debug "Using verification_code: #{verification_code}"
       return if verification_code.length < 5
@@ -151,7 +169,7 @@ class TWEInvoiceSyncer < Synchronizer
         while body.blank?
           raise if get_data_tries == 0
 
-          puts query_js_code
+          log_debug query_js_code
           navigate_to_query_page(year, month) if get_data_tries < 10
           @session.evaluate_script(query_js_code)
           sleep 0.8
