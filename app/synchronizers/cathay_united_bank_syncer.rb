@@ -1,6 +1,7 @@
 # 國泰世華銀行 MyBank 同步器
 #
-# 由國泰世華銀行網路銀行同步存款交易紀錄與維護相應帳戶。
+# 自國泰世華銀行 https://www.mybank.com.tw 網路銀行抓取帳戶明細，更新相應帳戶與建立交易紀錄。
+# 同步時，`parsed_data` 分為帳戶、與帳戶交易明細兩種。
 #
 class CathayUnitedBankSyncer < Synchronizer
   CODE = :cathay_united_bank
@@ -47,11 +48,11 @@ class CathayUnitedBankSyncer < Synchronizer
   }.freeze
 
   class Collector < Worker
-    def run(level: :normal)
-      start_run(level)
+    def run
       open_session
       try_to_login
       save_all_account_pages
+      click_logout
     rescue Exception => e
       handle_error(e)
     ensure
@@ -60,11 +61,6 @@ class CathayUnitedBankSyncer < Synchronizer
     end
 
     private
-
-    def start_run(level)
-      @exception = nil
-      @level = level
-    end
 
     def handle_error(e)
       log_error e
@@ -84,7 +80,7 @@ class CathayUnitedBankSyncer < Synchronizer
     end
 
     def try_to_login
-      login_tries = 100
+      login_tries = 20
       loop do
         login
         break if login?
@@ -105,15 +101,36 @@ class CathayUnitedBankSyncer < Synchronizer
       @session.evaluate_script("document.getElementById('UserIdKeyin').value = '#{passcode_3}';")
       @session.evaluate_script("document.getElementById('ImageCheckCode').value = '#{verification_code}';")
       @session.evaluate_script("document.getElementById('signInButton').click();")
-      sleep rand * 3
+      sleep 2
 
+      # 親愛的客戶，您可能已在其他分頁或相同瀏覽器上登入，或前次未正常登出，請按登出按鈕後，即可重新登入使用
+      if @session.driver.source.match('請按登出按鈕後')
+        log_debug "Login: 親愛的客戶，您可能已在其他分頁或相同瀏覽器上登入，或前次未正常登出，請按登出按鈕後，即可重新登入使用..."
+        @session.within('.logout_message') { @session.find('.bSignin').click }
+        sleep 0.5
+      end
+
+      # 您上次的使用，未完成正常的登出程序
+      if @session.driver.body.match('未完成正常的登出程序')
+        log_debug "Login: 您上次的使用，未完成正常的登出程序..."
+        @session.click_on('重新登入')
+        sleep 0.5
+      end
+
+      # 登入資訊錯誤
       raise Synchronizer::ServiceAuthenticationError if @session.driver.source.match('連續錯誤次數') ||
                                                         @session.driver.source.match('尚未申請此系統')
       raise if @session.driver.source.match('目前系統維護中')
     end
 
+    def click_logout
+      @session.within('#top') { @session.click_on('登出', match: :first) }
+    rescue Exception => e
+      log_error(e)
+    end
+
     def get_verification_code_from_page
-      sleep 0.5
+      sleep 2
       verification_image_file_path = "/tmp/#{Base64.urlsafe_encode64(uid).delete('=')}-#{SecureRandom.hex}.png"
       @session.driver.save_screenshot verification_image_file_path, selector: '#ChkCodeImg'
       verification_image = Magick::ImageList.new(verification_image_file_path)
@@ -211,6 +228,147 @@ class CathayUnitedBankSyncer < Synchronizer
       sleep 8
       html = @session.find('.tableHolder')['innerHTML']
       collected_pages.create!(body: html, attribute_1: account_number, attribute_2: account_type_desc)
+    end
+  end
+
+  class Parser < Worker
+    def run
+      pending_collected_pages.find_each do |collected_page|
+        account_num = collected_page.attribute_1
+        account_type_desc = collected_page.attribute_2
+        account_uid = "#{user_id}-cathay_united_bank-#{account_num}-#{uid}"
+        last_transaction_balance = nil
+
+        html_doc = Nokogiri::HTML(collected_page.body)
+
+        day_num_counter = {}
+
+        transactions = html_doc.css('tbody tr').map do |tr|
+          date = tr.css('td:nth-child(1)').text
+          day_num_counter[date] ||= -1
+          day_num_counter[date] += 1
+          transaction_uid = "#{user_id}-cathay_united_bank-#{account_num}-#{date.gsub('/', '-')}-#{day_num_counter[date]}-#{uid}"
+
+          amount_out = tr.css('td:nth-child(2)').text # 提出
+          amount_in = tr.css('td:nth-child(3)').text # 存入
+          if amount_out.present?
+            amount = -amount_out.delete(',').to_i
+          elsif amount_in.present?
+            amount = amount_in.delete(',').to_i
+          else
+            amount = nil
+          end
+
+          balance = tr.css('td:nth-child(4)').text.delete(',').to_i
+          last_transaction_balance = balance
+
+          if amount.nil?
+            nil
+          else
+            {
+              uid: transaction_uid,
+              account: account_num,
+              date: date,
+              amount: amount,
+              balance: balance,
+              explanation: tr.css('td:nth-child(5)').text,
+              note: tr.css('td:nth-child(6)').inner_html.gsub('<br>', "\n")
+            }
+          end
+        end
+
+        transactions.compact!
+
+        transactions.each do |transaction|
+          parsed_data_uid = "transaction-#{transaction[:uid]}"
+          transaction_data = parsed_data.find_or_initialize_by(uid: parsed_data_uid)
+          next if transaction_data.persisted?
+          transaction_data.update_attributes(attribute_1: 'transaction', attribute_2: transaction[:uid], data: transaction)
+        end
+
+        account = {
+          uid: account_uid,
+          num: account_num,
+          balance: last_transaction_balance,
+          type_desc: account_type_desc
+        }
+
+        account_data = parsed_data.find_or_initialize_by(uid: "account-#{account_uid}")
+        account_data.update_attributes(attribute_1: 'account', attribute_2: account_uid, data: account, organized_at: nil)
+
+        collected_page.parsed!
+      end
+    end
+
+    private
+
+    def pending_collected_pages
+      if run_level == :complete
+        collected_pages.all
+      else
+        collected_pages.unparsed
+      end
+    end
+  end
+
+  class Organizer < Worker
+    def run
+      initialize_accounts
+      create_transactions
+      clean_accounts
+    end
+
+    private
+
+    def initialize_accounts
+      pending_parsed_data.where(attribute_1: 'account').find_each do |account_data|
+        next if accounts.exists?(uid: account_data.data[:uid])
+        accounts.create!(uid: account_data.data[:uid], type: 'account', currency: 'TWD', name: "國泰世華銀行 #{account_data.data[:type_desc]} #{account_data.data[:num]}")
+      end
+    end
+
+    def create_transactions
+      pending_parsed_data.where(attribute_1: 'transaction').find_each do |transaction_data|
+        data = transaction_data.data
+        account = syncer_account(data[:account])
+        transaction = transaction_data.transactions.find_or_initialize_by(on_record: true, uid: data[:uid], account: account)
+        next if transaction.persisted?
+
+        data_datetime = DateTime.parse(data[:date])
+        description = "#{data[:explanation].tr("\n", ' ')} - #{data[:note].tr("\n", ' ')}"
+
+        @tcs ||= user.transaction_category_set
+        category_code = @tcs.categorize(description, datetime: data_datetime)
+
+        transaction.update_attributes(
+          amount: data[:amount] * 1_000,
+          description: description,
+          datetime: data_datetime,
+          category_code: category_code
+        )
+      end
+    end
+
+    def clean_accounts
+      pending_parsed_data.where(attribute_1: 'account').find_each do |account_data|
+        account = accounts.find_by!(uid: account_data.data[:uid])
+        account.balance = account_data.data[:balance] * 1_000
+        account.save!
+        AccountOrganizingService.clean(account)
+      end
+    end
+
+    def pending_parsed_data
+      if run_level == :complete
+        parsed_data.all
+      else
+        parsed_data.unorganized
+      end
+    end
+
+    def syncer_account(account_num)
+      @syncer_account ||= {}
+      @syncer_account[account_num] ||= accounts.find_by('uid LIKE ?', "%cathay_united_bank-#{account_num}%")
     end
   end
 

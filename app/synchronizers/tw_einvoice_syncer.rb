@@ -67,8 +67,7 @@ class TWEInvoiceSyncer < Synchronizer
 
   # 爬取
   class Collector < Worker
-    def run(level: :normal)
-      start_run(level)
+    def run
       open_session
       try_to_login
       get_available_year_months
@@ -81,11 +80,6 @@ class TWEInvoiceSyncer < Synchronizer
     end
 
     private
-
-    def start_run(level)
-      @exception = nil
-      @level = level
-    end
 
     def handle_error(e)
       log_error e
@@ -152,7 +146,7 @@ class TWEInvoiceSyncer < Synchronizer
         t = Time.new(year_month[0], year_month[1])
         break if last_collected_at && last_collected_at - t > 2.months
         collect_page(year_month[0], year_month[1])
-        break if @level == :light
+        break if run_level == :light
       end
     end
 
@@ -194,8 +188,8 @@ class TWEInvoiceSyncer < Synchronizer
 
   # 解析
   class Parser < Worker
-    def run(level: :normal)
-      if level == :complete
+    def run
+      if run_level == :complete
         cps = collected_pages.all
       else
         cps = collected_pages.unparsed
@@ -263,8 +257,8 @@ class TWEInvoiceSyncer < Synchronizer
 
   # 整理、寫入交易紀錄
   class Organizer < Worker
-    def run(level: :normal)
-      if level == :complete
+    def run
+      if run_level == :complete
         pds = parsed_data.all
       else
         pds = parsed_data.unorganized
@@ -273,7 +267,7 @@ class TWEInvoiceSyncer < Synchronizer
       # For each parsed data
       pds.find_each do |the_parsed_data|
         data = the_parsed_data.data
-        data[:datetime] = DateTime.parse(data[:datetime])
+        data_datetime = DateTime.parse(data[:datetime])
 
         # Find account
         account_identifier = \
@@ -282,7 +276,7 @@ class TWEInvoiceSyncer < Synchronizer
 
         account_identifier.update_sample_data_if_needed(
           amount: -data[:details][0][:amount],
-          datetime: data[:datetime],
+          datetime: data_datetime,
           description: "#{data[:details][0][:name]} × #{data[:details][0][:count]}",
           party_name: data[:seller_name]
         )
@@ -299,7 +293,7 @@ class TWEInvoiceSyncer < Synchronizer
         invoice_description = (
           <<-EOD.strip_heredoc
             發票號碼：#{data[:invoice_code]}
-            發票開立日期：#{data[:datetime].strftime('%Y/%m/%d')}
+            發票開立日期：#{data_datetime.strftime('%Y/%m/%d')}
             賣方名稱與統編：#{data[:seller_name]}
             發票金額：#{(data[:amount] / 1_000).to_i}
             消費明細：
@@ -307,7 +301,7 @@ class TWEInvoiceSyncer < Synchronizer
         ) + data[:details].map { |d| "#{d[:name]}：NT$ #{d[:price]/1000} × #{d[:count]} = NT$ #{d[:amount]/1000}" }.join("\n")
 
         # Find if possible on record copy exists
-        possible_on_record_copy = account.transactions.possible_on_record_copy(-data[:amount], data[:datetime]).last
+        possible_on_record_copy = account.transactions.possible_on_record_copy(-data[:amount], data_datetime).last
 
         if possible_on_record_copy.present?
           possible_on_record_copy.synchronizer_parsed_data ||= the_parsed_data
@@ -331,7 +325,7 @@ class TWEInvoiceSyncer < Synchronizer
                   category_code = 'discounts'
                 else
                   @tcs ||= user.transaction_category_set
-                  category_code = @tcs.categorize(detail[:name], datetime: data[:datetime], latitude: 23.5, longitude: 121)
+                  category_code = @tcs.categorize(detail[:name], datetime: data_datetime, latitude: 23.5, longitude: 121)
                 end
 
                 possible_on_record_copy.separating_transactions.create!(
@@ -356,7 +350,7 @@ class TWEInvoiceSyncer < Synchronizer
           uid: "#{account.id}-#{uid}-#{data[:invoice_code]}",
           description: "在 #{data[:seller_name]} 消費 NT$ #{(data[:amount] / 1_000).to_i}",
           amount: -data[:amount],
-          datetime: data[:datetime],
+          datetime: data_datetime,
           note: invoice_description
         )
 
@@ -365,7 +359,7 @@ class TWEInvoiceSyncer < Synchronizer
             category_code = 'discounts'
           else
             @tcs ||= user.transaction_category_set
-            category_code = @tcs.categorize(detail[:name], datetime: data[:datetime], latitude: 23.5, longitude: 121)
+            category_code = @tcs.categorize(detail[:name], datetime: data_datetime, latitude: 23.5, longitude: 121)
           end
 
           transaction.separating_transactions.create!(

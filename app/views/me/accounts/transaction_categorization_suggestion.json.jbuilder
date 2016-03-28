@@ -1,7 +1,5 @@
 json.key_format!(camelize: :lower) if camelize_keys
 
-json.category_code @category_code
+json.error @error if @error
 
-if @error
-  json.error @error
-end
+json.category_code @category_code

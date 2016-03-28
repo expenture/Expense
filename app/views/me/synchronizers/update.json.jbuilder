@@ -1,7 +1,5 @@
 json.key_format!(camelize: :lower) if camelize_keys
 
-json.synchronizer @synchronizer, partial: '_models/synchronizer', as: :synchronizer
+json.error @error if @error
 
-if @error
-  json.error @error
-end
+json.synchronizer @synchronizer, partial: '_models/synchronizer', as: :synchronizer

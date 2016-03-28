@@ -1,5 +1,7 @@
 json.key_format!(camelize: :lower) if camelize_keys
 
+json.error @error if @error
+
 json.transactions @transactions, partial: '_models/transaction', as: :transaction
 
 json.pagination do

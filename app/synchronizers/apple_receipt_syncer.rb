@@ -36,12 +36,12 @@ class AppleReceiptSyncer < Synchronizer
   end
 
   class Parser < Worker
-    def run(level: :normal)
+    def run
     end
   end
 
   class Organizer < Worker
-    def run(level: :normal)
+    def run
     end
   end
 

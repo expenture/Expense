@@ -51,6 +51,7 @@ class Transaction < ApplicationRecord
   scope :not_separated, -> { where(separated: false) }
   scope :on_record, -> { where(on_record: true) }
   scope :not_on_record, -> { where(on_record: false) }
+  scope :not_on_record_copy, -> { where(on_record: false).where.not(record_transaction_uid: nil) }
   scope :possible_copy,
         -> (amount, datetime) { where(amount: amount, datetime: (datetime - 25.hours)..(datetime + 25.hours)) }
   scope :possible_on_record_copy, -> (amount, datetime) { on_record.possible_copy(amount, datetime) }

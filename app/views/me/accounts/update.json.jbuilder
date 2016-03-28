@@ -1,7 +1,5 @@
 json.key_format!(camelize: :lower) if camelize_keys
 
-json.account @account, partial: '_models/account', as: :account
+json.error @error if @error
 
-if @error
-  json.error @error
-end
+json.account @account, partial: '_models/account', as: :account

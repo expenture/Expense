@@ -74,6 +74,16 @@ class Synchronizer < ApplicationRecord
     def initialize(synchronizer)
       @synchronizer = synchronizer
     end
+
+    def run_level
+      @run_level || :normal
+    end
+
+    def run_level=(level)
+      level = level.to_sym
+      raise StandardError, "Unknown run level: #{level}, it must be :light, :normal or :complete" unless [:light, :normal, :complete].include?(level)
+      @run_level = level
+    end
   end
 
   # The collector that should be implemented in all synchronizers
@@ -83,7 +93,7 @@ class Synchronizer < ApplicationRecord
     # @param [Symbol] level the level of data to collect
     #                       (+:normal+, +:light+ or +:complete+)
     # @abstract
-    def run(level: :normal)
+    def run
       raise NotImplementedError,
             "#{self.class.name}#run is not yet implemented!"
     end
@@ -103,7 +113,7 @@ class Synchronizer < ApplicationRecord
     # Run the parser and parses the unparse collected data, save the parsed
     # data for further organizing
     # @abstract
-    def run(level: :normal)
+    def run
       raise NotImplementedError,
             "#{self.class.name}#run is not yet implemented!"
     end
@@ -114,7 +124,7 @@ class Synchronizer < ApplicationRecord
   class Organizer < Worker
     # Run the organizer and update records in the database
     # @abstract
-    def run(level: :normal)
+    def run
       raise NotImplementedError,
             "#{self.class.name}#run is not yet implemented!"
     end
@@ -125,7 +135,8 @@ class Synchronizer < ApplicationRecord
   def run_collect(level: :normal)
     log_info "Running collect of level #{level}"
     collect_start
-    collector.run(level: level)
+    collector.run_level = level
+    collector.run
     collect_done
     log_info "Done collect of level #{level}"
   rescue NoMethodError
@@ -150,7 +161,8 @@ class Synchronizer < ApplicationRecord
   def run_parse(level: :normal)
     log_info "Running parse of level #{level}"
     parse_start
-    parser.run(level: level)
+    parser.run_level = level
+    parser.run
     parse_done
     log_info "Done parse of level #{level}"
   rescue NotImplementedError
@@ -167,7 +179,8 @@ class Synchronizer < ApplicationRecord
   def run_organize(level: :normal)
     log_info "Running organize of level #{level}"
     organize_start
-    organizer.run(level: level)
+    organizer.run_level = level
+    organizer.run
     organize_done
     log_info "Done organize of level #{level}"
   rescue NotImplementedError

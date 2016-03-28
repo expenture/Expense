@@ -1,6 +1,6 @@
 # Expense
 
-An expense managing application to make life more easier and free. This is the backend API server written on top of the [Ruby on Rails](http://rubyonrails.org) framework.
+An expense managing application to make life more easier and free. This is the API server written on top of the [Ruby on Rails](http://rubyonrails.org) framework.
 
 **Table of Contents**
 
@@ -910,7 +910,7 @@ The collector collects raw data and saves them into the `Synchronizer::Collected
 
 A `Collector` class should define to public methods: `run` and `recieve`.
 
-The `run` method starts the collector to collect data. To control the deepness of collecting data _(for example, we want to collect [the webpages updated today] hourly, [webpages that may change recently] daily and [the whole website] monthly)_, it must take an optional key argument: `level`, this argument can be passed in symbols `:normal`, `:light` or `:complete`, to determine that this collecting should be normal, light or complete.
+The `run` method starts the collector to collect data. To control the deepness of collecting data _(for example, we want to collect [the webpages updated today] hourly, [webpages that may change recently] daily and [the whole website] monthly)_.
 
 The `recieve` method will be called if data is sent in proactively (for example, by billing email). It takes an argument `data` and a key argument `type`. The `data` will be the page body and `type` as the data type.
 
@@ -918,15 +918,15 @@ The `recieve` method will be called if data is sent in proactively (for example,
 
 The parser parses new data in the `Synchronizer::CollectedPage` model, and saves the parsed data into the `Synchronizer::ParsedData` model.
 
-The `run` method starts the parser to parse data. This method must take an optional key argument: `level`, this argument can be passed in as symbol `:normal` or `:complete`. While `:normal` will parse just unparse pages, `:complete` is expected to parse all saved pages.
+The `run` method starts the parser to parse data.
 
-Note that the `ParsedData` model MUST be one-to-one correspond to the actual data. Unlike `CollectedPage`, duplication is not allowed for `ParsedData`. This makes `ParsedData` re-organizable, and `ParsedData` must be re-organizable in case of the user wants to change some syncer related configurations (for example, an `AccountIdentifier`).
+Note that the `ParsedData` model should be one-to-one correspond to the actual data. Unlike `CollectedPage`, duplication is not recommended to be allowed for `ParsedData`. This makes `ParsedData` re-organizable, and `ParsedData` must be re-organizable in case of the user wants to change some syncer related configurations.
 
 #### Organizer
 
 The organizer reads data from `Synchronizer::ParsedData` and manages (create or update) transactions and accounts.
 
-The `run` method starts the organizer to organize data. This method must take an optional key argument: `level`, this argument can be passed in as symbol `:normal` or `:complete`. While `:normal` will organize just unorganized records, `:complete` is expected to organize all parsed data again.
+The `run` method starts the organizer to organize data.
 
 ### Specs
 

@@ -1,7 +1,5 @@
 json.key_format!(camelize: :lower) if camelize_keys
 
-json.transaction @transaction, partial: '_models/transaction', as: :transaction
+json.error @error if @error
 
-if @error
-  json.error @error
-end
+json.transaction @transaction, partial: '_models/transaction', as: :transaction
