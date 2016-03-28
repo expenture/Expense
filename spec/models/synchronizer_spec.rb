@@ -22,7 +22,7 @@ RSpec.describe Synchronizer, :type => :model do
     it "gets the decrypted passcode one" do
       syncer = Synchronizer.new
       passcode = "hi! I'm the code"
-      syncer.encrypted_passcode_1 = Base64.encode64(Encryptor.encrypt(passcode, salt: syncer.passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: '000000000000'))
+      syncer.encrypted_passcode_1 = PasscodeEncryptingService.encrypt(passcode, salt: syncer.passcode_encrypt_salt)
 
       expect(syncer.passcode_1).to eq(passcode)
     end
@@ -34,67 +34,67 @@ RSpec.describe Synchronizer, :type => :model do
       passcode = "hi! I'm the code"
       syncer.passcode_1 = passcode
 
-      expect(syncer.encrypted_passcode_1).to eq(Base64.encode64(Encryptor.encrypt(passcode, salt: syncer.passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: '000000000000')))
+      expect(PasscodeEncryptingService.decrypt(syncer.encrypted_passcode_1, salt: syncer.passcode_encrypt_salt)).to eq(passcode)
     end
   end
 
   describe "#passcode_2" do
-    it "gets the decrypted passcode two" do
+    it "gets the decrypted passcode one" do
       syncer = Synchronizer.new
       passcode = "hi! I'm the code"
-      syncer.encrypted_passcode_2 = Base64.encode64(Encryptor.encrypt(passcode, salt: syncer.passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: '000000000000'))
+      syncer.encrypted_passcode_2 = PasscodeEncryptingService.encrypt(passcode, salt: syncer.passcode_encrypt_salt)
 
       expect(syncer.passcode_2).to eq(passcode)
     end
   end
 
   describe "#passcode_2=" do
-    it "sets the encrypted passcode two" do
+    it "sets the encrypted passcode one" do
       syncer = Synchronizer.new
       passcode = "hi! I'm the code"
       syncer.passcode_2 = passcode
 
-      expect(syncer.encrypted_passcode_2).to eq(Base64.encode64(Encryptor.encrypt(passcode, salt: syncer.passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: '000000000000')))
+      expect(PasscodeEncryptingService.decrypt(syncer.encrypted_passcode_2, salt: syncer.passcode_encrypt_salt)).to eq(passcode)
     end
   end
 
   describe "#passcode_3" do
-    it "gets the decrypted passcode three" do
+    it "gets the decrypted passcode one" do
       syncer = Synchronizer.new
       passcode = "hi! I'm the code"
-      syncer.encrypted_passcode_3 = Base64.encode64(Encryptor.encrypt(passcode, salt: syncer.passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: '000000000000'))
+      syncer.encrypted_passcode_3 = PasscodeEncryptingService.encrypt(passcode, salt: syncer.passcode_encrypt_salt)
 
       expect(syncer.passcode_3).to eq(passcode)
     end
   end
 
   describe "#passcode_3=" do
-    it "sets the encrypted passcode three" do
+    it "sets the encrypted passcode one" do
       syncer = Synchronizer.new
       passcode = "hi! I'm the code"
       syncer.passcode_3 = passcode
 
-      expect(syncer.encrypted_passcode_3).to eq(Base64.encode64(Encryptor.encrypt(passcode, salt: syncer.passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: '000000000000')))
+      expect(PasscodeEncryptingService.decrypt(syncer.encrypted_passcode_3, salt: syncer.passcode_encrypt_salt)).to eq(passcode)
     end
   end
 
   describe "#passcode_4" do
-    it "gets the decrypted passcode four" do
+    it "gets the decrypted passcode one" do
       syncer = Synchronizer.new
       passcode = "hi! I'm the code"
-      syncer.encrypted_passcode_4 = Base64.encode64(Encryptor.encrypt(passcode, salt: syncer.passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: '000000000000'))
+      syncer.encrypted_passcode_4 = PasscodeEncryptingService.encrypt(passcode, salt: syncer.passcode_encrypt_salt)
 
       expect(syncer.passcode_4).to eq(passcode)
     end
   end
 
   describe "#passcode_4=" do
-    it "sets the encrypted passcode four" do
+    it "sets the encrypted passcode one" do
       syncer = Synchronizer.new
       passcode = "hi! I'm the code"
       syncer.passcode_4 = passcode
 
-      expect(syncer.encrypted_passcode_4).to eq(Base64.encode64(Encryptor.encrypt(passcode, salt: syncer.passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: '000000000000')))
+      expect(PasscodeEncryptingService.decrypt(syncer.encrypted_passcode_4, salt: syncer.passcode_encrypt_salt)).to eq(passcode)
     end
   end
 

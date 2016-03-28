@@ -368,14 +368,12 @@ class Synchronizer < ApplicationRecord
   1.upto(4) do |i|
     define_method "passcode_#{i}" do
       return nil unless self["encrypted_passcode_#{i}"]
-      encrypted_data = Base64.decode64(self["encrypted_passcode_#{i}"])
-      Encryptor.decrypt(encrypted_data, salt: passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: passcode_encrypt_salt)
+      PasscodeEncryptingService.decrypt(self["encrypted_passcode_#{i}"], salt: passcode_encrypt_salt)
     end
 
     define_method "passcode_#{i}=" do |passcode|
       return if passcode.blank?
-      encrypted_data = Encryptor.encrypt(passcode, salt: passcode_encrypt_salt, key: ENV['SYNCER_PASSCODE_ENCRYPT_KEY'], iv: passcode_encrypt_salt)
-      self["encrypted_passcode_#{i}"] = Base64.encode64(encrypted_data)
+      self["encrypted_passcode_#{i}"] = PasscodeEncryptingService.encrypt(passcode, salt: passcode_encrypt_salt)
     end
   end
 
@@ -410,7 +408,7 @@ class Synchronizer < ApplicationRecord
 
   def init_passcode_encrypt_salt
     return if self[:passcode_encrypt_salt].present?
-    self.passcode_encrypt_salt = SecureRandom.hex(16)
+    self.passcode_encrypt_salt = SecureRandom.hex(8)
   end
 
   def scheduled
