@@ -6,15 +6,17 @@
 # *user_id*::               <tt>integer, not null</tt>
 # *uid*::                   <tt>string, not null</tt>
 # *type*::                  <tt>string, not null</tt>
+# *name*::                  <tt>string</tt>
 # *enabled*::               <tt>boolean, default(TRUE), not null</tt>
 # *schedule*::              <tt>string, default("normal"), not null</tt>
-# *name*::                  <tt>string</tt>
-# *status*::                <tt>string, default("new"), not null</tt>
 # *encrypted_passcode_1*::  <tt>string</tt>
 # *encrypted_passcode_2*::  <tt>string</tt>
 # *encrypted_passcode_3*::  <tt>string</tt>
 # *encrypted_passcode_4*::  <tt>string</tt>
 # *passcode_encrypt_salt*:: <tt>string, not null</tt>
+# *status*::                <tt>string, default("new"), not null</tt>
+# *job_uid*::               <tt>string</tt>
+# *last_scheduled_at*::     <tt>datetime</tt>
 # *last_collected_at*::     <tt>datetime</tt>
 # *last_parsed_at*::        <tt>datetime</tt>
 # *last_synced_at*::        <tt>datetime</tt>
@@ -193,7 +195,7 @@ class Synchronizer < ApplicationRecord
   end
 
   # Perform the sync in background worker
-  def perform_sync(level: :normal, force: false)
+  def perform_sync(level: :normal, priority: :normal, force: false)
     unless can_perform_sync?
       if force ||
          (last_scheduled_at.blank? || (Time.now - last_scheduled_at) > 10.minutes)
@@ -203,14 +205,37 @@ class Synchronizer < ApplicationRecord
       end
     end
 
-    SynchronizerRunCollectJob.perform_later(synchronizer: self, level: level.to_s, auto_continue_syncing: true)
+    if priority == :high
+      SynchronizerHighPriorityRunCollectJob.perform_later(synchronizer: self, level: level.to_s, auto_continue_syncing: true)
+    else
+      SynchronizerRunCollectJob.perform_later(synchronizer: self, level: level.to_s, auto_continue_syncing: true)
+    end
+
+    # If collecting will run, then check if there are any unparsed
+    # collected_pages or unorganized parsed_data, and run parsing or organizing
+    # in parallel for faster results
+    # TODO: this might broke the state of a syncer
+    # if COLLECT_METHODS.include?(:run) && collected_pages.unparsed.any?
+    #   if priority == :high
+    #     SynchronizerHighPriorityRunOrganizeJob.perform_later(synchronizer: self, level: level.to_s, auto_continue_syncing: true)
+    #   else
+    #     SynchronizerRunParseJob.perform_later(synchronizer: self, level: level.to_s, auto_continue_syncing: true)
+    #   end
+    # elsif parsed_data.unorganized.any?
+    #   if COLLECT_METHODS.include?(:run) && priority == :high
+    #     SynchronizerHighPriorityRunParseJob.perform_later(synchronizer: self, level: level.to_s, auto_continue_syncing: true)
+    #   else
+    #     SynchronizerRunOrganizeJob.perform_later(synchronizer: self, level: level.to_s)
+    #   end
+    # end
+
     scheduled
-    log_info "Queued sync of level #{level}"
+    log_info "Queued sync of level #{level} and priority #{priority}"
     return true
   end
 
-  def perform_sync!(level: :normal, force: false)
-    raise PerformSyncError unless perform_sync(level: level, force: force)
+  def perform_sync!(level: :normal, priority: :normal, force: false)
+    raise PerformSyncError unless perform_sync(level: level, priority: priority, force: force)
   end
 
   def can_perform_sync?

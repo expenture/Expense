@@ -26,7 +26,7 @@
 #++
 
 class Synchronizer::ParsedData < ApplicationRecord
-  scope :unorganized, -> { where(organized_at: nil) }
+  scope :unorganized, -> { where(organized_at: nil, skipped_at: nil) }
 
   belongs_to :synchronizer, primary_key: :uid, foreign_key: :synchronizer_uid
   belongs_to :collected_page, class_name: 'Synchronizer::CollectedPage'

@@ -135,15 +135,16 @@ ActiveRecord::Schema.define(version: 20160323223854) do
     t.integer  "user_id",                                  null: false
     t.string   "uid",                                      null: false
     t.string   "type",                                     null: false
+    t.string   "name"
     t.boolean  "enabled",               default: true,     null: false
     t.string   "schedule",              default: "normal", null: false
-    t.string   "name"
-    t.string   "status",                default: "new",    null: false
     t.string   "encrypted_passcode_1"
     t.string   "encrypted_passcode_2"
     t.string   "encrypted_passcode_3"
     t.string   "encrypted_passcode_4"
     t.string   "passcode_encrypt_salt",                    null: false
+    t.string   "status",                default: "new",    null: false
+    t.string   "job_uid"
     t.datetime "last_scheduled_at"
     t.datetime "last_collected_at"
     t.datetime "last_parsed_at"
@@ -183,12 +184,16 @@ ActiveRecord::Schema.define(version: 20160323223854) do
     t.datetime "datetime",                                     null: false
     t.float    "latitude"
     t.float    "longitude"
+    t.string   "party_type"
+    t.string   "party_code"
+    t.string   "party_name"
+    t.string   "external_image_url"
     t.boolean  "separated",                    default: false, null: false
     t.string   "separate_transaction_uid"
     t.boolean  "on_record"
     t.string   "record_transaction_uid"
-    t.boolean  "ignore_in_statistics",         default: false, null: false
     t.string   "synchronizer_parsed_data_uid"
+    t.boolean  "ignore_in_statistics",         default: false, null: false
     t.datetime "manually_edited_at"
     t.datetime "created_at",                                   null: false
     t.datetime "updated_at",                                   null: false

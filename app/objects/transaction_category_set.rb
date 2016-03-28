@@ -377,7 +377,16 @@ class TransactionCategorySet
     travel: {
       name: "Travel",
       priority: 6,
-      categories: {}
+      categories: {
+        train_tickets: {
+          name: "Train Tickets",
+          priority: 1
+        },
+        hsr_tickets: {
+          name: "HSR Tickets",
+          priority: 1
+        }
+      }
     },
     network: {
       name: "Network",
@@ -432,7 +441,16 @@ class TransactionCategorySet
     fees: {
       name: "Fees",
       priority: 17,
-      categories: {}
+      categories: {
+        transfer_fees: {
+          name: "Transfer fees",
+          priority: 1
+        },
+        foreign_transaction_fees: {
+          name: "Foreign transaction fees",
+          priority: 2
+        }
+      }
     },
     others: {
       name: "Others",

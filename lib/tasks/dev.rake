@@ -8,7 +8,7 @@ namespace :dev do
       include FactoryGirl::Syntax::Methods
 
       # Base user
-      create :user, :confirmed
+      # create :user, :confirmed
 
       # Base transaction categorization cases
       create :transaction_categorization_case, words: 'Sandwich', category_code: 'meal'
@@ -86,6 +86,10 @@ namespace :dev do
       create :transaction_categorization_case, words: '乖乖', category_code: 'snacks'
       create :transaction_categorization_case, words: '巧克力', category_code: 'snacks'
       create :transaction_categorization_case, words: '提拉米蘇', category_code: 'snacks'
+      create :transaction_categorization_case, words: '台鐵', category_code: 'train_tickets'
+      create :transaction_categorization_case, words: '高鐵', category_code: 'hsr_tickets'
+      create :transaction_categorization_case, words: '跨行費用', category_code: 'transfer_fees'
+      create :transaction_categorization_case, words: '國外交易手續費', category_code: 'foreign_transaction_fees'
     end
   end
 end

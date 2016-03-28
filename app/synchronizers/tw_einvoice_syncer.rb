@@ -328,11 +328,14 @@ class TWEInvoiceSyncer < Synchronizer
                   category_code = @tcs.categorize(detail[:name], datetime: data_datetime, latitude: 23.5, longitude: 121)
                 end
 
+                # TODO: Do not set the datetime if that transaction already has
+                # an detailed datetime
                 possible_on_record_copy.separating_transactions.create!(
                   synchronizer_parsed_data: the_parsed_data,
                   uid: "#{account.id}-#{uid}-#{data[:invoice_code]}-#{detail[:number]}",
                   description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),
                   amount: -detail[:amount],
+                  datetime: data_datetime,
                   category_code: category_code
                 )
               end
@@ -367,6 +370,7 @@ class TWEInvoiceSyncer < Synchronizer
             uid: "#{account.id}-#{uid}-#{data[:invoice_code]}-#{detail[:number]}",
             description: (detail[:count] > 1 ? "#{detail[:name]} × #{detail[:count]}" : detail[:name]),
             amount: -detail[:amount],
+            datetime: data_datetime,
             category_code: category_code
           )
         end

@@ -262,6 +262,10 @@ class CathayUnitedBankSyncer < Synchronizer
           balance = tr.css('td:nth-child(4)').text.delete(',').to_i
           last_transaction_balance = balance
 
+          explanation = tr.css('td:nth-child(5)').text.strip
+          note = tr.css('td:nth-child(6)').inner_html.gsub('<br>', "\n").strip.gsub(/－\n?\n?$/, '')
+          note = '國外交易手續費' if note == '國外交易手'
+
           if amount.nil?
             nil
           else
@@ -271,8 +275,8 @@ class CathayUnitedBankSyncer < Synchronizer
               date: date,
               amount: amount,
               balance: balance,
-              explanation: tr.css('td:nth-child(5)').text,
-              note: tr.css('td:nth-child(6)').inner_html.gsub('<br>', "\n")
+              explanation: explanation,
+              note: note
             }
           end
         end
@@ -335,7 +339,7 @@ class CathayUnitedBankSyncer < Synchronizer
         next if transaction.persisted?
 
         data_datetime = DateTime.parse(data[:date])
-        description = "#{data[:explanation].tr("\n", ' ')} - #{data[:note].tr("\n", ' ')}"
+        description = [data[:explanation].tr("\n", ' '), data[:note].tr("\n", ' ')].join('－')
 
         @tcs ||= user.transaction_category_set
         category_code = @tcs.categorize(description, datetime: data_datetime)

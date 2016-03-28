@@ -14,12 +14,16 @@
 # *datetime*::                     <tt>datetime, not null</tt>
 # *latitude*::                     <tt>float</tt>
 # *longitude*::                    <tt>float</tt>
+# *party_type*::                   <tt>string</tt>
+# *party_code*::                   <tt>string</tt>
+# *party_name*::                   <tt>string</tt>
+# *external_image_url*::           <tt>string</tt>
 # *separated*::                    <tt>boolean, default(FALSE), not null</tt>
 # *separate_transaction_uid*::     <tt>string</tt>
 # *on_record*::                    <tt>boolean</tt>
 # *record_transaction_uid*::       <tt>string</tt>
-# *ignore_in_statistics*::         <tt>boolean, default(FALSE), not null</tt>
 # *synchronizer_parsed_data_uid*:: <tt>string</tt>
+# *ignore_in_statistics*::         <tt>boolean, default(FALSE), not null</tt>
 # *manually_edited_at*::           <tt>datetime</tt>
 # *created_at*::                   <tt>datetime, not null</tt>
 # *updated_at*::                   <tt>datetime, not null</tt>

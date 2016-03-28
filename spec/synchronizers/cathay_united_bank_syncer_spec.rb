@@ -106,7 +106,7 @@ RSpec.describe CathayUnitedBankSyncer, type: :model do
     it "creates transactions" do
       sample_account = Account.find_by(uid: "#{syncer.user_id}-cathay_united_bank-999900000000-#{syncer.uid}")
       expect(sample_account.transactions.on_record.count).to eq(2)
-      expect(sample_account.transactions.order(datetime: :asc).first.description).to eq('網銀轉帳 - 張牧之 0000099***999999')
+      expect(sample_account.transactions.order(datetime: :asc).first.description).to eq('網銀轉帳－張牧之 0000099***999999')
     end
 
     it "deals with pre-created not-on-record transactions" do

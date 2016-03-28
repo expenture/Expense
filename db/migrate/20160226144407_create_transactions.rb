@@ -4,6 +4,7 @@ class CreateTransactions < ActiveRecord::Migration[5.0]
       t.string :uid, null: false
       t.string :account_uid, null: false
       t.string :kind
+
       t.integer :amount, null: false
       t.text :description
       t.string :category_code
@@ -12,12 +13,20 @@ class CreateTransactions < ActiveRecord::Migration[5.0]
       t.datetime :datetime, null: false
       t.float :latitude
       t.float :longitude
+      t.string :party_type
+      t.string :party_code
+      t.string :party_name
+      t.string :external_image_url
+
       t.boolean :separated, null: false, default: false
       t.string :separate_transaction_uid
+
       t.boolean :on_record
       t.string :record_transaction_uid
-      t.boolean :ignore_in_statistics, null: false, default: false
+
       t.string :synchronizer_parsed_data_uid
+
+      t.boolean :ignore_in_statistics, null: false, default: false
       t.datetime :manually_edited_at
 
       t.timestamps
