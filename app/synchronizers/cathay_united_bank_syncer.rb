@@ -48,6 +48,7 @@ class CathayUnitedBankSyncer < Synchronizer
   }.freeze
 
   class Collector < Worker
+    # :nocov:
     def run
       open_session
       try_to_login
@@ -229,6 +230,7 @@ class CathayUnitedBankSyncer < Synchronizer
       html = @session.find('.tableHolder')['innerHTML']
       collected_pages.create!(body: html, attribute_1: account_number, attribute_2: account_type_desc)
     end
+    # :nocov:
   end
 
   class Parser < Worker

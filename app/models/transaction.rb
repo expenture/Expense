@@ -56,9 +56,19 @@ class Transaction < ApplicationRecord
   scope :on_record, -> { where(on_record: true) }
   scope :not_on_record, -> { where(on_record: false) }
   scope :not_on_record_copy, -> { where(on_record: false).where.not(record_transaction_uid: nil) }
-  scope :possible_copy,
-        -> (amount, datetime) { where(amount: amount, datetime: (datetime - 25.hours)..(datetime + 25.hours)) }
-  scope :possible_on_record_copy, -> (amount, datetime) { on_record.possible_copy(amount, datetime) }
+  scope :possible_copy, -> (amount, datetime, party_type: nil, party_code: nil) {
+    datetime = DateTime.parse(datetime) unless datetime.is_a?(Date) ||
+                                               datetime.is_a?(ActiveSupport::TimeWithZone)
+    where(
+      amount: amount,
+      datetime: (datetime - 25.hours)..(datetime + 25.hours),
+      party_type: [nil, party_type],
+      party_code: [nil, party_code]
+    )
+  }
+  scope :possible_on_record_copy, -> (amount, datetime, party_type: nil, party_code: nil) {
+    on_record.possible_copy(amount, datetime, party_type: party_type, party_code: party_code)
+  }
 
   belongs_to :account,
              primary_key: :uid, foreign_key: :account_uid

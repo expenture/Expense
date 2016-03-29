@@ -35,6 +35,8 @@ class Synchronizer::ParsedData < ApplicationRecord
 
   validates :uid, :synchronizer, presence: true
 
+  before_validation :set_raw_data
+
   def data
     @data ||= HashWithIndifferentAccess.new(raw_data && JSON.parse(raw_data))
   end
@@ -53,5 +55,11 @@ class Synchronizer::ParsedData < ApplicationRecord
   def skipped!
     self.skipped_at = Time.now
     save!
+  end
+
+  private
+
+  def set_raw_data
+    self.raw_data = data.to_json
   end
 end

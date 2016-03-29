@@ -65,6 +65,7 @@ class TWEInvoiceSyncer < Synchronizer
     '2G0001' => 'tw_icash'
   }.freeze
 
+  # :nocov:
   # 爬取
   class Collector < Worker
     def run
@@ -254,6 +255,7 @@ class TWEInvoiceSyncer < Synchronizer
       end
     end
   end
+  # :nocov:
 
   # 整理、寫入交易紀錄
   class Organizer < Worker
