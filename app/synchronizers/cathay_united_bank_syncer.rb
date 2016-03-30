@@ -105,7 +105,7 @@ class CathayUnitedBankSyncer < Synchronizer
       sleep 2
 
       # 親愛的客戶，您可能已在其他分頁或相同瀏覽器上登入，或前次未正常登出，請按登出按鈕後，即可重新登入使用
-      if @session.driver.source.match('請按登出按鈕後')
+      if @session.driver.source.match('請按登出按鈕')
         log_debug "Login: 親愛的客戶，您可能已在其他分頁或相同瀏覽器上登入，或前次未正常登出，請按登出按鈕後，即可重新登入使用..."
         @session.within('.logout_message') { @session.find('.bSignin').click }
         sleep 0.5

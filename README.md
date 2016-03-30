@@ -64,11 +64,11 @@ Integration tests that requires communication with real-world web services are s
 
 ## Deploy
 
-This application is designed with [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
+This application is designed with [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy. You can deploy this app to heroku with one click: [![Deploy](https://neson.github.io/GitHub-Badges/deploy_to_heroku_xs.svg)](https://heroku.com/deploy).
 
 The major system dependencies to run this app are: `ruby`, `bundler`, `imagemagick` and `tesseract`. A `phantomjs` executable for `linux` and `darwin` is included in this code base.
 
-Primary configurations of this app are controlled by environment variables (ENVs). A sample `.env` file listing primary ENVs is located at `.env.sample`. This app relies on several backing services (with their connection configured using ENVs), Some of them might need to send data to this app by using WebHooks, more details about this are described in the [WebHook Endpoints](#webHook-endpoints) section below.
+Primary configurations of this app are controlled by environment variables (ENVs). A sample `.env` file listing primary ENVs is located at `.env.sample`. This app relies on several backing services (with their connection configured using ENVs), Some of them might need to send data to this app by using WebHooks, more details about this are described in the [WebHook Endpoints](#webhook-endpoints) section below.
 
 There are three process types for this app: web servers (`web`), background job workers (`worker`) and the clock `clock`. See the `Procfile` to learn about how to start the processes in a general case.
 

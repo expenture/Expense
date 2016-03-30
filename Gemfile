@@ -73,6 +73,9 @@ gem 'hirb-unicode', require: false
 gem 'factory_girl_rails'
 gem 'faker'
 
+# Services
+gem 'mailgunner', '~> 2.4.0'
+
 # Logger
 gem 'remote_syslog_logger'
 gem 'rails_stdout_logging', require: false

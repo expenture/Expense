@@ -97,6 +97,12 @@ class User < ApplicationRecord
     return self
   end
 
+  def send_confirmation_instructions
+    return if from == 'facebook' ||
+              from == 'skip_send_confirmation_instructions'
+    super
+  end
+
   private
 
   def create_default_account

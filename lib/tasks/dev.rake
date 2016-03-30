@@ -2,13 +2,13 @@ require File.expand_path('../../../config/environment', __FILE__)
 
 namespace :dev do
   desc "Seed data for development environment"
-  task :prime do
+  task prime: 'db:migrate' do
     # Only run this on development or staging
     if (Rails.env.development? || ENV['STAGING'].present?) && User.first.blank?
       include FactoryGirl::Syntax::Methods
 
       # Base user
-      # create :user, :confirmed
+      create :user, :confirmed, email: 'user@my.app', password: 'password'
 
       # Base transaction categorization cases
       create :transaction_categorization_case, words: 'Sandwich', category_code: 'meal'
