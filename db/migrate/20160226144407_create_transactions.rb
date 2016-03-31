@@ -48,27 +48,28 @@ class CreateTransactions < ActiveRecord::Migration[5.0]
                                               primary_key: :uid,
                                               on_delete: :cascade
 
+    db_adapter = ActiveRecord::Base.configurations[Rails.env]['adapter']
     reversible do |dir|
       dir.up do
-        execute <<-EOL.strip_heredoc
+        execute <<-EOL.strip_heredoc.sql_format(db_adapter)
           ALTER TABLE transactions
             ADD CONSTRAINT only_virtual_transaction_can_have_separate_transaction_uid CHECK (
-              (("transactions"."kind" != 'virtual') AND ("transactions"."separate_transaction_uid" IS NULL)) OR
-              (("transactions"."kind" = 'virtual') AND ("transactions"."separate_transaction_uid" IS NOT NULL))
+              ((`transactions`.`kind` != 'virtual') AND (`transactions`.`separate_transaction_uid` IS NULL)) OR
+              ((`transactions`.`kind` = 'virtual') AND (`transactions`.`separate_transaction_uid` IS NOT NULL))
             )
         EOL
-        execute <<-EOL.strip_heredoc
+        execute <<-EOL.strip_heredoc.sql_format(db_adapter)
           ALTER TABLE transactions
             ADD CONSTRAINT virtual_transaction_can_not_be_seperated CHECK (
-              ("transactions"."kind" != 'virtual') OR
-              (("transactions"."kind" = 'virtual') AND ("transactions"."separated" = 'f'))
+              (`transactions`.`kind` != 'virtual') OR
+              ((`transactions`.`kind` = 'virtual') AND (`transactions`.`separated` = 'f'))
             )
         EOL
-        execute <<-EOL.strip_heredoc
+        execute <<-EOL.strip_heredoc.sql_format(db_adapter)
           ALTER TABLE transactions
             ADD CONSTRAINT on_record_type_and_value_match CHECK (
-              ("kind" = 'not_on_record' AND "transactions"."on_record" = 'f') OR
-              ("kind" != 'not_on_record' AND "transactions"."on_record" = 't')
+              (`kind` = 'not_on_record' AND `transactions`.`on_record` = 'f') OR
+              (`kind` != 'not_on_record' AND `transactions`.`on_record` = 't')
             )
         EOL
       end
@@ -77,6 +78,6 @@ class CreateTransactions < ActiveRecord::Migration[5.0]
         execute "ALTER TABLE transactions DROP CONSTRAINT virtual_transaction_can_not_be_seperated"
         execute "ALTER TABLE transactions DROP CONSTRAINT on_record_type_and_value_match"
       end
-    end if ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'postgresql'
+    end if db_adapter != 'sqlite3'
   end
 end

@@ -8,8 +8,9 @@ gem 'rails', '>= 5.0.0.beta2', '< 5.1'
 gem 'dotenv-rails', require: 'dotenv/rails-now'
 # Use sqlite3 as the development database for Active Record
 gem 'sqlite3', :groups => [:development, :test]
-# Use postgres as the production database for Active Record
+# Use postgres or mysql as the production database for Active Record
 gem 'pg'
+gem 'mysql2'
 # Use Puma as the app server
 gem 'puma'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder

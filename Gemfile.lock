@@ -179,6 +179,7 @@ GEM
     multi_json (1.11.2)
     multi_xml (0.5.5)
     multipart-post (2.0.0)
+    mysql2 (0.4.3)
     netrc (0.11.0)
     newrelic_rpm (3.15.0.314)
     nio4r (1.2.1)
@@ -381,6 +382,7 @@ DEPENDENCIES
   kaminari
   letter_opener
   mailgunner (~> 2.4.0)
+  mysql2
   newrelic_rpm
   nokogiri
   omniauth-facebook

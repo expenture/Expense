@@ -28,6 +28,8 @@ module Expense
       config.autoload_paths += Dir[Rails.root.join('app', dir, '*')]
     end
 
+    Dir[Rails.root.join("lib/core_ext/**/*.rb")].each { |f| require f }
+
     # Only loads a smaller set of middleware suitable for API only apps.
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
@@ -72,6 +74,10 @@ module Expense
     if ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'postgresql'
       Rails.application.config.active_record.schema_format = :sql
       puts "Using PostgreSQL database"
+    elsif ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'mysql2'
+      Rails.application.config.active_record.dump_schema_after_migration = false
+      Rails.application.config.active_record.schema_format = nil
+      puts "Using MySQL database"
     else
       Rails.application.config.active_record.schema_format = :ruby
     end
