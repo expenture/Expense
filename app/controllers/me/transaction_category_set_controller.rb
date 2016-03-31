@@ -12,8 +12,8 @@ class Me::TransactionCategorySetController < ApplicationAPIController
       tcs.hash = params.require(:transaction_category_set).permit!.to_h
       @transaction_category_set = tcs.hash
     elsif request.patch?
-      @error = { messages: 'PATCH request is not supported for this API endpoint. Use PUT!' }
-      render status: 400
+      @error = Error.new(messages: 'PATCH request is not supported for this API endpoint. Use PUT!', status: 400)
+      render status: @error.status
     end
   end
 end

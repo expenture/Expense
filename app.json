@@ -1,0 +1,107 @@
+{
+  "name": "Expense",
+  "description": "An expense managing application to make life more easier and free.",
+  "scripts": {
+    "postdeploy": "bundle exec rake dev:prime"
+  },
+  "env": {
+    "APP_NAME": {
+      "description": "The name of the application.",
+      "value": "Expense"
+    },
+    "APP_URL": {
+      "description": "The URL of the application.",
+      "value": "http://expense.dev"
+    },
+    "ADMIN_USERNAME": {
+      "description": "The admin username for logging in the administration panel.",
+      "value": "admin"
+    },
+    "ADMIN_PASSWORD": {
+      "description": "The admin password for logging in the administration panel.",
+      "value": "password"
+    },
+    "SYNCHRONIZER_RECEIVING_EMAIL_HOST": {
+      "description": "The email host for synchronizers to receive emails. For example, \"sync.exp.dev\" stands for {syncer-uid}@sync.exp.dev.",
+      "value": "sync.exp.dev"
+    },
+    "GOOGLE_API_KEY": {
+      "description": "The API key to access Google services (Google Maps Geocoding API and Google Maps Time Zone API). Get a new one on https://console.developers.google.com/apis.",
+      "value": "AIzaSyD_cUGwL1BIoXTygTKYxsQRMMIgaXdltVE"
+    },
+    "MAILER_SENDER": {
+      "description": "The default email \"from:\" address for emails send by this app.",
+      "value": "change_me@example.com"
+    },
+    "MAILER_DELIVERY_METHOD": {
+      "description": "The mailing service to use.",
+      "value": "mailgun"
+    },
+    "FB_APP_ID": {
+      "description": "Facebook application ID.",
+      "value": "get_this_on https://developers.facebook.com/apps/"
+    },
+    "FB_APP_SECRET": {
+      "description": "Facebook application secret.",
+      "value": "get_this_on https://developers.facebook.com/apps/"
+    },
+    "NEWRELIC_LICENSE_KEY": {
+      "description": "The New Relic license key for monitoring this app.",
+      "required": false
+    },
+    "NEWRELIC_APP_NAME": {
+      "description": "The New Relic app name for monitoring this app.",
+      "required": false
+    },
+    "LOGGER": {
+      "description": "The logger to use, this can be \"default\", \"stdout\" or \"remote\".",
+      "value": "stdout"
+    },
+    "SECRET_KEY_BASE": {
+      "description": "A secret key base.",
+      "generator": "secret"
+    },
+    "SYNCER_PASSCODE_ENCRYPT_PUBLIC_KEY": {
+      "description": "The public RSA key for encrypting passcodes. (Run `bin/rake passcode_key` under the project to generate new keys.)",
+      "value": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQoPi/oVVgHSGdMD4ydY5i/s62-bRNIqn33b1aTb9a4WVUND4JObdsJCtrCSceF1Ectlxmf8NSlEnHyxmNoT6wi7L2O-/3KwFgdHmlD5YZoWs/31s94XFCZhwQzoS/YkOaEQ3c+hSKYSDGVLG1XckwC7vamo-8ZznwW/IvtYmsc736wIDAQAB"
+    },
+    "SYNCER_PASSCODE_ENCRYPT_PRIVATE_KEY_1": {
+      "description": "Part 1 of the private RSA key for encrypting passcodes.",
+      "value": "MIICXQIBAAKBgQDQoPi/oVVgHSGdMD4ydY5i/s62bRNIqn33b1aTb9a4WVUND4JO-bdsJCtrCSceF1Ectlxmf8NSlEnHyxmNoT6wi7L2O/3KwFgdHmlD5YZoWs/31s94X-FCZhwQzoS/YkOaEQ3c+hSKYSDGVLG1XckwC7vamo8ZznwW/IvtYmsc736wIDAQAB-AoGBAKeIDBg+IsPawMpsGhYFBoECYtZlQq4AksTmeFxO29sPiVfCk34Ng22"
+    },
+    "SYNCER_PASSCODE_ENCRYPT_PRIVATE_KEY_2": {
+      "description": "Part 2 of the private RSA key for encrypting passcodes.",
+      "value": "AdOi9-vGYAb+PxSVeBWhDwfeZZXyw9hljV373Qzhlq6Uwm5+qFZM4dRrSAcDx+OEEMFTF9-60C3wcKnGViIGptK+sdV4n7OonFlySdnj3S3VtuP7x6gyoWBAkEA76/nVd5aYPjM-y/EPxacjRNrztIvhW/+PTnOS+eGPQw6swyjM/EhTi08dP24tf9JN1Nkyuqh3RQ9Z-ejpRrW/SKwJBAN7T72j1+i7eMzNrCk5rE0uzRyd2sEB/b5sVmhajb"
+    },
+    "SYNCER_PASSCODE_ENCRYPT_PRIVATE_KEY_3": {
+      "description": "Part 3 of the private RSA key for encrypting passcodes.",
+      "value": "WzS2jVHj7Uv-IZ5u8FDir0xNlfeDDGU4lq/pl6dI+75BUUECQQCTWg7cKWBisVImJsLNfl0eXYTp-f/1Bs7EER+UZneOXFBR9vj2W81f5EuAmOLPcGwwiSIz5V8xLNo6JqATCnTYVAkA9-nKpBAmqH1QahPAKghjjSoKKXBdlcLCBm6EUv50ZVZcPSIZRZy8tm7FPkeZlw5q8F-viWKQ2hfAZ7eMW7yP0tBAkBbH7ZUcKDBOdwA4eYOlOuC3rH"
+    },
+    "SYNCER_PASSCODE_ENCRYPT_PRIVATE_KEY_4": {
+      "description": "Part 4 of the private RSA key for encrypting passcodes.",
+      "value": "Q/b78kXmo7L+BmCWL-7SKspclWTb4QEqxhHs5r4fF2YmSGQ+cG/JIs0WslMdF5"
+    },
+    "STAGING": {
+      "description": "Specify that this is a staging server on heroku. Clear this if it is not.",
+      "value": "heroku",
+      "required": false
+    }
+  },
+  "image": "heroku/ruby",
+  "addons": [
+    "heroku-postgresql:hobby-dev",
+    "heroku-redis:hobby-dev",
+    "mailgun:starter"
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-ruby"
+    },
+    {
+      "url": "https://github.com/ello/heroku-buildpack-imagemagick"
+    },
+    {
+      "url": "https://github.com/matteotiziano/heroku-buildpack-tesseract"
+    }
+  ]
+}

@@ -9,7 +9,7 @@ describe "Resource Owner Password Credentials Grant Flow and access token refres
         post "/oauth/token", params: {
           grant_type: :password,
           username: user.email,
-          password: user.password,
+          password: user.password
         }
 
         expect(response).to be_success

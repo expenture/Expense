@@ -5,19 +5,19 @@ RSpec.configure do |config|
     DatabaseCleaner.clean_with(:deletion)
   end
 
-  config.after(:all) do
-    DatabaseCleaner.clean_with(:deletion)
-  end
-
   config.before(:each) do
     DatabaseCleaner.strategy = :transaction
   end
 
-  config.before(:each) do
-    DatabaseCleaner.start
+  config.before(:each) do |example|
+    DatabaseCleaner.start unless example.metadata[:preserve_db]
   end
 
-  config.after(:each) do
-    DatabaseCleaner.clean
+  config.after(:each) do |example|
+    DatabaseCleaner.clean unless example.metadata[:preserve_db]
+  end
+
+  config.after(:all) do
+    DatabaseCleaner.clean_with(:deletion)
   end
 end

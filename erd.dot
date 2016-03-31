@@ -4,7 +4,7 @@ ranksep = "0.5";
 nodesep = "0.4";
 pad = "0.4,0.4";
 margin = "0,0";
-concentrate = "true";
+concentrate = "false";
 labelloc = "t";
 fontsize = "13";
 fontname = "Arial BoldMT";
@@ -19,8 +19,27 @@ m_Account [label = <<table border="0" align="center" cellspacing="0.5" cellpaddi
   <tr><td align="left" width="130" port="balance">balance <font face="Arial ItalicMT" color="grey60">integer ∗</font></td></tr>
   <tr><td align="left" width="130" port="currency">currency <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
   <tr><td align="left" width="130" port="name">name <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+  <tr><td align="left" width="130" port="synchronizer_uid">synchronizer_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="type">type <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
   <tr><td align="left" width="130" port="uid">uid <font face="Arial ItalicMT" color="grey60">string ∗ U</font></td></tr>
+</table>
+>];
+m_AccountIdentifier [label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
+  <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">AccountIdentifier</font></td></tr>
+</table>
+|
+<table border="0" align="left" cellspacing="2" cellpadding="0" width="134">
+  <tr><td align="left" width="130" port="account_uid">account_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="identifier">identifier <font face="Arial ItalicMT" color="grey60">string ∗ U</font></td></tr>
+  <tr><td align="left" width="130" port="sample_transaction_amount">sample_transaction_amount <font face="Arial ItalicMT" color="grey60">integer</font></td></tr>
+  <tr><td align="left" width="130" port="sample_transaction_datetime">sample_transaction_datetime <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="sample_transaction_description">sample_transaction_description <font face="Arial ItalicMT" color="grey60">text</font></td></tr>
+  <tr><td align="left" width="130" port="sample_transaction_party_name">sample_transaction_party_name <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="type">type <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+</table>
+>];
+m_NotOnRecordTransaction [color = "grey60", fontcolor = "grey60", label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
+  <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">NotOnRecordTransaction</font></td></tr>
 </table>
 >];
 m_OAuthAccessGrant [label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
@@ -65,6 +84,64 @@ m_OAuthApplication [label = <<table border="0" align="center" cellspacing="0.5" 
   <tr><td align="left" width="130" port="uid">uid <font face="Arial ItalicMT" color="grey60">string ∗ U</font></td></tr>
 </table>
 >];
+m_SyncedTransaction [color = "grey60", fontcolor = "grey60", label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
+  <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">SyncedTransaction</font></td></tr>
+</table>
+>];
+m_Synchronizer [label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
+  <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">Synchronizer</font></td></tr>
+</table>
+|
+<table border="0" align="left" cellspacing="2" cellpadding="0" width="134">
+  <tr><td align="left" width="130" port="enabled">enabled <font face="Arial ItalicMT" color="grey60">boolean ∗</font></td></tr>
+  <tr><td align="left" width="130" port="encrypted_passcode_1">encrypted_passcode_1 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="encrypted_passcode_2">encrypted_passcode_2 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="encrypted_passcode_3">encrypted_passcode_3 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="encrypted_passcode_4">encrypted_passcode_4 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="last_collected_at">last_collected_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="last_errored_at">last_errored_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="last_parsed_at">last_parsed_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="last_scheduled_at">last_scheduled_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="last_synced_at">last_synced_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="name">name <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+  <tr><td align="left" width="130" port="passcode_encrypt_salt">passcode_encrypt_salt <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+  <tr><td align="left" width="130" port="schedule">schedule <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+  <tr><td align="left" width="130" port="status">status <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+  <tr><td align="left" width="130" port="uid">uid <font face="Arial ItalicMT" color="grey60">string ∗ U</font></td></tr>
+</table>
+>];
+"m_Synchronizer::CollectedPage" [label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
+  <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">Synchronizer::CollectedPage</font></td></tr>
+</table>
+|
+<table border="0" align="left" cellspacing="2" cellpadding="0" width="134">
+  <tr><td align="left" width="130" port="attribute_1">attribute_1 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="attribute_2">attribute_2 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="body">body <font face="Arial ItalicMT" color="grey60">text</font></td></tr>
+  <tr><td align="left" width="130" port="header">header <font face="Arial ItalicMT" color="grey60">text</font></td></tr>
+  <tr><td align="left" width="130" port="parsed_at">parsed_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="skipped_at">skipped_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="synchronizer_uid">synchronizer_uid <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+</table>
+>];
+"m_Synchronizer::ParsedData" [label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
+  <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">Synchronizer::ParsedData</font></td></tr>
+</table>
+|
+<table border="0" align="left" cellspacing="2" cellpadding="0" width="134">
+  <tr><td align="left" width="130" port="attribute_1">attribute_1 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="attribute_2">attribute_2 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="organized_at">organized_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="raw_data">raw_data <font face="Arial ItalicMT" color="grey60">text</font></td></tr>
+  <tr><td align="left" width="130" port="skipped_at">skipped_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
+  <tr><td align="left" width="130" port="synchronizer_uid">synchronizer_uid <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+  <tr><td align="left" width="130" port="uid">uid <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+</table>
+>];
+m_SyncingAccount [color = "grey60", fontcolor = "grey60", label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
+  <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">SyncingAccount</font></td></tr>
+</table>
+>];
 m_Transaction [label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
   <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">Transaction</font></td></tr>
 </table>
@@ -78,7 +155,13 @@ m_Transaction [label = <<table border="0" align="center" cellspacing="0.5" cellp
   <tr><td align="left" width="130" port="ignore_in_statistics">ignore_in_statistics <font face="Arial ItalicMT" color="grey60">boolean ∗</font></td></tr>
   <tr><td align="left" width="130" port="latitude">latitude <font face="Arial ItalicMT" color="grey60">float</font></td></tr>
   <tr><td align="left" width="130" port="longitude">longitude <font face="Arial ItalicMT" color="grey60">float</font></td></tr>
+  <tr><td align="left" width="130" port="manually_edited_at">manually_edited_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
   <tr><td align="left" width="130" port="note">note <font face="Arial ItalicMT" color="grey60">text</font></td></tr>
+  <tr><td align="left" width="130" port="on_record">on_record <font face="Arial ItalicMT" color="grey60">boolean</font></td></tr>
+  <tr><td align="left" width="130" port="record_transaction_uid">record_transaction_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="separate_transaction_uid">separate_transaction_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="separated">separated <font face="Arial ItalicMT" color="grey60">boolean ∗</font></td></tr>
+  <tr><td align="left" width="130" port="synchronizer_parsed_data_uid">synchronizer_parsed_data_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="tags">tags <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="uid">uid <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
 </table>
@@ -129,14 +212,33 @@ m_User [label = <<table border="0" align="center" cellspacing="0.5" cellpadding=
   <tr><td align="left" width="130" port="unlock_token">unlock_token <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
 </table>
 >];
+m_VirtualTransaction [color = "grey60", fontcolor = "grey60", label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
+  <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">VirtualTransaction</font></td></tr>
+</table>
+>];
+  m_Account -> m_SyncingAccount [color = "grey60", arrowtail = "onormal", arrowhead = "none", arrowsize = "1.2"];
+  m_Transaction -> m_NotOnRecordTransaction [color = "grey60", arrowtail = "onormal", arrowhead = "none", arrowsize = "1.2"];
+  m_Transaction -> m_SyncedTransaction [color = "grey60", arrowtail = "onormal", arrowhead = "none", arrowsize = "1.2"];
+  m_Transaction -> m_VirtualTransaction [color = "grey60", arrowtail = "onormal", arrowhead = "none", arrowsize = "1.2"];
   m_User -> m_OAuthAccessGrant [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "1"];
   m_OAuthApplication -> m_OAuthAccessGrant [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "2"];
   m_User -> m_OAuthAccessToken [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "1"];
   m_OAuthApplication -> m_OAuthAccessToken [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "2"];
   m_User -> m_OAuthApplication [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "1"];
-  m_User -> m_Account [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "2"];
+  m_User -> m_Account [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "3"];
   m_User -> m_Transaction [style = "dotted", arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "1", constraint = "false"];
   m_User -> m_TransactionCategorizationCase [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "2"];
-  m_Account -> m_Transaction [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "2"];
+  m_User -> m_Synchronizer [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "5"];
+  m_User -> m_AccountIdentifier [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "2"];
+  m_Account -> m_Transaction [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "6"];
+  m_Account -> m_AccountIdentifier [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "3"];
+  m_Transaction -> m_User [style = "dotted", arrowsize = "0.6", arrowhead = "odot", arrowtail = "odot", weight = "4", constraint = "false"];
+  m_Transaction -> m_VirtualTransaction [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "5"];
+  m_Transaction -> m_NotOnRecordTransaction [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "5"];
+  "m_Synchronizer::ParsedData" -> m_Transaction [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "5"];
+  m_Synchronizer -> "m_Synchronizer::CollectedPage" [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "5"];
+  m_Synchronizer -> "m_Synchronizer::ParsedData" [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "5"];
+  m_Synchronizer -> m_SyncingAccount [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "5"];
+  "m_Synchronizer::CollectedPage" -> "m_Synchronizer::ParsedData" [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "2"];
   m_Transaction -> m_TransactionCategorizationCase [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "1"];
 }

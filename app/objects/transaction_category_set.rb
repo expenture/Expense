@@ -44,7 +44,7 @@ class TransactionCategorySet
     old_codes = self.class.codes(old_set)
     new_codes = self.class.codes(new_set)
 
-    # Categories with transcations can't be deleted
+    # Categories with transactions can't be deleted
     deleted_codes = old_codes - new_codes
     deleted_codes.each do |deleted_code|
       next unless @user.transactions.exists?(category_code: deleted_code)
@@ -74,17 +74,22 @@ class TransactionCategorySet
 
   # Conjecture a category_code by the given words, datetime and location
   def categorize(words, datetime: nil, latitude: nil, longitude: nil)
+    return transaction_categorization_codes[0] if transaction_categorization_codes.count < 2
     code = classifier.classify(words).to_hash[:top_score_key]
 
-    if code == 'meal' && datetime.is_a?(Time)
-      if latitude && longitude
-        timezone = Timezone::Zone.new latlon: [latitude, longitude]
-        hour = timezone.time(datetime).hour
-      else
-        hour = datetime.hour
-      end
+    begin
+      if code == 'meal' && datetime.is_a?(Time)
+        if latitude && longitude
+          timezone = Timezone::Zone.new latlon: [latitude, longitude]
+          hour = timezone.time(datetime).hour
+        else
+          hour = datetime.hour
+        end
 
-      code = meal_name_from_hour(hour)
+        code = meal_name_from_hour(hour)
+      end
+    rescue Timezone::Error::Base => e
+      Rails.logger.error(e)
     end
 
     code
@@ -155,7 +160,7 @@ class TransactionCategorySet
 
     # Return the category codes that a category set contains
     def codes(category_set = hash)
-      category_set.values.delete_if { |pc| !pc[:categories].is_a?(Hash) }.map { |pc| pc[:categories].keys }.reduce { |a, e| a.concat(e) } || []
+      category_set.values.delete_if { |pc| pc.blank? || !pc[:categories].is_a?(Hash) }.map { |pc| pc[:categories].keys }.reduce { |a, e| a.concat(e) } || []
     end
 
     # Return the available (not hidden) category codes that a
@@ -287,9 +292,39 @@ class TransactionCategorySet
         }
       }
     },
+    income: {
+      name: "Income",
+      priority: 2,
+      categories: {
+        salary: {
+          priority: 1,
+          name: "Salary"
+        },
+        dividends: {
+          priority: 2,
+          name: "Dividends"
+        },
+        part_time_income: {
+          priority: 3,
+          name: "Part Time Income"
+        },
+        investment_income: {
+          priority: 4,
+          name: "Investment Income"
+        },
+        rental_income: {
+          priority: 5,
+          name: "Rental Income"
+        },
+        discounts: {
+          priority: 6,
+          name: "Discounts"
+        }
+      }
+    },
     food: {
       name: "Food",
-      priority: 2,
+      priority: 3,
       categories: {
         breakfast: {
           name: "Breakfast",
@@ -326,6 +361,104 @@ class TransactionCategorySet
         snacks: {
           name: "Snacks",
           priority: 9
+        }
+      }
+    },
+    clothing: {
+      name: "Clothing",
+      priority: 4,
+      categories: {}
+    },
+    housing: {
+      name: "Housing",
+      priority: 5,
+      categories: {}
+    },
+    travel: {
+      name: "Travel",
+      priority: 6,
+      categories: {
+        train_tickets: {
+          name: "Train Tickets",
+          priority: 1
+        },
+        hsr_tickets: {
+          name: "HSR Tickets",
+          priority: 1
+        }
+      }
+    },
+    network: {
+      name: "Network",
+      priority: 7,
+      categories: {}
+    },
+    trip: {
+      name: "Trip",
+      priority: 8,
+      categories: {}
+    },
+    education: {
+      name: "Education",
+      priority: 9,
+      categories: {}
+    },
+    entertainment: {
+      name: "Entertainment",
+      priority: 10,
+      categories: {}
+    },
+    business: {
+      name: "Business",
+      priority: 11,
+      categories: {}
+    },
+    health: {
+      name: "Health",
+      priority: 12,
+      categories: {}
+    },
+    medical: {
+      name: "Medical",
+      priority: 13,
+      categories: {}
+    },
+    insurance: {
+      name: "Insurance",
+      priority: 14,
+      categories: {}
+    },
+    investment: {
+      name: "Investment",
+      priority: 15,
+      categories: {}
+    },
+    taxes: {
+      name: "Taxes",
+      priority: 16,
+      categories: {}
+    },
+    fees: {
+      name: "Fees",
+      priority: 17,
+      categories: {
+        transfer_fees: {
+          name: "Transfer fees",
+          priority: 1
+        },
+        foreign_transaction_fees: {
+          name: "Foreign transaction fees",
+          priority: 2
+        }
+      }
+    },
+    others: {
+      name: "Others",
+      priority: 18,
+      categories: {
+        others: {
+          name: "Others",
+          priority: 1
         }
       }
     }

@@ -8,8 +8,8 @@ class Me::AccountsController < ApplicationAPIController
   def update
     if request.put?
       @account = current_user.accounts.find_or_initialize_by(uid: params[:id])
-      @account.assign_attributes(empty_account_param_set.merge(account_params.to_h))
-    else request.patch?
+      @account.assign_attributes(empty_account_params.merge(account_params.to_h))
+    elsif request.patch?
       @account = current_user.accounts.find_by!(uid: params[:id])
       @account.assign_attributes(account_params)
     end
@@ -19,8 +19,8 @@ class Me::AccountsController < ApplicationAPIController
     if @account.save
       render status: status
     else
-      @error = { messages: @account.errors }
-      render status: 400
+      @error = Error.new(@account.errors)
+      render status: @error.status
     end
   end
 
@@ -30,17 +30,25 @@ class Me::AccountsController < ApplicationAPIController
     if @account.destroy
       render
     else
-      @error = { messages: @account.errors }
-      render status: 400
+      @error = Error.new(@account.errors)
+      render status: @error.status
     end
   end
 
-  def transcation_categorization_suggestion
-    if params[:words].blank?
-      @error = { message: 'Please provide the param "words".' }
-      render status: 400
-      return
-    end
+  def clean
+    @account = current_user.accounts.find_by!(uid: params[:account_id])
+    AccountOrganizingService.clean(@account)
+  end
+
+  def merge
+    @account = current_user.accounts.find_by!(uid: params[:account_id])
+    @source_account = current_user.accounts.find_by!(uid: params.require(:source_account_uid))
+    AccountOrganizingService.merge(@source_account, @account)
+    current_user.account_identifiers.where(account_uid: @source_account.uid).update_all(account_uid: @account.uid)
+  end
+
+  def transaction_categorization_suggestion
+    params.require(:words)
 
     req = Rack::Request.new(request.env)
     request_location = req.safe_location
@@ -56,15 +64,15 @@ class Me::AccountsController < ApplicationAPIController
 
   private
 
-  def permitted_account_param_names
-    %w(type name currency balance)
-  end
-
   def account_params
     params.require(:account).permit(permitted_account_param_names)
   end
 
-  def empty_account_param_set
-    HashWithIndifferentAccess[permitted_account_param_names.map { |v| [v, nil] }]
+  def empty_account_params
+    Account.new.serializable_hash.slice(*permitted_account_param_names)
+  end
+
+  def permitted_account_param_names
+    %w(type name currency balance)
   end
 end

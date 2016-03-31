@@ -7,8 +7,8 @@ class UsersController < ApplicationAPIController
     if @user.save
       render status: 201
     else
-      @error = { message: @user.errors.full_messages.join(', ') }
-      render status: 400
+      @error = Error.new(@user.errors)
+      render status: @error.status
     end
   end
 end

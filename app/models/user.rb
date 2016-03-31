@@ -1,3 +1,53 @@
+# == Schema Information
+#
+# Table name: users
+#
+# *id*::                           <tt>integer, not null, primary key</tt>
+# *name*::                         <tt>string</tt>
+# *email*::                        <tt>string, default(""), not null</tt>
+# *encrypted_password*::           <tt>string, default(""), not null</tt>
+# *password_set_at*::              <tt>datetime</tt>
+# *reset_password_token*::         <tt>string</tt>
+# *reset_password_sent_at*::       <tt>datetime</tt>
+# *sign_in_count*::                <tt>integer, default(0), not null</tt>
+# *current_sign_in_at*::           <tt>datetime</tt>
+# *last_sign_in_at*::              <tt>datetime</tt>
+# *current_sign_in_ip*::           <tt>string</tt>
+# *last_sign_in_ip*::              <tt>string</tt>
+# *unconfirmed_email*::            <tt>string</tt>
+# *confirmation_token*::           <tt>string</tt>
+# *confirmed_at*::                 <tt>datetime</tt>
+# *confirmation_sent_at*::         <tt>datetime</tt>
+# *failed_attempts*::              <tt>integer, default(0), not null</tt>
+# *unlock_token*::                 <tt>string</tt>
+# *locked_at*::                    <tt>datetime</tt>
+# *mobile*::                       <tt>string</tt>
+# *unconfirmed_mobile*::           <tt>string</tt>
+# *mobile_confirmation_token*::    <tt>string</tt>
+# *mobile_confirmation_sent_at*::  <tt>datetime</tt>
+# *mobile_confirm_tries*::         <tt>integer, default(0), not null</tt>
+# *external_profile_picture_url*:: <tt>string</tt>
+# *external_cover_photo_url*::     <tt>string</tt>
+# *fb_id*::                        <tt>string</tt>
+# *fb_email*::                     <tt>string</tt>
+# *fb_access_token*::              <tt>text</tt>
+# *created_at*::                   <tt>datetime, not null</tt>
+# *updated_at*::                   <tt>datetime, not null</tt>
+# *default_account_uid*::          <tt>string</tt>
+#
+# Indexes
+#
+#  index_users_on_confirmation_token    (confirmation_token) UNIQUE
+#  index_users_on_default_account_uid   (default_account_uid)
+#  index_users_on_email                 (email) UNIQUE
+#  index_users_on_fb_email              (fb_email)
+#  index_users_on_fb_id                 (fb_id)
+#  index_users_on_reset_password_token  (reset_password_token) UNIQUE
+#  index_users_on_unlock_token          (unlock_token) UNIQUE
+#--
+# == Schema Information End
+#++
+
 class User < ApplicationRecord
   include RailsSettings::Extend
 
@@ -11,8 +61,11 @@ class User < ApplicationRecord
                                optional: true
   has_many :transactions, through: :accounts
   has_many :transaction_categorization_cases
+  has_many :synchronizers
+  has_many :account_identifiers
 
   validates :default_account, presence: true, on: :update
+  validate :default_account_is_not_a_syncing_one, on: :update
 
   after_create :create_default_account
   before_validation :check_password
@@ -44,6 +97,12 @@ class User < ApplicationRecord
     return self
   end
 
+  def send_confirmation_instructions
+    return if from == 'facebook' ||
+              from == 'skip_send_confirmation_instructions'
+    super
+  end
+
   private
 
   def create_default_account
@@ -60,6 +119,12 @@ class User < ApplicationRecord
     else
       self.password_set_at = Time.now if encrypted_password_changed?
     end
+  end
+
+  def default_account_is_not_a_syncing_one
+    return unless default_account_uid_changed?
+    return unless default_account && default_account.kind == 'syncing'
+    errors.add(:default_account_uid, 'can not be a syncing account')
   end
 
   class << self

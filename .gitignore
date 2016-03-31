@@ -23,5 +23,14 @@
 # Ignore .env file
 .env
 
+# Ignore generated docs
+.yardoc
+doc
+
 # Ignore Coverage reoprt
 coverage
+
+# Mac OS X
+.DS_Store
+.AppleDouble
+.LSOverride

@@ -2,13 +2,13 @@ require File.expand_path('../../../config/environment', __FILE__)
 
 namespace :dev do
   desc "Seed data for development environment"
-  task :prime do
+  task prime: 'db:migrate' do
     # Only run this on development or staging
     if (Rails.env.development? || ENV['STAGING'].present?) && User.first.blank?
       include FactoryGirl::Syntax::Methods
 
       # Base user
-      create :user, :confirmed
+      create :user, :confirmed, email: 'user@my.app', password: 'password'
 
       # Base transaction categorization cases
       create :transaction_categorization_case, words: 'Sandwich', category_code: 'meal'
@@ -25,6 +25,37 @@ namespace :dev do
       create :transaction_categorization_case, words: '義大利麵', category_code: 'meal'
       create :transaction_categorization_case, words: '漢堡', category_code: 'meal'
       create :transaction_categorization_case, words: '焗烤飯', category_code: 'meal'
+      create :transaction_categorization_case, words: '麻油雞', category_code: 'meal'
+      create :transaction_categorization_case, words: '麵線', category_code: 'meal'
+      create :transaction_categorization_case, words: '豆腐', category_code: 'meal'
+      create :transaction_categorization_case, words: '湯', category_code: 'meal'
+      create :transaction_categorization_case, words: '魚', category_code: 'meal'
+      create :transaction_categorization_case, words: '飯糰', category_code: 'meal'
+      create :transaction_categorization_case, words: '雞肉飯', category_code: 'meal'
+      create :transaction_categorization_case, words: '蛋丸', category_code: 'meal'
+      create :transaction_categorization_case, words: '椒香肉捲', category_code: 'meal'
+      create :transaction_categorization_case, words: '哇沙米', category_code: 'meal'
+      create :transaction_categorization_case, words: '茶葉蛋', category_code: 'meal'
+      create :transaction_categorization_case, words: '茶葉蛋', category_code: 'meal'
+      create :transaction_categorization_case, words: '茶葉蛋', category_code: 'meal'
+      create :transaction_categorization_case, words: '蛋', category_code: 'meal'
+      create :transaction_categorization_case, words: '鮮果', category_code: 'meal'
+      create :transaction_categorization_case, words: '蜜棗', category_code: 'meal'
+      create :transaction_categorization_case, words: '便當', category_code: 'meal'
+      create :transaction_categorization_case, words: '雞排', category_code: 'meal'
+      create :transaction_categorization_case, words: '香蔥玉子揚', category_code: 'meal'
+      create :transaction_categorization_case, words: '海鮮丸', category_code: 'meal'
+      create :transaction_categorization_case, words: '白蘿蔔', category_code: 'meal'
+      create :transaction_categorization_case, words: '黃金魚蛋', category_code: 'meal'
+      create :transaction_categorization_case, words: '中華油豆腐', category_code: 'meal'
+      create :transaction_categorization_case, words: '關東煮', category_code: 'meal'
+      create :transaction_categorization_case, words: '三明治', category_code: 'meal'
+      create :transaction_categorization_case, words: '燻腸', category_code: 'meal'
+      create :transaction_categorization_case, words: '手捲', category_code: 'meal'
+      create :transaction_categorization_case, words: '拉麵', category_code: 'meal'
+      create :transaction_categorization_case, words: '滷肉飯', category_code: 'meal'
+      create :transaction_categorization_case, words: '香腸', category_code: 'meal'
+      create :transaction_categorization_case, words: '蔬菜堡', category_code: 'meal'
       create :transaction_categorization_case, words: 'Ice Tea', category_code: 'drinks'
       create :transaction_categorization_case, words: 'Hot Tea', category_code: 'drinks'
       create :transaction_categorization_case, words: 'Black Tea', category_code: 'drinks'
@@ -35,12 +66,30 @@ namespace :dev do
       create :transaction_categorization_case, words: '珍珠奶茶', category_code: 'drinks'
       create :transaction_categorization_case, words: '柳橙汁', category_code: 'drinks'
       create :transaction_categorization_case, words: '葡萄汁', category_code: 'drinks'
+      create :transaction_categorization_case, words: '奧利多水', category_code: 'drinks'
+      create :transaction_categorization_case, words: '多喝水', category_code: 'drinks'
+      create :transaction_categorization_case, words: '蔬果汁', category_code: 'drinks'
+      create :transaction_categorization_case, words: '果汁', category_code: 'drinks'
+      create :transaction_categorization_case, words: '飲料', category_code: 'drinks'
+      create :transaction_categorization_case, words: '鮮奶茶', category_code: 'drinks'
+      create :transaction_categorization_case, words: '可口可樂', category_code: 'drinks'
+      create :transaction_categorization_case, words: '純喫茶', category_code: 'drinks'
+      create :transaction_categorization_case, words: '檸檬紅茶', category_code: 'drinks'
+      create :transaction_categorization_case, words: '波蜜', category_code: 'drinks'
+      create :transaction_categorization_case, words: '纖果食感', category_code: 'drinks'
       create :transaction_categorization_case, words: 'SNICKERS', category_code: 'snacks'
       create :transaction_categorization_case, words: 'Pringle\'s Newfangled Potato Chips', category_code: 'snacks'
       create :transaction_categorization_case, words: 'Doritos', category_code: 'snacks'
       create :transaction_categorization_case, words: '士力架 巧克力', category_code: 'snacks'
       create :transaction_categorization_case, words: '品客 洋芋片', category_code: 'snacks'
       create :transaction_categorization_case, words: '多力多滋', category_code: 'snacks'
+      create :transaction_categorization_case, words: '乖乖', category_code: 'snacks'
+      create :transaction_categorization_case, words: '巧克力', category_code: 'snacks'
+      create :transaction_categorization_case, words: '提拉米蘇', category_code: 'snacks'
+      create :transaction_categorization_case, words: '台鐵', category_code: 'train_tickets'
+      create :transaction_categorization_case, words: '高鐵', category_code: 'hsr_tickets'
+      create :transaction_categorization_case, words: '跨行費用', category_code: 'transfer_fees'
+      create :transaction_categorization_case, words: '國外交易手續費', category_code: 'foreign_transaction_fees'
     end
   end
 end

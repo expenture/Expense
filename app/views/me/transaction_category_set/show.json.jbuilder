@@ -1,7 +1,5 @@
 json.key_format!(camelize: :lower) if camelize_keys
 
-json.transaction_category_set @transaction_category_set
+json.error @error if @error
 
-if @error
-  json.error @error
-end
+json.transaction_category_set @transaction_category_set

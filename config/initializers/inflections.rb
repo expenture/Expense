@@ -23,6 +23,8 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym 'API'
   inflect.acronym 'SSO'
   inflect.acronym 'SMS'
+  inflect.acronym 'TW'
+  inflect.acronym 'EInvoice'
   inflect.acronym 'APNS'
   inflect.acronym 'GCM'
 end

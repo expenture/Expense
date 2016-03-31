@@ -1,14 +1,18 @@
 # Expense
 
-An expense managing application to make life more easier and free. This is the backend API server written on top of the [Ruby on Rails](http://rubyonrails.org) framework.
+An expense managing application to make life more easier and free. This is the API server written on top of the [Ruby on Rails](http://rubyonrails.org) framework.
 
 **Table of Contents**
 
 - [Development Setup](#development-setup)
+- [Testing](#testing)
 - [Deploy](#deploy)
-- [API](#api)
+  - [WebHook Endpoints](#webhook-endpoints)
+- [API Guide](#api-guide)
   - [Conventions](#conventions)
-    - [HTTP Methouds](#http-methouds)
+    - [HTTP Methods](#http-methods)
+    - [JSON Schema](#json-schema)
+    - [Errors And The Error Object](#errors-and-the-error-object)
     - [Value Unit](#value-unit)
   - [Authentication Related APIs](#authentication-related-apis)
     - [User Registration](#user-registration)
@@ -17,13 +21,21 @@ An expense managing application to make life more easier and free. This is the b
     - [Account Management](#account-management)
     - [Transaction Management](#transaction-management)
     - [Transaction Category Set Management](#transaction-category-set-management)
-- [Architecture](#architecture)
-  - [Domain Model ERD Diagram](#domain-model-erd-diagram)
+    - [Synchronizer Management](#synchronizer-management)
+    - [Account Identifier Management](#account-identifier-management)
+- [Application Architecture](#application-architecture)
   - [Environment Variables](#environment-variables)
+  - [Domain Model ERD Diagram](#domain-model-erd-diagram)
   - [The Settings Model](#the-settings-model)
   - [Objects](#objects-value-objects-parameter-objects-etc)
+    - [Transaction Category Set](#transactioncategoryset-transaction-categorizing)
   - [Service Modules](#service-modules)
   - [Backing Services](#backing-services)
+  - [Account Organizing Service](#account-organizing-service)
+  - [Synchronizers](#synchronizers)
+    - [Collector](#collector)
+    - [Parser](#parser)
+    - [Organizer](#organizer)
   - [Specs](#specs)
     - [Module Specs](#module-specs)
     - [Request Specs](#request-specs)
@@ -38,34 +50,55 @@ Just run:
 $ bin/setup
 ```
 
-Configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`, enter the console by `bin/console`, or run the tests by `bin/rspec`.
+Then configure the application by editing the environment variables in `.env`. After that's done, you can start the development server by running `bin/server`, enter the console by `bin/console`, or run the tests by `bin/test`.
 
 > Note: After updating (i.e. pulling a new version from the remote repo), be sure to run `bin/update` before you do anything.
 
 
+## Testing
+
+Run `bin/test` to execute the test suite.
+
+Integration tests that requires communication with real-world web services are skipped by default. Set the `INTEGRATION_TEST` environment variable to `true` to run them: `INTEGRATION_TEST=true bin/test`.
+
+
 ## Deploy
 
-This application is designed under [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy.
+This application is designed with [The Twelve Factor App](http://12factor.net/) pattern, making its deployment and operations on cloud platforms easy. You can deploy this app to heroku with one click: [![Deploy](https://neson.github.io/GitHub-Badges/deploy_to_heroku_xs.svg)](https://heroku.com/deploy).
+
+The major system dependencies to run this app are: `ruby`, `bundler`, `imagemagick` and `tesseract`. A `phantomjs` executable for `linux` and `darwin` is included in this code base.
+
+Primary configurations of this app are controlled by environment variables (ENVs). A sample `.env` file listing primary ENVs is located at `.env.sample`. This app relies on several backing services (with their connection configured using ENVs), Some of them might need to send data to this app by using WebHooks, more details about this are described in the [WebHook Endpoints](#webhook-endpoints) section below.
+
+There are three process types for this app: web servers (`web`), background job workers (`worker`) and the clock `clock`. See the `Procfile` to learn about how to start the processes in a general case.
+
+### WebHook Endpoints
+
+There're a few API endpoints for other service to send data into this app:
+
+#### Inbound Email Receiving for Syncers
+
+- [Mailgun (forwarding URL for routes)](https://documentation.mailgun.com/quickstart-receiving.html#inbound-routes-and-parsing): `/webhook_endpoints/syncer_receiving/mailgun`
 
 
-## API
+## API Guide
 
 Most APIs provided by this app are RESTful JSON APIs, and OAuth 2.0 is used for authentication.
 
-Note that although most examples are using URL query parameters to pass data, form-data or raw body with JSON can also be used. Also, the OAuth access token can be passed using HTTP `Authorization` header (`Authorization: Bearer <access_token>`) instead of the `access_token` query parameter.
+> Note: **URL query parameters**, **form-data** or **raw body with JSON** are all available ways for passing parameters for a request. Also, the OAuth access token can be hand over using HTTP the `Authorization` header (`Authorization: Bearer <access_token>`) instead of the `access_token` query parameter. Examples in this documentation might use any of the above ways for clarity, but you have the freedom to choice which method to use while making API requests.
 
 ### Conventions
 
-#### HTTP Methouds
+#### HTTP Methods
 
 ##### Using `PUT` for Resource Creation
 
-Since this is an mobile oriented application, one considerations on API design is to make requests retryable (we assume that the internet is unstable). The traditional `POST` method is not retryable since it will create n duplicated resource after retrying n times.
+Since this is a mobile oriented application, one consider on API design is to make requests retryable (we assume that the internet is unstable). The traditional `POST` method is not retryable since it will create `n` duplicated resource after retrying `n` times.
 
 By using the `PUT` method (its definition is "replace or create"), we can make creating resource retryable by:
 
-  1. Generate the unique ID of that resource on the client side.
-  2. Send the request `PUT /resources/<generated_uid>` to create the resource.
+  1. Generate a unique ID (uid) of that resource on the client side.
+  2. Send the request `PUT /resources/{uid}` to create that resource.
 
 If the client thinks the request has failed, it can just retry step 2 without the worry of creating duplicated resources on the server side. Because the definition of `PUT` request is "replace or create", if that resource is already created successfully, resending the same request will simply "replace" that resource with the same data - making no changes to the final result.
 
@@ -79,15 +112,82 @@ So, the recommended method for updating resourse is using `PATCH` requests. Only
 
 For this reason, `PUT` methods are not provided for some APIs.
 
+#### JSON Schema
+
+The returned resource will be wrapped in a object, with their type as the key:
+
+```json
+{
+  "account": {
+    ...
+  }
+}
+```
+
+```json
+{
+  "accounts": [
+    { ... },
+    { ... },
+    { ... }
+  ]
+}
+```
+
+#### Errors And The Error Object
+
+APIs provided by this app uses conventional HTTP status codes to indicate errors:
+
+- `200` OK - Everything is fine.
+- `201` Created - The request success with the creation of a new resource.
+- `202` Accepted - The request has been accepted for processing, but the processing has not been completed.
+- `400` Bad Request - Your request has invalid arguments or is malformed.
+- `401` Unauthorized - Your request is not (or has failed to be) authenticated.
+- `403` Forbidden - Your request is authenticated, but has Insufficient permissions for this request.
+- `405` Method Not Allowed - The HTTP verb of the request is incorrect.
+- `404` Not Found - The requested API endpoint or the resource does not exist.
+- `429` Too Many Requests - You've exceeded the API request rate limit.
+- `500` Internal Server Error - Something is wrong on the server side.
+- `504` Gateway Timeout - Something has timed out on the server side.
+
+If the response is considered to have an error, a `error` object will be returned in the JSON:
+
+```json
+{
+  "error": {
+    "status": 400,
+    "code": "bad_attributes",
+    "message": "Account: Name can't be blank"
+  },
+  "account": {
+    "uid": "a991c2e2-2999-a136-3f05-db20c3c455d2",
+    "type": "cash",
+    "name": null,
+    ...
+    "errors": {
+      "name": [
+        "can't be blank"
+      ]
+    }
+  }
+}
+```
+
+The `status` of the error object is the HTTP code. The `code` is an error code and the `message` is a friendly error message. Common `code`s are:
+
+- `bad_attributes` - The request attributes is invalid.
+
 #### Value Unit
 
 All money values like `amount` or `balance` are integers represented in 1,000/1 degrees, irrelevant to currency. That is, the programmatic money value `1234567` should be displayed as `$ 1,234.567`.
 
 ### Authentication Related APIs
 
+APIs in this section is used for user registration or authentication (i.e. register and login).
+
 #### User Registration
 
-New users can be registered using their email and password ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/users_spec.rb)).
+New users can be registered using their email and a password ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/users_spec.rb)).
 
 ```http
 POST /users?
@@ -101,7 +201,8 @@ Sample response:
 ```json
 {
   "user": {
-    "email": "someone@somewhere.com"
+    "email": "someone@somewhere.com",
+    ...
   },
   "status": "confirmation_pending"
 }
@@ -113,56 +214,56 @@ A confirmation email will be sent after the new registration. After new users cl
 
 #### User Authentication
 
-All authentications are done by [The OAuth 2.0 Authorization Framework](https://tools.ietf.org/html/rfc6749). All of the rest APIs will need a valid access token to access. The Resource Owner Password Credentials Grant Flow is supported to obtain an access token:
+This app implements [OAuth 2.0](http://oauth.net/2/) for authentication. Most of the APIs will need a valid access token to access.
 
 ##### Resource Owner Password Credentials Grant Flow
 
 This grant flow uses the user's account credentials to grant access and get an access token ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/oauth/token_spec.rb)). The API endpoint is `POST /oauth/token`, and two types of credentials are supported:
 
-###### Using Email and Password
+###### Using Email And Password
 
 Pass the user's email as the username and the password with the request like this:
 
 ```http
 POST /oauth/token?
      grant_type=password&
-     username=<email>&
-     password=<password>
+     username={email}&
+     password={password}
 ```
 
 Sample response:
 
 ```json
 {
-  "access_token": "xxxxxxx",
+  "access_token": "2fd434f0f4835c5f810256ed04c117b33b90a35c3c6da0b6a5b773fce98b4ff6",
   "token_type": "bearer",
   "expires_in": 7200,
-  "refresh_token": "xxxxxxxxxx",
+  "refresh_token": "4f9cb068d2b2c5f86bae4d21ea17949a6a0aa9f8634c9226d14419ad178e6b9e",
   "scope": "default",
-  "created_at": 00000000
+  "created_at": 1458313774
 }
 ```
 
 > The `grant_type` parameter is fixed to value `password` to use this grant flow.
 
-After 20+ unsuccessful credentials attempts, the user's account will be locked and cannot be logged in within a maximum time of 3 hours.
+After 20+ unsuccessful attempts, the user's account will be locked and cannot be logged in within a maximum time of 3 hours.
 
-###### Using an Facebook Access Token
+###### Using An Facebook Access Token
 
-To achieve "loggin in with Facebook", a vaild Facebook access token is also available to use as credential. Just use the fixed value `facebook:access_token` as the `username`, and pass in the Facebook access token as password:
+To let users login with Facebook, a vaild Facebook access token is also available to use as credential. Just use the fixed value `facebook:access_token` as the `username`, and pass in the Facebook access token as password:
 
 ```http
 POST /oauth/token?
      grant_type=password&
      username=facebook:access_token&
-     password=<facebook_access_token>
+     password={facebook_access_token}
 ```
 
 If the corresponding user does not exists, a new user will with blank password be created and link to that Facebook account automatically. The automatically created user will not be able to login using password unless they use the reset password API to set their password.
 
-Or if an old user is using Facebook login without linking his/her Facebook account before, his/her account will be found out by matching email and link to that Facebook account.
+Or if an old user is using Facebook login without linking his/her Facebook account before, his/her account will be found out by a matching email and link to that Facebook account.
 
-> Note that for security reasons, only the Facebook access tokens that belongs to the same Facebook app setted for this application can be used as credentials. Facebook access tokens that are created for other Facebook apps will be rejected - even if they belong to the same user.
+> Note that for security reasons, only the Facebook access tokens that belongs to the same Facebook app configured for this application can be used as credentials. Facebook access tokens that are created for other Facebook apps will be rejected - even if they belong to the same user.
 
 ##### Using The Refresh Token
 
@@ -171,29 +272,41 @@ The refresh token is used for obtending a new access token after the current one
 ```http
 POST /oauth/token?
      grant_type=refresh_token&
-     refresh_token=xxxxxxx
+     refresh_token=4f9cb068d2b2c5f86bae4d21ea17949a6a0aa9f8634c9226d14419ad178e6b9e
 ```
 
-the sample response:
+the response will be like:
 
 ```json
 {
-  "access_token": "xxxxxxx",
+  "access_token": "359eb6e59d78c35b3933f4266ca1680fc733fba5783f5780a191ce4c078c880d",
   "token_type": "bearer",
   "expires_in": 7200,
-  "refresh_token": "xxxxxxxxxx",
+  "refresh_token": "9b3124588e96673563da7ebce13b13c27defdc379b426bb94611c7cd27b1ac1e",
   "scope": "default",
-  "created_at": 00000000
+  "created_at": 1458313916
 }
 ```
 
 ### General APIs
 
+Accessing APIs in this section requires a valid access token, otherwise a `401 Unauthorized` error will be returned.
+
 #### Account Management
 
-All the transactions (the log of expense or income) are filed under accounts. A default cash account with the name "default" and type "cash" will be created with the new user ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)) and set as the default account ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)). Default accounts cannot be deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/account_spec.rb)). Operations for managing the user's accounts are listed below:
+Accounts represent places to store money. It can be a wallet, a bank account, a debit card or a credit card. Accounts have a list of transactions.
 
-##### Getting The List of Accounts
+A default cash account with the name "default" and type "cash" will be created with the new user ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)) and set as the default account ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)). Default accounts cannot be deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/account_spec.rb)).
+
+There are two different types of accounts: **normal accounts** and **<strong id="api-guide-syncing-accounts">syncing accounts</strong>**. Normal accounts are those that transactions are managed by the user manually, while syncing accounts has all the transactions synced with a service (e.g. a bank) automatically. Normal accounts are created by the user, and syncing accounts are created and managed by syncers.
+
+> Note: More details about syncers are described under the [Synchronizer Management](#synchronizer-management) section later.
+
+Operations for managing the user's accounts are listed below:
+
+##### Listing Accessible Accounts
+
+Returns a list of accounts that is accessible by the current authorised user.
 
 ```http
 GET /me/accounts
@@ -208,58 +321,99 @@ accounts: [
     "name": "default",
     "type": "cash",
     "currency": "TWD",
-    "balance": 8000000
+    "balance": 8000000,
+    "default": true,
+    "syncing": false
   },
   {
     "uid": "4a58cb98-59ac-4401-9ff0-2d0887e31250",
     "name": "悠遊卡",
     "type": "cash",
     "currency": "TWD",
-    "balance": 5000000
+    "balance": 5000000,
+    "default": false,
+    "syncing": true
   }
 ]
 ```
 
-> Note that the `balance` attribute is represented in 1,000/1 degrees.
+> Note that the `balance` attribute is represented in 1,000/1 degrees ([ref](#value-unit)).
 
-##### Creating an Account
+##### Creating An Account
+
+Creates a new account for current authorised user.
 
 ```http
-PUT /me/accounts/<generated_unique_id>
+PUT /me/accounts/{generated_unique_id}
 Content-Type: application/json
 
 {
   "account": {
-    "name": <the_name_of_the_account>,
+    "name": "My Wallet",
     "type": "cash",
     "currency": "TWD",
-    "balance": <the_initial_balance>
+    "balance": 1000000
   }
 }
 ```
 
-##### Updating Info of an Account
+##### Updating An Account
+
+Updates attributes of a specified account that is owned by the current authorised user.
 
 ```http
-PATCH /me/accounts/<account_uid>
+PATCH /me/accounts/{account_uid}
 Content-Type: application/json
 
 {
-  "account": <updated_attributes_and_values>
+  "account": {
+    "name": "My Old Wallet",
+    "type": "cash",
+    "currency": "TWD",
+    "balance": 0
+  }
 }
 ```
 
-##### Deleting an Account
+##### Deleting An Account
+
+Deletes a specified account that is owned by the current authorised user.
 
 ```http
-DELETE /me/accounts/<account_uid>
+DELETE /me/accounts/{account_uid}
 ```
+
+> Note: The default account and [syncing accounts](#api-guide-syncing-accounts) cannot be deleted.
+
+##### Cleaning An Account
+
+Cleans the transactions (find possible matching between not-on-record transactions and on-record transactions to link them together, resolving the duplication) on an account. Normally users don't need to run this manually.
+
+```http
+POST /me/accounts/{account_uid}/_clean
+```
+
+##### Merging Two Accounts
+
+Merges transactions from a source account to a target account. A use case is to merge from a manual managed account to a syncing account, then the user can have old records on their new syncing account, and delete the old manual account. Transactions will be auto merged by coping transactions from the source account to the target account as not-on-record transactions, and cleaning the target account.
+
+```http
+POST /me/accounts/{account_uid}/_merge?source_account_uid={source_account_uid}
+```
+
+> Note that by merging accounts, any account identifier pointed to the source (old) account will be updated to point to the target (new) account automatically for the user. More info about account identifiers are described in the [Account Identifier Management](#account-identifier-management) section later.
 
 #### Transaction Management
 
-The log of an expense or income is a transaction. Transactions are filed under accounts, and the account balance will be auto updated after a transaction has been created, updated or deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/transaction_spec.rb)). Transactions are categorized into categories and can add tags onto, which provide ways for filter and analyzing. Operations for managing transactions are listed below:
+Transactions are records of money movements into or out of an account. A transaction with negative amount represent expenses, while those with positive amount represent incomes.
 
-##### Getting All Transactions
+Transactions are listed under accounts. The account balance will update automatically after a transaction has been created, updated or deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/transaction_spec.rb)).
+
+Transactions can be categorized by the `category_code` attribute. More details about how categorizing works is explained in the [Transaction Category Set Management](#transaction-category-set-management) section later.
+
+##### Listing All Transactions
+
+Returns a list of all transactions that is accessible by the current authorised user.
 
 ```http
 GET /me/transactions
@@ -299,12 +453,14 @@ Sample response:
 }
 ```
 
-> Note that the `amount` attribute is represented in 1,000/1 degrees.
+> Note that the `amount` attribute is represented in 1,000/1 degrees ([ref](#value-unit)).
 
-##### Getting All Transactions Under An Account
+##### Listing Transactions On An Account
+
+Returns a list of transactions on a specified account that is accessible by the current authorised user.
 
 ```http
-GET /me/accounts/<account_uid>/transactions
+GET /me/accounts/{account_uid}/transactions
 ```
 
 This API is [Paginatable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Paginatable), [Sortable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Sortable) and [Filterable](http://www.rubydoc.info/github/Neson/api_helper/master/APIHelper/Filterable).
@@ -313,8 +469,10 @@ The response format is same as `GET /me/transactions`.
 
 ##### Creating A Transaction
 
+Creats a new transaction on a account that is accessible by the current authorised user.
+
 ```http
-PUT /me/accounts/<account_uid>/transactions/<generated_unique_id>
+PUT /me/accounts/{account_uid}/transactions/{uid}
 Content-Type: application/json
 
 {
@@ -322,10 +480,16 @@ Content-Type: application/json
 }
 ```
 
+If you're creating a transaction on [syncing accounts](#api-guide-syncing-accounts), the transaction you manually created will be a **<strong id="api-guide-not-on-record-transaction">not-on-record transaction</strong>** (having its `on_record` be `false`), meaning that this transaction is not on the official record, but is pre-created for convenience. If the syncer creates that actual transaction record on the next syncing, it will find the not-on-record transaction that you manually created, copy its attributes to the new and actual transaction, and set the not-on-record one to be `ignore_in_statistics`. This enables you to pre-log some transactions immediately, needless to wait for the syncer done the next syncing to edit them.
+
+> Note: More details about syncers are described under the [Synchronizer Management](#synchronizer-management) section later.
+
 ##### Updating A Transaction
 
+Updates a transaction on a account that is accessible by the current authorised user.
+
 ```http
-PATCH /me/accounts/<account_uid>/transactions/<transaction_uid>
+PATCH /me/accounts/{account_uid}/transactions/{uid}
 Content-Type: application/json
 
 {
@@ -335,19 +499,45 @@ Content-Type: application/json
 
 ##### Deleting A Transaction
 
+Deletes a transaction from a account that is accessible by the current authorised user.
+
 ```http
-DELETE /me/accounts/<account_uid>/transactions/<transaction_uid>
+DELETE /me/accounts/{account_uid}/transactions/{uid}
 ```
+
+> Note: User can not delete on-record transactions from a syncing account (i.e. accounts that are managed by syncers). More details about syncers are described under the [Synchronizer Management](#synchronizer-management) section later.
+
+##### Separating A Transaction
+
+Sometimes you'll want to take apart a big transaction record into multiple transactions for better representation and statistics. For example, as you buy things on _Apple_'s _App Store_ or _iTunes_, _Apple_ always charges your credit card for a whole bunch of stuff in one single bill, making the transaction record for different type of things - productivity apps, entertainment games, songs, books, etc. - all mixed together. Another example is when you checked out for a wide-range of things in a hyper market with a single credit card swipe. Although that transaction must appear as a single one on your credit card bill, you can create several **virtual transaction**s to separate it.
+
+The API used to create virtual transactions for separating a transaction is same as the one for [creating a transaction](#creating-a-transaction). The difference is to specify a `separate_transaction_uid` for the new transaction:
+
+```http
+PUT /me/accounts/{account_uid}/transactions/{uid}
+Content-Type: application/json
+
+{
+  "transaction": {
+    "separate_transaction_uid": "523c2b1b-82b4-406a-b7b6-4a5e79aedd45",
+    ...
+  }
+}
+```
+
+As you specify the `separate_transaction_uid` for a transaction, then it will be considered as a **virtual transaction**. The `separate_transaction_uid` is the `uid` of the transaction that will be separated. Creating virtual transactions will not effect the balance of an account. You can create as many virtual transactions as you need to separate a transaction.
+
+If you create virtual transactions to separate a transaction, the separated transaction will be marked to be `ignore_in_statistics` automatically, so that your statistics will express the real information. The actual separated transaction still remain exists, and can be used in some situations, such as accounting reconciliation.
 
 #### Transaction Category Set Management
 
-Each transaction can be categorize into one category by their `category_code`. This API manages the categories defined by the user.
+Each transaction can be categorize into one category by their `category_code`. This API is used for managing the set of available categories that is customized by the user. The category set can be used to display transaction categories in human-friendly wording, or showing a category selecting UI. It is also used for this app for transaction auto categorizing features.
 
-The attributes of a category are `code`, `name`, `priority` and `hidden`. The `code` is a unique identifier of the category. The `priority` decides the order of that category to be show on UI, while it should be hidden on the UI with `hidden` set to `true`. Every category are filed under a parent-category, parent-categories also has the attributes `code`, `name`, `priority` and `hidden`.
+The attributes of a category are `code`, `name`, `priority` and `hidden`. The `code` is a unique identifier of the category. The `priority` decides the order of that category to be show on the UI, while it should be hidden while `hidden` set to `true`.
 
-This app will define a default set of categories. All user's category settings will inherit this set. Users are free to create, update or delete any custom categories. But predefined categories, or categories having at least one transcation can not be deleted, they can just set to be `hide` ([spec](https://github.com/Neson/Expense/blob/master/spec/services/transaction_category_service_spec.rb)).
+Every category should be listed under a parent-category, parent-categories also has the attributes `code`, `name`, `priority` and `hidden`.
 
-Updating the category set on the backend server side can let users access their category set everywhere. The user defined category set will also be used for auto-categorizing.
+The app defines a default set of categories, and all user's category set will inherit this app-defined set. Users are free to create, update or delete any custom categories. But app-defined categories, or categories having at least one transaction can not be deleted, they can just set to be `hidden` ([spec](https://github.com/Neson/Expense/blob/master/spec/services/transaction_category_service_spec.rb)).
 
 ##### Retrieving The Transaction Category Set
 
@@ -399,7 +589,7 @@ Sample response:
 
 ##### Updating The Transaction Category Set
 
-To update the category set, just send a `PUT` request to `/me/transaction_category_set` with the whole updated data in the request body. The request body format is same as the returned data of `GET /me/transaction_category_set`. To delete a category, just ignore it in the request. To rename or change the `hide` status of a category, just update the object with the same `code`. To create a new category, generate a `code` for that category, and add it to the object with the `code` as the key.
+To update the category set, just send a `PUT` request to `/me/transaction_category_set` with the whole updated data in the request body. The request body format is same as the returned data of `GET /me/transaction_category_set`.
 
 ```http
 PUT /me/transaction_category_set
@@ -450,10 +640,14 @@ Content-Type: application/json
 }
 ```
 
-##### Get Transcation Categorization Suggestion For Some Words
+##### Get Transaction Categorization Suggestion For Some Words
+
+This app supports auto transaction categorizing. It will learn by every time the user sets the `category_code` for a transaction.
+
+This API returns a suggested `category_code` for some given words using the auto transaction categorizing feature.
 
 ```http
-GET /me/accounts/<account_id>/transcation_categorization_suggestion?words=<some_words>
+GET /me/accounts/{account_id}/transaction_categorization_suggestion?words={some_words}
 ```
 
 Sample response:
@@ -464,21 +658,124 @@ Sample response:
 }
 ```
 
-## Architecture
+#### Synchronizer Management
+
+Synchronizers ("Syncers") syncs data from your bank accounts, card accounts or bills to transactions in this app automatically (i.e. does the auto expense logging for you).
+
+Synchronizers has different types, different types of syncers syncs data from different services. Some types of synchronizer manages accounts _(such as credit card syncer or bank account syncer)_, while some doesn't _(such as receipt email syncer, they conjectures the account that you paid form by the receipt, and create transactions on that existing account)_.
+
+> Note: To make email-receiving syncers to work, you'll need to configure inbound email receiving. See the [Inbound Email Receiving for Syncers](#inbound-email-receiving-for-syncers) section for further info.
+
+##### Listing Available Syncer Types
+
+Returns the available syncer types and their details in this app.
+
+```http
+GET /synchronizer_types
+```
+
+##### Listing User's Syncers
+
+Returns a list of syncers that the current authorised user has added.
+
+```http
+GET /me/synchronizers
+```
+
+##### Adding A Syncer
+
+Adds a syncer for the current authorised user.
+
+```http
+PUT /me/synchronizers/{uid}
+Content-Type: application/json
+
+{
+  "synchronizer": {
+    "type": "apple_receipt",
+    "name": "My Syncer",
+    "passcode_1": null,
+    "passcode_2": null,
+    ...
+  }
+}
+```
+
+##### Updating A Syncer
+
+Updates attributes for a syncer that is owned by the current authorised user.
+
+```http
+PATCH /me/synchronizers/{uid}
+Content-Type: application/json
+
+{
+  "synchronizer": {
+    "name": "My Syncer",
+    "enabled": true,
+    "schedule": "normal",
+    "passcode_1": null,
+    "passcode_2": null,
+    ...
+  }
+}
+```
+
+> TODO: Destroy syncer API.
+
+##### Manually Run A Syncer
+
+Calls a syncer perform synchronization immediately.
+
+```http
+POST /me/synchronizers/{uid}/_perform_sync
+```
+
+This request will return `202` if the syncer has be successfully prepared for running, or return `400` if there's an error occured while starting the syncer.
+
+> TODO: Stop syncing API.
+
+#### Account Identifier Management
+
+The Account Identifier is a way for this app to identify accounts. Say, a syncer receives an receipt that states the credit card `****-****-****-1234` has been charged, but the syncer will have no idea which account `****-****-****-1234` actually is. The syncer will then create a new `AccountIdentifier` with `type`: `credit_card` and `identifier`: `1234`, then skip that data for the user to identify an account later. After the user assigns an account for that `AccountIdentifier`, the syncer can then create that transaction in the account on its next run.
+
+There is no way for users to create `AccountIdentifier`s manually. `AccountIdentifier`s will only be created when unidentified account appears while the app runs.
+
+##### Listing User's Account Identifiers
+
+```http
+GET /me/account_identifiers
+```
+
+##### Updating A Account Identifier
+
+```http
+PATCH /me/account_identifiers/{id}
+Content-Type: application/json
+
+{
+  "account_identifier": {
+    "account_uid": <an_account_uid>
+  }
+}
+```
+
+
+## Application Architecture
 
 This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devise](https://github.com/plataformatec/devise), [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper/), [Jbuilder](https://github.com/rails/jbuilder) and many others. Tests are done by [RSpec](http://rspec.info/). The architecture of this app is briefly explained in the sections below:
+
+### Environment Variables
+
+By following [The Twelve Factor App](http://12factor.net/) pattern, this application should be [configurable via environment variables](http://12factor.net/config).
+
+Available environment variable, "ENVs", should be listed in `.env.sample` with their sample values.
 
 ### Domain Model ERD Diagram
 
 ![Domain Model ERD Diagram](https://raw.githubusercontent.com/Neson/Expense/master/erd.png?token=ADm_71Ifa7vq1QTmzrWclqSeHpCZUG-kks5W7aHqwA%3D%3D)
 
 > Note: This diagram is generated with the command `bin/erd`.
-
-### Environment Variables
-
-By following [The Twelve Factor App](http://12factor.net/) pattern, this application should be [configurable via environment variables](http://12factor.net/config).
-
-Available environment variable, ENVs, should be listed in `.env.sample` with their sample values.
 
 ### The Settings Model
 
@@ -490,20 +787,9 @@ Note that making direct changes to `Settings` is not recommended. While doing th
 
 A variant kinds of pure objects are used in this app: [Value Objects](http://refactoring.com/catalog/replaceDataValueWithObject.html), [Parameter Objects](http://refactoring.com/catalog/introduceParameterObject.html) and so on. These objects lives under `app/objects`.
 
-### Service Modules
+#### `TransactionCategorySet`: Transaction Categorizing
 
-Service Modules (or "Service Objects") encapsulate operations that are used widely over the application. These operations often meets one or more of the following criteria:
-
-- Complex.
-- Interacts with an external service.
-- Interacts with multiple models.
-- Not a core concern of the interacted model.
-
-These modules lives under `app/services`.
-
-### Transaction Categorizing
-
-A class, `TransactionCategorySet`, is used to manage transaction categories, both for this app and each user.
+The `TransactionCategorySet` is used to manage transaction categories, both for this app and each user.
 
 Class methods `.hash` and `.hash=` can be used to get and set the category set defined by this app.
 
@@ -526,13 +812,121 @@ _▴ Demo of using `TransactionCategorySet#categorize`._
 
 The functionality of `#categorize` is based on records in the model `TransactionCategorizationCase`. `TransactionCategorizationCase` has attribute `words`, `category_code` and a optional `user_id`. For each example case, `words` is the sample words of an transcaion that should be categorize into `category_code`. `TransactionCategorizationCase`s without an `user_id` are shared by all users, while those with a specified `user_id` only effects that user.
 
-New `TransactionCategorizationCase`s are automatically created with an `user_id` while the user uses `PUT /me/accounts/<account_id>/transactions/<transaction_id>` or `PATCH /me/accounts/<account_id>/transactions/<transaction_id>` to update a transaction with a specified `category_code`. Exploring `TransactionCategorizationCase` and clear the `user_id` for those are a general case is a way to improve the correct rate of the auto-transaction-categorizing feature for all users.
+New `TransactionCategorizationCase`s are automatically created with an `user_id` while the user uses `PUT /me/accounts/{account_id}/transactions/{transaction_id}` or `PATCH /me/accounts/{account_id}/transactions/{transaction_id}` to update a transaction with a specified `category_code`. Exploring `TransactionCategorizationCase` and clear the `user_id` for those are a general case is a way to improve the correct rate of the auto-transaction-categorizing feature for all users.
+
+### Service Modules
+
+Service Modules (or "Service Objects") encapsulate operations that are used widely over the application. These operations often meets one or more of the following criteria:
+
+- Complex.
+- Interacts with an external service.
+- Interacts with multiple models.
+- Not a core concern of the interacted model.
+
+These modules lives under `app/services`.
 
 ### Backing Services
 
 Communication with backing services, such as database, file storage, outbound email service, Facebook connection, Apple Push Notification Service and GCM, are all wrapped in external gems or service objects to provide united API, logic arrangement and easy testing. That is to say, there are hardly any direct `RestClient.get ...` or other TCP, HTTP connections be fired in models, controllers or jobs. They're at least wrapped into service-oriented service object or gems, or further more, wrapped as functionality-oriented libs for a more high-level API.
 
 These type of service objects written in this app will provide a `mock_mode` module attr. While it is set to `true`, no real connections to those backing services will be established, and mock data will be used for return value. This is normally used for testing. And the mock data written in those modules can also act as documentation.
+
+#### Account Organizing Service
+
+`AccountOrganizingService` is a service module that provides two methods for organizing accounts: `clean` and `merge`.
+
+The `clean` method takes an `Account` instance as the argument, it finds duplication between on-record transactions not-on-record transactions (by the same amount and datetime differences within 25 hours), then links the not-on-record transaction to its on-record transaction, i.e. cleans that account. This method can be also used to clean syncing accounts by syncers.
+
+The `merge` method is used if the user wants to merge transactions from a old account (source account) to a new one (target account). It will copy all the old transactions from the source account and place them as not-on-record transactions on the target one, after that, the `clean` method is used to clean the target account.
+
+### Synchronizers
+
+Synchronizers ("Syncers") does the auto expense logging. It syncs from real-word expense record _(such as credit card bills, banking websites, receipt emails, etc.)_ to the transaction record in this app. They lives under `app/synchronizers` and do their jobs mostly in scheduled background workers.
+
+Synchronizers are service-oriented. A synchronizer class maintains transaction records coming from a specific bank, store, or other service. Some synchronizer manages accounts _(such as credit card bill syncer or bank log syncer)_, while some doesn't _(such as receipt email syncer)_.
+
+All Synchronizers inherits the class `Synchronizer`, a `ActiveRecord` based model locates at `app/models/synchronizer.rb`. They use the Rails STI mechanism to share the same database table.
+
+Each synchronizer has their `CODE`, `REGION_CODE`, `NAME`, `DESCRIPTION`, `PASSCODE_INFO` defined:
+
+- [`Symbol`] `CODE`: (Required) An unique identifier of the syncer.
+- [`Symbol`] `REGION_CODE`: The region code.
+- [`Symbol`] `TYPE`: The syncer type.
+- [`Array`] `COLLECT_METHODS`: (Required) An array of symbols, specifying the supported data collecting methods of this syncer. Available symbols are: `:run` and `:email`.
+- [`String`] `NAME`: (Required) The display name.
+- [`String`] `DESCRIPTION`: (Required) A description of the syncer.
+- [`String`] `INTRODUCTION`: (Required) A longer introduction about the syncer.
+- [`Hash`] `PASSCODE_INFO`: A hash that states the usage of passcode for this syncer. An example is:
+
+  ```ruby
+  PASSCODE_INFO = {
+    1 => {
+      name: 'Account Name',
+      description: 'Your account name for Xxx Bank',
+      required: true,
+      format: /\d{4}-\d{8}/
+    },
+    2 => {
+      name: 'Password',
+      description: 'Your data inquire password for the account',
+      required: true
+    },
+    3 => {
+      name: 'Verification Code',
+      description: 'The verification code, if you\'ve set it',
+      required: false
+    }
+  }.freeze
+  ```
+
+- [`Hash`] `SCHEDULE_INFO`: (Required) A hash that states the running schedule of this syncer, it must contains exactly three `Array`s of `String`s with keys `normal`, `high_frequency` and `low_frequency`, specifying the times of day to run. All time zones are in UTC. The minute must be a multiple of 10. An example is:
+
+  ```ruby
+  SCHEDULE_INFO = {
+    normal: {
+      %w(16:00 22:00 04:00 10:00),
+      description: 'Four times a day'
+    },
+    high_frequency: {
+      %w(**:00),
+      description: 'Every hour'
+    },
+    low_frequency: {
+      %w(16:00 04:00),
+      description: 'Twice a day'
+    }
+  }.freeze
+  ```
+
+- [`String`] `EMAIL_ENDPOINT_INTRODUCTION`: An introduction about the email endpoint of the synchronizer
+
+All enabled syncers will run on the specified times of a day. The schedule (Synchronizer#schedule) is defaulted to `normal`, while users can set to use `high_frequency` or `low_frequency`. Running is triggered by the `clock` process (see `Procfile` under the project root directory, and `lib/clock.rb`).
+
+The implementation of each synchronizer is constructed by three parts: `Collector`, `Parser` and `Organizer`. The `Synchronizer` class defines these three abstract sub-class, while each inherited children should implement them:
+
+#### Collector
+
+The collector collects raw data and saves them into the `Synchronizer::CollectedPage` model.
+
+A `Collector` class should define to public methods: `run` and `recieve`.
+
+The `run` method starts the collector to collect data. To control the deepness of collecting data _(for example, we want to collect [the webpages updated today] hourly, [webpages that may change recently] daily and [the whole website] monthly)_.
+
+The `recieve` method will be called if data is sent in proactively (for example, by billing email). It takes an argument `data` and a key argument `type`. The `data` will be the page body and `type` as the data type.
+
+#### Parser
+
+The parser parses new data in the `Synchronizer::CollectedPage` model, and saves the parsed data into the `Synchronizer::ParsedData` model.
+
+The `run` method starts the parser to parse data.
+
+Note that the `ParsedData` model should be one-to-one correspond to the actual data. Unlike `CollectedPage`, duplication is not recommended to be allowed for `ParsedData`. This makes `ParsedData` re-organizable, and `ParsedData` must be re-organizable in case of the user wants to change some syncer related configurations.
+
+#### Organizer
+
+The organizer reads data from `Synchronizer::ParsedData` and manages (create or update) transactions and accounts.
+
+The `run` method starts the organizer to organize data.
 
 ### Specs
 

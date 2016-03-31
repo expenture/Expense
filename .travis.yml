@@ -16,12 +16,13 @@ cache:
     - ~/.rvm/gems/ruby-2.3.0
     - ~/.rvm/rubies/ruby-2.3.0
 before_install:
+  - rvm use "$(grep "^ruby '.*'" < Gemfile | cut -d "'" -f 2)" --install --binary
+  - gem update bundler
   - "echo 'gem: --no-document' > ~/.gemrc"
   - export DATABASE_URL=postgres://postgres@localhost/database
 install:
-  - rvm use "$(grep "^ruby '.*'" < Gemfile | cut -d "'" -f 2)" --install --binary
   - travis_retry bin/setup
-script: bin/rspec
+script: bin/test
 services:
   - postgresql
   - redis-server

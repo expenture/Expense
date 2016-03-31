@@ -1,6 +1,7 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV["RAILS_ENV"] ||= 'test'
 require 'spec_helper'
+require File.expand_path("../support/simplecov", __FILE__)
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
@@ -58,4 +59,8 @@ RSpec.configure do |config|
   config.include(EmailSpec::Helpers)
   config.include(EmailSpec::Matchers)
   config.include(Requests::JsonHelpers, type: :request)
+
+  if ENV['INTEGRATION_TEST'] != 'true'
+    config.filter_run_excluding integration: true
+  end
 end

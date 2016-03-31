@@ -43,12 +43,14 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
           end
         end
       rescue Exception => e
+        Rails.logger.error(e)
       end
     elsif request.patch?
       @transaction = resource_collection.find_by!(uid: params[:id])
       @transaction.assign_attributes(transaction_params)
     end
 
+    @transaction.manually_edited = true
     status = @transaction.persisted? ? 200 : 201
 
     if @transaction.save
@@ -63,8 +65,8 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
 
       render status: status
     else
-      @error = { messages: @transaction.errors }
-      render status: 400
+      @error = Error.new(@transaction.errors)
+      render status: @error.status
     end
   end
 
@@ -74,8 +76,8 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
     if @transaction.destroy
       render
     else
-      @error = { messages: @transaction.errors }
-      render status: 400
+      @error = Error.new(@transaction.errors)
+      render status: @error.status
     end
   end
 
@@ -86,7 +88,7 @@ class Me::Accounts::TransactionsController < ApplicationAPIController
   end
 
   def permitted_transaction_param_names
-    %w(amount description category_code note datetime latitude longitude ignore_in_statistics)
+    %w(amount description category_code note datetime latitude longitude separate_transaction_uid ignore_in_statistics)
   end
 
   def transaction_params
