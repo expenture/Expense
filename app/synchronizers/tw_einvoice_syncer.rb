@@ -158,6 +158,7 @@ class TWEInvoiceSyncer < Synchronizer
       query_js_codes = html_doc.css('#invoiceTable tr td:nth-child(4) a').map { |a| a.attribute('href').try(:value) }.compact.map { |s| s.gsub(/^javascript:/, '') }
 
       query_js_codes.each do |query_js_code|
+        next if query_js_code == '#'
         body = nil
         get_data_tries = 12
 
@@ -176,6 +177,7 @@ class TWEInvoiceSyncer < Synchronizer
           get_data_tries -= 1
         end
 
+        raise if body.length > 65535
         collected_pages.create!(body: body, attribute_1: query_js_code)
       end
     end
