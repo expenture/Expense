@@ -40,3 +40,9 @@ Sidekiq.configure_client do |config|
 end
 
 Sidekiq.options[:concurrency] = (ENV['WORKER_CONCURRENCY'] || 5).to_i
+
+Sidekiq.default_worker_options = {
+  unique: :until_executed,
+  run_lock_expiration: 18.minutes,
+  unique_args: ->(args) { args.first.except('job_id') }
+}

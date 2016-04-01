@@ -135,12 +135,14 @@ class Synchronizer < ApplicationRecord
   # Run the data collecting process of the syncer
   # (Step 1 of syncing)
   def run_collect(level: :normal)
-    log_info "Running collect of level #{level}"
-    collect_start
-    collector.run_level = level
-    collector.run
-    collect_done
-    log_info "Done collect of level #{level}"
+    Timeout::timeout(30.minutes) do
+      log_info "Running collect of level #{level}"
+      collect_start
+      collector.run_level = level
+      collector.run
+      collect_done
+      log_info "Done collect of level #{level}"
+    end
   rescue NoMethodError
     collect_done
     log_info "Skipping collect: no method"
@@ -161,12 +163,14 @@ class Synchronizer < ApplicationRecord
   # Run the data parsing process of the syncer
   # (Step 2 of syncing)
   def run_parse(level: :normal)
-    log_info "Running parse of level #{level}"
-    parse_start
-    parser.run_level = level
-    parser.run
-    parse_done
-    log_info "Done parse of level #{level}"
+    Timeout::timeout(30.minutes) do
+      log_info "Running parse of level #{level}"
+      parse_start
+      parser.run_level = level
+      parser.run
+      parse_done
+      log_info "Done parse of level #{level}"
+    end
   rescue NotImplementedError
     raise NotImplementedError,
           "#{self.class.name}::Parser#run is not yet implemented!"
@@ -179,12 +183,14 @@ class Synchronizer < ApplicationRecord
   # Run the record organizing process of the syncer
   # (Step 3 of syncing)
   def run_organize(level: :normal)
-    log_info "Running organize of level #{level}"
-    organize_start
-    organizer.run_level = level
-    organizer.run
-    organize_done
-    log_info "Done organize of level #{level}"
+    Timeout::timeout(30.minutes) do
+      log_info "Running organize of level #{level}"
+      organize_start
+      organizer.run_level = level
+      organizer.run
+      organize_done
+      log_info "Done organize of level #{level}"
+    end
   rescue NotImplementedError
     raise NotImplementedError,
           "#{self.class.name}::Organizer#run is not yet implemented!"
@@ -348,10 +354,12 @@ class Synchronizer < ApplicationRecord
 
     # Schedule syncers to run in background workers for a specified time
     def schedule_syncers_for_time(time)
-      logger.info "#{self.name}: Scheduling syncers for time: #{time}"
+      Timeout::timeout(5.minutes) do
+        logger.info "#{self.name}: Scheduling syncers for time: #{time}"
 
-      enabled.find_each do |syncer|
-        syncer.perform_sync_if_in_schedule(time)
+        enabled.find_each do |syncer|
+          syncer.perform_sync_if_in_schedule(time)
+        end
       end
     end
 
