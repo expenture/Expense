@@ -83,7 +83,6 @@ gem 'syslogger'
 gem 'remote_syslog_logger'
 gem 'rails_stdout_logging', require: false
 gem 'lograge'
-gem 'sidekiq-logging-json'
 
 # Monitoring
 gem 'newrelic_rpm'
