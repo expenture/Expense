@@ -44,5 +44,22 @@ describe "WebHook Endpoints: Syncer Receiving: Mailgun" do
         expect(response.status).to eq(400)
       end
     end
+
+    it "clicks on possible email forwarding confirmation link automatically" do
+      stub_request(:get, "https://mail-settings.google.com/mail/XXXXXXXXXX")
+      stub_request(:get, "https://mail.google.com/mail/XXXXXXXXXX")
+
+      post '/webhook_endpoints/syncer_receiving/mailgun', params: {
+        'body-plain' => "... https://mail-settings.google.com/mail/XXXXXXXXXX\r\n..."
+      }
+
+      expect(WebMock).to have_requested(:get, "https://mail-settings.google.com/mail/XXXXXXXXXX")
+
+      post '/webhook_endpoints/syncer_receiving/mailgun', params: {
+        'body-plain' => "... https://mail.google.com/mail/XXXXXXXXXX\n\r..."
+      }
+
+      expect(WebMock).to have_requested(:get, "https://mail.google.com/mail/XXXXXXXXXX")
+    end
   end
 end
