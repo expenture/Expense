@@ -8,7 +8,7 @@ when 'stdout'
 when 'syslog'
   # Use syslogger
   app_name = ENV['APP_NAME'] || Rails.application.class.parent_name
-  Sidekiq::Logging.logger = Syslogger.new(app_name, Syslog::LOG_PID, Object.const_get(ENV['SYSLOG_FACILITY'] || 'Syslog::LOG_LOCAL0'))
+  Sidekiq::Logging.logger = ActiveSupport::TaggedLogging.new(Syslogger.new(app_name, Syslog::LOG_PID, Object.const_get(ENV['SYSLOG_FACILITY'] || 'Syslog::LOG_LOCAL0')))
 when 'remote'
   # Send logs to a remote server
   if !ENV['REMOTE_LOGGER_HOST'].blank? && !ENV['REMOTE_LOGGER_PORT'].blank?

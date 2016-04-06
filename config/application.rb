@@ -60,7 +60,7 @@ module Expense
     when 'syslog'
       # Use syslogger
       app_name = ENV['APP_NAME'] || Rails.application.class.parent_name
-      config.logger = Syslogger.new(app_name, Syslog::LOG_PID, Object.const_get(ENV['SYSLOG_FACILITY'] || 'Syslog::LOG_LOCAL0'))
+      config.logger = ActiveSupport::TaggedLogging.new(Syslogger.new(app_name, Syslog::LOG_PID, Object.const_get(ENV['SYSLOG_FACILITY'] || 'Syslog::LOG_LOCAL0')))
       config.lograge.enabled = true
       config.lograge.formatter = Lograge::Formatters::Json.new
     when 'remote'
