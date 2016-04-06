@@ -332,8 +332,8 @@ class Synchronizer < ApplicationRecord
           raise "#{syncer_class.name}::PASSCODE_INFO[#{k}][:description] must not be blank" unless v[:name].present?
           raise "#{syncer_class.name}::PASSCODE_INFO[#{k}][:name] must be a string" unless v[:name].is_a? String
           raise "#{syncer_class.name}::PASSCODE_INFO[#{k}][:description] must be a string" unless v[:description].is_a? String
-          syncer_class.validates "passcode_#{k}", presence: true if v[:required]
-          syncer_class.validates "passcode_#{k}", format: v[:format] if v[:format].present?
+          syncer_class.validates "passcode_#{k}", presence: true, if: ->(o) { o.send "encrypted_passcode_#{k}_changed?" } if v[:required]
+          syncer_class.validates "passcode_#{k}", format: v[:format], if: ->(o) { o.send "encrypted_passcode_#{k}_changed?" } if v[:format].present?
         end
       end
 
