@@ -1,4 +1,6 @@
 module PasscodeEncryptingService
+  cattr_accessor :disable_decrypt_mode
+
   class << self
     def encrypt(plain_passcode, salt: nil)
       encrypted_data = public_key.public_encrypt(plain_passcode + salt)
@@ -6,6 +8,7 @@ module PasscodeEncryptingService
     end
 
     def decrypt(encrypted_passcode, salt: nil)
+      raise "Using #decrypt while PasscodeEncryptingService is in disable_decrypt_mode" if disable_decrypt_mode
       encrypted_data = Base64.decode64(encrypted_passcode)
       private_key.private_decrypt(encrypted_data).gsub(/#{salt}$/, '')
     end

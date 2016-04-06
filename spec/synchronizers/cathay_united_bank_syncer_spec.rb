@@ -9,18 +9,24 @@ RSpec.describe CathayUnitedBankSyncer, type: :model do
   it { is_expected.not_to validate_presence_of(:passcode_4) }
 
   it "should validate that :passcode_1 is a format of 身分證字號" do
+    PasscodeEncryptingService.disable_decrypt_mode = true
     is_expected.to allow_value('A000000000', 'E123456789').for(:passcode_1)
     is_expected.not_to allow_value('1234567890', 'A1234').for(:passcode_1)
+    PasscodeEncryptingService.disable_decrypt_mode = false
   end
 
   it "should validate that :passcode_2 is a format of 4 位阿拉伯數字" do
+    PasscodeEncryptingService.disable_decrypt_mode = true
     is_expected.to allow_value('3827', '5837').for(:passcode_2)
     is_expected.not_to allow_value('37232', 'a837').for(:passcode_2)
+    PasscodeEncryptingService.disable_decrypt_mode = false
   end
 
   it "should validate that :passcode_3 is a format of 6~12 位英數字混合" do
+    PasscodeEncryptingService.disable_decrypt_mode = true
     is_expected.to allow_value('abdu38', 'fog383', 'dk26938bj381').for(:passcode_3)
     is_expected.not_to allow_value('abc12', 'dj49fjw43874iu3s8d').for(:passcode_3)
+    PasscodeEncryptingService.disable_decrypt_mode = false
   end
 
   describe "#run_collect", integration: true do

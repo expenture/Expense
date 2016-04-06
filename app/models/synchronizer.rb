@@ -401,12 +401,16 @@ class Synchronizer < ApplicationRecord
   1.upto(4) do |i|
     define_method "passcode_#{i}" do
       return nil unless self["encrypted_passcode_#{i}"]
+      @cached_passcode ||= {}
+      return @cached_passcode[i] if @cached_passcode.key?(i)
       PasscodeEncryptingService.decrypt(self["encrypted_passcode_#{i}"], salt: passcode_encrypt_salt)
     end
 
     define_method "passcode_#{i}=" do |passcode|
       return if passcode.blank?
       self["encrypted_passcode_#{i}"] = PasscodeEncryptingService.encrypt(passcode, salt: passcode_encrypt_salt)
+      @cached_passcode ||= {}
+      @cached_passcode[i] = passcode
     end
   end
 

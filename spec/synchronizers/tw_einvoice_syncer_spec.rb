@@ -9,8 +9,10 @@ RSpec.describe TWEInvoiceSyncer, type: :model do
   it { is_expected.not_to validate_presence_of(:passcode_4) }
 
   it "should validate that :passcode_1 is a format of mobile number" do
+    PasscodeEncryptingService.disable_decrypt_mode = true
     is_expected.to allow_value('0900000000', '0987654321').for(:passcode_1)
     is_expected.not_to allow_value('1234', '0000000000').for(:passcode_1)
+    PasscodeEncryptingService.disable_decrypt_mode = false
   end
 
   describe "#run_collect", integration: true do
