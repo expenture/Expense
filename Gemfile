@@ -79,6 +79,8 @@ gem 'faker'
 gem 'mailgunner', '~> 2.4.0'
 
 # Logger
+gem 'lograge'
+gem 'syslogger'
 gem 'remote_syslog_logger'
 gem 'rails_stdout_logging', require: false
 

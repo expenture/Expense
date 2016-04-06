@@ -54,7 +54,7 @@
       "required": false
     },
     "LOGGER": {
-      "description": "The logger to use, this can be \"default\", \"stdout\" or \"remote\".",
+      "description": "The logger to use, this can be \"default\", \"stdout\", \"syslog\" or \"remote\".",
       "value": "stdout"
     },
     "SECRET_KEY_BASE": {
