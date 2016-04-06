@@ -5,12 +5,17 @@ case ENV['LOGGER']
 when 'stdout'
   require 'rails_stdout_logging/rails'
   Sidekiq::Logging.logger = RailsStdoutLogging::Rails.heroku_stdout_logger
+when 'syslog'
+  # Use syslogger
+  app_name = ENV['APP_NAME'] || Rails.application.class.parent_name
+  Sidekiq::Logging.logger = Syslogger.new(app_name, Syslog::LOG_PID, Object.const_get(ENV['SYSLOG_FACILITY'] || 'Syslog::LOG_LOCAL0'))
+  Sidekiq.logger.formatter = Sidekiq::Logging::Json::Logger.new
 when 'remote'
   # Send logs to a remote server
   if !ENV['REMOTE_LOGGER_HOST'].blank? && !ENV['REMOTE_LOGGER_PORT'].blank?
     app_name = ENV['APP_NAME'] || Rails.application.class.parent_name
     host_name = ENV['HOST_NAME'] || Socket.gethostname.tr(' ', '_')
-    config.logger = \
+    Sidekiq::Logging.logger = \
       RemoteSyslogLogger.new(ENV['REMOTE_LOGGER_HOST'], ENV['REMOTE_LOGGER_PORT'],
                              local_hostname: host_name,
                              program: ('rails-' + app_name.underscore))
