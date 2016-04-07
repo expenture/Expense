@@ -23,6 +23,10 @@ class Error < HashWithIndifferentAccess
       self.status = 400
       self.code = 'parameter_missing'
       self.message = obj.message
+    elsif obj.is_a? Mailgunner::Error
+      self.status = 500
+      self.code = 'mailgun_error'
+      self.message = obj.message
     end
   end
 
