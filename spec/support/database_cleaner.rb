@@ -2,7 +2,7 @@ require 'database_cleaner'
 
 RSpec.configure do |config|
   config.before(:suite) do
-    DatabaseCleaner.clean_with(:deletion)
+    DatabaseCleaner.clean_with(:deletion) if ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'sqlite'
   end
 
   config.before(:each) do
@@ -18,6 +18,6 @@ RSpec.configure do |config|
   end
 
   config.after(:all) do
-    DatabaseCleaner.clean_with(:deletion)
+    DatabaseCleaner.clean_with(:deletion) if ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'sqlite'
   end
 end
