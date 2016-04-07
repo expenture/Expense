@@ -19,5 +19,4 @@ Capybara.register_driver :poltergeist do |app|
   Capybara::Poltergeist::Driver.new(app, options)
 end
 
-Capybara.default_driver = :poltergeist
 Capybara.javascript_driver = :poltergeist
