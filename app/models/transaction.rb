@@ -135,6 +135,10 @@ class Transaction < ApplicationRecord
     end
   end
 
+  def image_url
+    external_image_url
+  end
+
   private
 
   def init_on_record
