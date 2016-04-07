@@ -1,5 +1,6 @@
-language:
-  - ruby
+language: ruby
+rvm:
+  - 2.3.0
 sudo: false
 env:
   - INTEGRATION_TEST=false
