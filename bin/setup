@@ -49,7 +49,7 @@ chdir APP_ROOT do
   end
 
   puts "\n== Preparing database =="
-  system! 'bin/rails db:setup'
+  system 'bin/rails db:create'
   system! 'bin/rails db:migrate'
   system! 'bundle exec rake dev:prime'
 

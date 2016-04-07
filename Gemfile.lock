@@ -74,7 +74,7 @@ GEM
     annotate (2.7.0)
       activerecord (>= 3.2, < 6.0)
       rake (~> 10.4)
-    api_helper (0.1.1)
+    api_helper (0.1.2)
       activesupport (>= 3)
     arel (7.0.0)
     awesome_print (1.6.1)
@@ -98,7 +98,7 @@ GEM
     codeclimate-test-reporter (0.5.0)
       simplecov (>= 0.7.1, < 1.0.0)
     coderay (1.1.1)
-    concurrent-ruby (1.0.0)
+    concurrent-ruby (1.0.1)
     connection_pool (2.2.0)
     coveralls (0.8.11)
       json (~> 1.8)
@@ -367,7 +367,7 @@ PLATFORMS
 DEPENDENCIES
   airborne
   annotate
-  api_helper (~> 0.1.1)
+  api_helper (~> 0.1.2)
   awesome_print
   byebug
   capybara

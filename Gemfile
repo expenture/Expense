@@ -47,7 +47,7 @@ gem 'doorkeeper', github: 'ashishtajane/doorkeeper', branch: 'fix_issue_774'
 gem 'omniauth-facebook'
 
 # Controller helpers
-gem 'api_helper', '~> 0.1.1'
+gem 'api_helper', '~> 0.1.2'
 gem 'kaminari'
 
 # Geo related tools
