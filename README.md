@@ -1,4 +1,4 @@
-# Expense
+# Expense [![](https://img.shields.io/travis/expenture/Expense.svg)](https://travis-ci.org/expenture/Expense)
 
 An expense managing application to make life more easier and free. This is the API server written on top of the [Ruby on Rails](http://rubyonrails.org) framework.
 
@@ -40,6 +40,7 @@ An expense managing application to make life more easier and free. This is the A
     - [Module Specs](#module-specs)
     - [Request Specs](#request-specs)
     - [Feature Specs](#feature-specs)
+- [Badges](#badges)
 
 
 ## Development Setup
@@ -187,7 +188,7 @@ APIs in this section is used for user registration or authentication (i.e. regis
 
 #### User Registration
 
-New users can be registered using their email and a password ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/users_spec.rb)).
+New users can be registered using their email and a password ([spec](https://github.com/expenture/Expense/blob/master/spec/requests/users_spec.rb)).
 
 ```http
 POST /users?
@@ -218,7 +219,7 @@ This app implements [OAuth 2.0](http://oauth.net/2/) for authentication. Most of
 
 ##### Resource Owner Password Credentials Grant Flow
 
-This grant flow uses the user's account credentials to grant access and get an access token ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/oauth/token_spec.rb)). The API endpoint is `POST /oauth/token`, and two types of credentials are supported:
+This grant flow uses the user's account credentials to grant access and get an access token ([spec](https://github.com/expenture/Expense/blob/master/spec/requests/oauth/token_spec.rb)). The API endpoint is `POST /oauth/token`, and two types of credentials are supported:
 
 ###### Using Email And Password
 
@@ -267,7 +268,7 @@ Or if an old user is using Facebook login without linking his/her Facebook accou
 
 ##### Using The Refresh Token
 
-The refresh token is used for obtending a new access token after the current one has (or is going to) expired ([spec](https://github.com/Neson/Expense/blob/master/spec/requests/oauth/token_spec.rb)). A sample request is:
+The refresh token is used for obtending a new access token after the current one has (or is going to) expired ([spec](https://github.com/expenture/Expense/blob/master/spec/requests/oauth/token_spec.rb)). A sample request is:
 
 ```http
 POST /oauth/token?
@@ -296,7 +297,7 @@ Accessing APIs in this section requires a valid access token, otherwise a `401 U
 
 Accounts represent places to store money. It can be a wallet, a bank account, a debit card or a credit card. Accounts have a list of transactions.
 
-A default cash account with the name "default" and type "cash" will be created with the new user ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)) and set as the default account ([spec](https://github.com/Neson/Expense/blob/master/spec/models/user_spec.rb)). Default accounts cannot be deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/account_spec.rb)).
+A default cash account with the name "default" and type "cash" will be created with the new user ([spec](https://github.com/expenture/Expense/blob/master/spec/models/user_spec.rb)) and set as the default account ([spec](https://github.com/expenture/Expense/blob/master/spec/models/user_spec.rb)). Default accounts cannot be deleted ([spec](https://github.com/expenture/Expense/blob/master/spec/models/account_spec.rb)).
 
 There are two different types of accounts: **normal accounts** and **<strong id="api-guide-syncing-accounts">syncing accounts</strong>**. Normal accounts are those that transactions are managed by the user manually, while syncing accounts has all the transactions synced with a service (e.g. a bank) automatically. Normal accounts are created by the user, and syncing accounts are created and managed by syncers.
 
@@ -407,7 +408,7 @@ POST /me/accounts/{account_uid}/_merge?source_account_uid={source_account_uid}
 
 Transactions are records of money movements into or out of an account. A transaction with negative amount represent expenses, while those with positive amount represent incomes.
 
-Transactions are listed under accounts. The account balance will update automatically after a transaction has been created, updated or deleted ([spec](https://github.com/Neson/Expense/blob/master/spec/models/transaction_spec.rb)).
+Transactions are listed under accounts. The account balance will update automatically after a transaction has been created, updated or deleted ([spec](https://github.com/expenture/Expense/blob/master/spec/models/transaction_spec.rb)).
 
 Transactions can be categorized by the `category_code` attribute. More details about how categorizing works is explained in the [Transaction Category Set Management](#transaction-category-set-management) section later.
 
@@ -537,7 +538,7 @@ The attributes of a category are `code`, `name`, `priority` and `hidden`. The `c
 
 Every category should be listed under a parent-category, parent-categories also has the attributes `code`, `name`, `priority` and `hidden`.
 
-The app defines a default set of categories, and all user's category set will inherit this app-defined set. Users are free to create, update or delete any custom categories. But app-defined categories, or categories having at least one transaction can not be deleted, they can just set to be `hidden` ([spec](https://github.com/Neson/Expense/blob/master/spec/services/transaction_category_service_spec.rb)).
+The app defines a default set of categories, and all user's category set will inherit this app-defined set. Users are free to create, update or delete any custom categories. But app-defined categories, or categories having at least one transaction can not be deleted, they can just set to be `hidden` ([spec](https://github.com/expenture/Expense/blob/master/spec/services/transaction_category_service_spec.rb)).
 
 ##### Retrieving The Transaction Category Set
 
@@ -773,7 +774,7 @@ Available environment variable, "ENVs", should be listed in `.env.sample` with t
 
 ### Domain Model ERD Diagram
 
-![Domain Model ERD Diagram](https://raw.githubusercontent.com/Neson/Expense/master/erd.png?token=ADm_71Ifa7vq1QTmzrWclqSeHpCZUG-kks5W7aHqwA%3D%3D)
+![Domain Model ERD Diagram](https://raw.githubusercontent.com/expenture/Expense/master/erd.png)
 
 > Note: This diagram is generated with the command `bin/erd`.
 
@@ -943,3 +944,11 @@ Request specs specified all the surface accessible APIs of this app. They're org
 #### Feature Specs
 
 Non-API features, such as browsable web pages of this app, are specified in feature specs placed in in the `features` directory.
+
+
+## Badges
+
+- [![Travis](https://img.shields.io/travis/expenture/Expense.svg)](https://travis-ci.org/expenture/Expense)
+- [![Coveralls](https://img.shields.io/coveralls/expenture/Expense.svg)](https://coveralls.io/github/expenture/Expense)
+- [![Code Climate](https://img.shields.io/codeclimate/github/expenture/Expense.svg)](https://codeclimate.com/github/expenture/Expense)
+- [![Gemnasium](https://img.shields.io/gemnasium/expenture/Expense.svg)](https://gemnasium.com/github.com/expenture/Expense)

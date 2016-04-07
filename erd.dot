@@ -98,6 +98,7 @@ m_Synchronizer [label = <<table border="0" align="center" cellspacing="0.5" cell
   <tr><td align="left" width="130" port="encrypted_passcode_2">encrypted_passcode_2 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="encrypted_passcode_3">encrypted_passcode_3 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="encrypted_passcode_4">encrypted_passcode_4 <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="job_uid">job_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="last_collected_at">last_collected_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
   <tr><td align="left" width="130" port="last_errored_at">last_errored_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
   <tr><td align="left" width="130" port="last_parsed_at">last_parsed_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
@@ -152,12 +153,16 @@ m_Transaction [label = <<table border="0" align="center" cellspacing="0.5" cellp
   <tr><td align="left" width="130" port="category_code">category_code <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="datetime">datetime <font face="Arial ItalicMT" color="grey60">datetime ∗</font></td></tr>
   <tr><td align="left" width="130" port="description">description <font face="Arial ItalicMT" color="grey60">text</font></td></tr>
+  <tr><td align="left" width="130" port="external_image_url">external_image_url <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="ignore_in_statistics">ignore_in_statistics <font face="Arial ItalicMT" color="grey60">boolean ∗</font></td></tr>
   <tr><td align="left" width="130" port="latitude">latitude <font face="Arial ItalicMT" color="grey60">float</font></td></tr>
   <tr><td align="left" width="130" port="longitude">longitude <font face="Arial ItalicMT" color="grey60">float</font></td></tr>
   <tr><td align="left" width="130" port="manually_edited_at">manually_edited_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
   <tr><td align="left" width="130" port="note">note <font face="Arial ItalicMT" color="grey60">text</font></td></tr>
   <tr><td align="left" width="130" port="on_record">on_record <font face="Arial ItalicMT" color="grey60">boolean</font></td></tr>
+  <tr><td align="left" width="130" port="party_code">party_code <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="party_name">party_name <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
+  <tr><td align="left" width="130" port="party_type">party_type <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="record_transaction_uid">record_transaction_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="separate_transaction_uid">separate_transaction_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="separated">separated <font face="Arial ItalicMT" color="grey60">boolean ∗</font></td></tr>
