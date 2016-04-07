@@ -13,6 +13,14 @@
       "description": "The URL of the application.",
       "value": "http://expense.dev"
     },
+    "SYNCHRONIZER_RECEIVING_EMAIL_HOST": {
+      "description": "The email host for synchronizers to receive emails. For example, \"sync.exp.dev\" stands for {syncer-uid}@sync.exp.dev.",
+      "value": "sync.exp.dev"
+    },
+    "DEFAULT_LOCALE": {
+      "description": "The default locale.",
+      "value": "zh-TW"
+    },
     "ADMIN_USERNAME": {
       "description": "The admin username for logging in the administration panel.",
       "value": "admin"
@@ -20,10 +28,6 @@
     "ADMIN_PASSWORD": {
       "description": "The admin password for logging in the administration panel.",
       "value": "password"
-    },
-    "SYNCHRONIZER_RECEIVING_EMAIL_HOST": {
-      "description": "The email host for synchronizers to receive emails. For example, \"sync.exp.dev\" stands for {syncer-uid}@sync.exp.dev.",
-      "value": "sync.exp.dev"
     },
     "GOOGLE_API_KEY": {
       "description": "The API key to access Google services (Google Maps Geocoding API and Google Maps Time Zone API). Get a new one on https://console.developers.google.com/apis.",

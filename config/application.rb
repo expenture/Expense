@@ -46,13 +46,15 @@ module Expense
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Flash
 
-    config.secret_token = ENV["SECRET_KEY_BASE"]
+    config.secret_token = ENV['SECRET_KEY_BASE']
+    config.active_job.queue_adapter = :sidekiq
 
     config.action_mailer.delivery_method = (ENV['MAILER_DELIVERY_METHOD'].presence || :letter_opener).to_sym
     config.action_mailer.default_url_options = { host: ENV['APP_URL'] }
 
-    config.active_job.queue_adapter = :sidekiq
+    config.i18n.default_locale = ENV['DEFAULT_LOCALE'] || :en
 
+    # Logger configurations
     case ENV['LOGGER']
     when 'stdout'
       require 'rails_stdout_logging/rails'
@@ -76,6 +78,7 @@ module Expense
     end
   end
 
+  # Database specific configurations
   begin
     if ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'postgresql'
       Rails.application.config.active_record.schema_format = :sql
