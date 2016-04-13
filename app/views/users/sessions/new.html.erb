@@ -1,0 +1,30 @@
+<% def protect_against_forgery?; false; end %>
+
+<%= render layout: 'layouts/card_content' do %>
+  <div class="card-body">
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+      <div class="form-group">
+        <label><%= t('email', scope: :user) %></label>
+        <%= f.email_field :email, autofocus: true, class: 'form-control' %>
+      </div>
+      <div class="form-group">
+        <label><%= t('password', scope: :user) %></label>
+        <a href="<%= new_user_password_path %>" tabindex="-1" style="float: right;"><%= t('sign_in_page.lost_your_password', scope: :user) %></a>
+        <%= f.password_field :password, class: 'form-control' %>
+      </div>
+      <%= f.submit t('sign_in', scope: :user), class: 'btn btn-rounded btn-primary btn-block' %>
+      <% if ENV['FB_APP_ID'].present? %>
+        <hr/>
+        <a id="sign-in-with-facebook-link" href="<%= user_omniauth_authorize_path(:facebook) %>" class="btn btn-rounded btn-info btn-fb btn-block">
+          <%= t('sign_in_page.sign_in_with_facebook', scope: :user) %>
+        </a>
+      <% end %>
+    <% end %>
+  </div>
+  <div class="card-footer">
+    <%= t('sign_in_page.no_account', scope: :user) %>
+    <a href="<%= new_user_registration_path %>">
+      <%= t('sign_up', scope: :user) %>
+    </a>
+  </div>
+<% end %>

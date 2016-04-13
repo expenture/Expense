@@ -43,7 +43,9 @@ module Expense
       end
     end
 
+    config.middleware.use Rack::MethodOverride
     config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore
     config.middleware.use ActionDispatch::Flash
 
     config.secret_token = ENV['SECRET_KEY_BASE']
@@ -92,6 +94,12 @@ module Expense
     end
   rescue
   end
+
+  mattr_reader :app_name, :app_url, :default_locale, :version
+  @@app_name = ENV['APP_NAME']
+  @@app_url = ENV['APP_URL']
+  @@default_locale = Rails.application.config.i18n.default_locale
+  @@version = (`cat .git/refs/heads/master | cut -c1-8` || '').strip
 end
 
 $VERBOSE = nil unless ENV['DISABLE_RUBY_WARNINGS'] == 'false'

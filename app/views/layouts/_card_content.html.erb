@@ -1,0 +1,19 @@
+<%= render layout: 'layouts/base' do %>
+  <div class="card-content wrapper">
+    <div class="container">
+      <div class="content">
+        <div class="card card-default">
+          <% if flash[:alert] %>
+            <div class="alert alert-danger" role="alert"><%= flash[:alert] %></div>
+          <% elsif flash[:success] %>
+            <div class="alert alert-info" role="alert"><%= flash[:success] %></div>
+          <% elsif flash[:notice] %>
+            <div class="alert alert-info" role="alert"><%= flash[:notice] %></div>
+          <% end %>
+          <%= yield %>
+        </div>
+        <a href="javascript:history.back();">&larr; Back</a>
+      </div>
+    </div>
+  </div>
+<% end %>

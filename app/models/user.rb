@@ -53,7 +53,8 @@ class User < ApplicationRecord
 
   attr_accessor :from
   devise :database_authenticatable, :omniauthable, :registerable, :confirmable,
-         :timeoutable, :lockable, :recoverable, :trackable, :validatable
+         :lockable, :recoverable, :trackable, :validatable,
+         omniauth_providers: [:facebook]
 
   has_many :accounts
   belongs_to :default_account, class_name: :Account,
@@ -98,8 +99,13 @@ class User < ApplicationRecord
   end
 
   def send_confirmation_instructions
-    return if from == 'facebook' ||
-              from == 'skip_send_confirmation_instructions'
+    return if from == 'skip_send_confirmation_instructions'
+
+    if from == 'facebook'
+      confirm
+      return
+    end
+
     super
   end
 

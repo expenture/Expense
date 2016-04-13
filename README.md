@@ -7,7 +7,7 @@ An expense managing application to make life more easier and free. This is the A
 - [Development Setup](#development-setup)
 - [Testing](#testing)
 - [Deploy](#deploy)
-  - [WebHook Endpoints](#webhook-endpoints)
+  - [WebHook And Callback Endpoints](#webhook-and-callback-endpoints)
 - [API Guide](#api-guide)
   - [Conventions](#conventions)
     - [HTTP Methods](#http-methods)
@@ -69,13 +69,17 @@ This application is designed with [The Twelve Factor App](http://12factor.net/) 
 
 The major system dependencies to run this app are: `ruby`, `bundler`, `imagemagick` and `tesseract`. A `phantomjs` executable for `linux` and `darwin` is included in this code base.
 
-Primary configurations of this app are controlled by environment variables (ENVs). A sample `.env` file listing primary ENVs is located at `.env.sample`. This app relies on several backing services (with their connection configured using ENVs), Some of them might need to send data to this app by using WebHooks, more details about this are described in the [WebHook Endpoints](#webhook-endpoints) section below.
+Primary configurations of this app are controlled by environment variables (ENVs). A sample `.env` file listing primary ENVs is located at `.env.sample`. This app relies on several backing services (with their connection configured using ENVs), Some of them might need to send data to this app by using WebHook or callbacks, more details about this are described in the [WebHook And Callback Endpoints](#webhook-and-callback-endpoints) section below.
 
 There are three process types for this app: web servers (`web`), background job workers (`worker`) and the clock `clock`. See the `Procfile` to learn about how to start the processes in a general case.
 
-### WebHook Endpoints
+### WebHook And Callback Endpoints
 
 There're a few API endpoints for other service to send data into this app:
+
+#### 3rd Party Sign In OAuth Callbacks
+
+- Facebook: `/users/auth/facebook/callback`
 
 #### Inbound Email Receiving for Syncers
 
@@ -184,7 +188,7 @@ All money values like `amount` or `balance` are integers represented in 1,000/1 
 
 ### Authentication Related APIs
 
-APIs in this section is used for user registration or authentication (i.e. register and login).
+APIs in this section is used for user registration or authentication (i.e. register and sign in).
 
 #### User Registration
 
@@ -209,9 +213,18 @@ Sample response:
 }
 ```
 
-A confirmation email will be sent after the new registration. After new users clicked the account activation link in the confirmation email, they will be able to login.
+A confirmation email will be sent after the new registration. After new users clicked the account activation link in the confirmation email, they will be able to sign in.
 
-> TODO: Reset password API.
+##### Reset Password
+
+Users can reset their password if forgotten, or desired to sign in with password while their account created with Facebook Sign In. To do so, just specify the email of the account to sign in:
+
+```http
+POST /users/password?
+     user[email]=<email>
+```
+
+An email with the password reset link will be sent to that email after the request.
 
 #### User Authentication
 
@@ -251,7 +264,7 @@ After 20+ unsuccessful attempts, the user's account will be locked and cannot be
 
 ###### Using An Facebook Access Token
 
-To let users login with Facebook, a vaild Facebook access token is also available to use as credential. Just use the fixed value `facebook:access_token` as the `username`, and pass in the Facebook access token as password:
+To let users sign in with Facebook, a vaild Facebook access token is also available to use as credential. Just use the fixed value `facebook:access_token` as the `username`, and pass in the Facebook access token as password:
 
 ```http
 POST /oauth/token?
@@ -260,9 +273,9 @@ POST /oauth/token?
      password={facebook_access_token}
 ```
 
-If the corresponding user does not exists, a new user will with blank password be created and link to that Facebook account automatically. The automatically created user will not be able to login using password unless they use the reset password API to set their password.
+If the corresponding user does not exists, a new user will with blank password be created and link to that Facebook account automatically. The automatically created user will not be able to sign in using password unless they use the reset password API to set their password.
 
-Or if an old user is using Facebook login without linking his/her Facebook account before, his/her account will be found out by a matching email and link to that Facebook account.
+Or if an old user is using Facebook sign in without linking his/her Facebook account before, his/her account will be found out by a matching email and link to that Facebook account.
 
 > Note that for security reasons, only the Facebook access tokens that belongs to the same Facebook app configured for this application can be used as credentials. Facebook access tokens that are created for other Facebook apps will be rejected - even if they belong to the same user.
 

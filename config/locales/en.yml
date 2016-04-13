@@ -1,23 +1,242 @@
-# Files in the config/locales directory are used for internationalization
-# and are automatically loaded by Rails. If you want to use locales other
-# than English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t 'hello'
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t('hello') %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more, please read the Rails Internationalization guide
-# available at http://guides.rubyonrails.org/i18n.html.
-
 en:
-  hello: "Hello world"
+  date:
+    abbr_day_names:
+    - Sun
+    - Mon
+    - Tue
+    - Wed
+    - Thu
+    - Fri
+    - Sat
+    abbr_month_names:
+    -
+    - Jan
+    - Feb
+    - Mar
+    - Apr
+    - May
+    - Jun
+    - Jul
+    - Aug
+    - Sep
+    - Oct
+    - Nov
+    - Dec
+    day_names:
+    - Sunday
+    - Monday
+    - Tuesday
+    - Wednesday
+    - Thursday
+    - Friday
+    - Saturday
+    formats:
+      default: "%Y-%m-%d"
+      long: "%B %d, %Y"
+      short: "%b %d"
+    month_names:
+    -
+    - January
+    - February
+    - March
+    - April
+    - May
+    - June
+    - July
+    - August
+    - September
+    - October
+    - November
+    - December
+    order:
+    - :year
+    - :month
+    - :day
+  time:
+    am: am
+    formats:
+      default: "%a, %d %b %Y %H:%M:%S %z"
+      long: "%B %d, %Y %H:%M"
+      short: "%d %b %H:%M"
+    pm: pm
+  datetime:
+    distance_in_words:
+      about_x_hours:
+        one: about 1 hour
+        other: about %{count} hours
+      about_x_months:
+        one: about 1 month
+        other: about %{count} months
+      about_x_years:
+        one: about 1 year
+        other: about %{count} years
+      almost_x_years:
+        one: almost 1 year
+        other: almost %{count} years
+      half_a_minute: half a minute
+      less_than_x_minutes:
+        one: less than a minute
+        other: less than %{count} minutes
+      less_than_x_seconds:
+        one: less than 1 second
+        other: less than %{count} seconds
+      over_x_years:
+        one: over 1 year
+        other: over %{count} years
+      x_days:
+        one: 1 day
+        other: "%{count} days"
+      x_minutes:
+        one: 1 minute
+        other: "%{count} minutes"
+      x_months:
+        one: 1 month
+        other: "%{count} months"
+      x_seconds:
+        one: 1 second
+        other: "%{count} seconds"
+    prompts:
+      day: Day
+      hour: Hour
+      minute: Minute
+      month: Month
+      second: Seconds
+      year: Year
+  number:
+    currency:
+      format:
+        delimiter: ","
+        format: "%u%n"
+        precision: 2
+        separator: "."
+        significant: false
+        strip_insignificant_zeros: false
+        unit: "$"
+    format:
+      delimiter: ","
+      precision: 3
+      separator: "."
+      significant: false
+      strip_insignificant_zeros: false
+    human:
+      decimal_units:
+        format: "%n %u"
+        units:
+          billion: Billion
+          million: Million
+          quadrillion: Quadrillion
+          thousand: Thousand
+          trillion: Trillion
+          unit: ''
+      format:
+        delimiter: ''
+        precision: 3
+        significant: true
+        strip_insignificant_zeros: true
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: Byte
+            other: Bytes
+          gb: GB
+          kb: KB
+          mb: MB
+          tb: TB
+    percentage:
+      format:
+        delimiter: ''
+        format: "%n%"
+    precision:
+      format:
+        delimiter: ''
+  support:
+    array:
+      last_word_connector: ", and "
+      two_words_connector: " and "
+      words_connector: ", "
+  user:
+    email: 'Email'
+    password: 'Password'
+    new_password: 'New Password'
+    password_confirmation: 'Password confirmation'
+    minimum_password_length_note: '%{minimum_password_length} characters minimum'
+    sign_in: 'Sign In'
+    sign_up: 'Sign Up'
+    set_password: 'Set Password'
+    reset_password: 'Reset Password'
+    reset_password_token: 'Reset Password Token'
+    hello_user: 'Hello, %{name}!'
+    password_changed: 'Password Changed'
+    unlock_my_account: "Unlock My Account"
+    sign_up_page:
+      already_have_an_account: 'Already have an account?'
+      confirmation_instructions_sent: 'Confirmation instructions sent'
+    sign_in_page:
+      sign_in_with_facebook: 'Sign In With Facebook'
+      lost_your_password: 'Lost your password?'
+      no_account: 'No account?'
+    confirm_page:
+      bad_confirmation_token: 'That confirmation link is invalid or expired'
+      no_email: 'That email does not exists'
+      resend_confirmation_instructions: 'Resend Confirmation Instructions'
+      confirmation_instructions_sent: 'Confirmation instructions sent'
+      email_confirmed_you_can_now_sign_in: 'Email confirmed! You can sign in now'
+      welcome_to_app: "Welcome to %{app_name}"
+      please_click_the_following_link: "Before you start, please confirm your email through the link below:"
+      confirm_my_email: "Confirm My Email"
+      if_link_failure_then_copy_the_url_and_paste_it_into_browser: "If the link falied to open, please copy the following URL, and paste it into your browser:"
+    reset_password_page:
+      please_click_the_following_link: 'Someone has requested a link to change your password. You can do this through the link below:'
+      your_password_will_not_change_unless_you_create_a_new_one: "If you didn't request this, please ignore this email. Your password won't change until you access the link above and create a new one."
+      if_link_failure_then_copy_the_url_and_paste_it_into_browser: "If the link falied to open, please copy the following URL, and paste it into your browser:"
+      your_password_has_been_changed: "We're contacting you to notify you that your password has been changed."
+    unlock_page:
+      your_account_has_been_locked: 'Your account has been locked due to an excessive number of unsuccessful sign in attempts.'
+      please_click_the_following_link: 'Click the link below to unlock your account:'
+      if_link_failure_then_copy_the_url_and_paste_it_into_browser: "If the link falied to open, please copy the following URL, and paste it into your browser:"
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      accepted: must be accepted
+      blank: can't be blank
+      present: must be blank
+      confirmation: doesn't match %{attribute}
+      empty: can't be empty
+      equal_to: must be equal to %{count}
+      even: must be even
+      exclusion: is reserved
+      greater_than: must be greater than %{count}
+      greater_than_or_equal_to: must be greater than or equal to %{count}
+      inclusion: is not included in the list
+      invalid: is invalid
+      less_than: must be less than %{count}
+      less_than_or_equal_to: must be less than or equal to %{count}
+      model_invalid: "Validation failed: %{errors}"
+      not_a_number: is not a number
+      not_an_integer: must be an integer
+      odd: must be odd
+      required: must exist
+      taken: has already been taken
+      too_long:
+        one: is too long (maximum is 1 character)
+        other: is too long (maximum is %{count} characters)
+      too_short:
+        one: is too short (minimum is 1 character)
+        other: is too short (minimum is %{count} characters)
+      wrong_length:
+        one: is the wrong length (should be 1 character)
+        other: is the wrong length (should be %{count} characters)
+      other_than: must be other than %{count}
+    template:
+      body: 'There were problems with the following fields:'
+      header:
+        one: 1 error prohibited this %{model} from being saved
+        other: "%{count} errors prohibited this %{model} from being saved"
+  helpers:
+    select:
+      prompt: Please select
+    submit:
+      create: Create %{model}
+      submit: Save %{model}
+      update: Update %{model}

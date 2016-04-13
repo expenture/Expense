@@ -1,22 +1,15 @@
 class ApplicationAPIController < ActionController::API
+  include FormatHelpers
   include APIHelper::Paginatable
   include APIHelper::Sortable
   include APIHelper::Filterable
 
   rescue_from StandardError, with: :render_error
 
-  helper_method :current_user, :camelize_keys, :time_format
+  helper_method :current_user
 
   def current_user
     @current_user ||= doorkeeper_token && User.find(doorkeeper_token.resource_owner_id)
-  end
-
-  def camelize_keys
-    params[:camelize_keys]
-  end
-
-  def time_format
-    params[:time_format]
   end
 
   def render_error(e)

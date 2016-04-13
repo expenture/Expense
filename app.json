@@ -13,6 +13,10 @@
       "description": "The URL of the application.",
       "value": "http://expense.dev"
     },
+    "INDEX_REDIRECT_URL": {
+      "description": "Redirect users to another landing page while accessing the app's index (\"/\").",
+      "required": false
+    },
     "SYNCHRONIZER_RECEIVING_EMAIL_HOST": {
       "description": "The email host for synchronizers to receive emails. For example, \"sync.exp.dev\" stands for {syncer-uid}@sync.exp.dev.",
       "value": "sync.exp.dev"

@@ -1,8 +1,21 @@
 Rails.application.routes.draw do
-  use_doorkeeper
-  devise_for :users, only: [:sessions, :confirmations, :unlocks]
+  root to: 'pages#index'
+  get :index, to: 'pages#index'
 
-  resources :users, defaults: { format: :json }
+  use_doorkeeper
+
+  devise_for :users, controllers: {
+    sessions: 'users/sessions',
+    registrations: 'users/registrations',
+    confirmations: 'users/confirmations',
+    passwords: 'users/passwords',
+    unlocks: 'users/unlocks',
+    omniauth_callbacks: 'users/omniauth_callbacks'
+  }
+
+  devise_scope :user do
+    get 'users/sessions/current_user', to: 'users/sessions#show_current_user'
+  end
 
   namespace :me, defaults: { format: :json } do
     resources :accounts, only: [:index, :update, :destroy] do

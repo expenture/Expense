@@ -1,0 +1,12 @@
+<% def protect_against_forgery?; false; end %>
+
+<%= render layout: 'layouts/card_content' do %>
+  <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f| %>
+    <h2 style="margin-top: 0;"><%= t('confirm_page.resend_confirmation_instructions', scope: :user) %></h2>
+    <div class="form-group">
+      <label><%= t('email', scope: :user) %></label>
+      <%= f.email_field :email, autofocus: true, value: (resource.pending_reconfirmation? ? resource.unconfirmed_email : resource.email), class: 'form-control' %>
+    </div>
+    <%= f.submit t('confirm_page.resend_confirmation_instructions', scope: :user), class: 'btn btn-rounded btn-info btn-block' %>
+  <% end %>
+<% end %>

@@ -1,0 +1,22 @@
+<% def protect_against_forgery?; false; end %>
+
+<% flash[:alert] = "#{t(resource.errors.first[0], scope: :user)}#{resource.errors.first[1]}" if resource.errors.present? %>
+
+<%= render layout: 'layouts/card_content' do %>
+  <div class="card-body">
+    <%= form_for(resource, as: resource_name, url: unlock_path(resource_name), html: { method: :post }) do |f| %>
+      <div class="form-group">
+        <label><%= t('email', scope: :user) %></label>
+        <%= f.email_field :email, autofocus: true, class: 'form-control' %>
+      </div>
+      <%= f.submit t('unlock_my_account', scope: :user), class: 'btn btn-rounded btn-primary btn-block' %>
+    <% end %>
+  </div>
+
+  <div class="card-footer">
+    <%= t('sign_up_page.already_have_an_account', scope: :user) %>
+    <a href="<%= new_user_session_path %>">
+      <%= t('sign_in', scope: :user) %>
+    </a>
+  </div>
+<% end %>

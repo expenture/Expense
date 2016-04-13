@@ -1,0 +1,240 @@
+zh-TW:
+  date:
+    abbr_day_names:
+    - 週日
+    - 週一
+    - 週二
+    - 週三
+    - 週四
+    - 週五
+    - 週六
+    abbr_month_names:
+    -
+    - 1月
+    - 2月
+    - 3月
+    - 4月
+    - 5月
+    - 6月
+    - 7月
+    - 8月
+    - 9月
+    - 10月
+    - 11月
+    - 12月
+    day_names:
+    - 星期日
+    - 星期一
+    - 星期二
+    - 星期三
+    - 星期四
+    - 星期五
+    - 星期六
+    formats:
+      default: "%Y-%m-%d"
+      long: "%Y年%b%d日"
+      short: "%b%d日"
+    month_names:
+    -
+    - 一月
+    - 二月
+    - 三月
+    - 四月
+    - 五月
+    - 六月
+    - 七月
+    - 八月
+    - 九月
+    - 十月
+    - 十一月
+    - 十二月
+    order:
+    - :year
+    - :month
+    - :day
+  time:
+    am: 上午
+    formats:
+      default: "%Y年%b%d日 %A %H:%M:%S %Z"
+      long: "%Y年%b%d日 %H:%M"
+      short: "%b%d日 %H:%M"
+    pm: 下午
+  datetime:
+    distance_in_words:
+      about_x_hours:
+        one: 大約一小時
+        other: 大約 %{count} 小時
+      about_x_months:
+        one: 大約一個月
+        other: 大約 %{count} 個月
+      about_x_years:
+        one: 大約一年
+        other: 大約 %{count} 年
+      almost_x_years:
+        one: 接近一年
+        other: 接近 %{count} 年
+      half_a_minute: 半分鐘
+      less_than_x_minutes:
+        one: 不到一分鐘
+        other: 不到 %{count} 分鐘
+      less_than_x_seconds:
+        one: 不到一秒
+        other: 不到 %{count} 秒
+      over_x_years:
+        one: 一年多
+        other: "%{count} 年多"
+      x_days:
+        one: 一天
+        other: "%{count} 天"
+      x_minutes:
+        one: 一分鐘
+        other: "%{count} 分鐘"
+      x_months:
+        one: 一個月
+        other: "%{count} 個月"
+      x_seconds:
+        one: 一秒
+        other: "%{count} 秒"
+    prompts:
+      day: 日
+      hour: 時
+      minute: 分
+      month: 月
+      second: 秒
+      year: 年
+  number:
+    currency:
+      format:
+        delimiter: ","
+        format: "%u %n"
+        precision: 2
+        separator: "."
+        significant: false
+        strip_insignificant_zeros: false
+        unit: NT$
+    format:
+      delimiter: ","
+      precision: 3
+      separator: "."
+      significant: false
+      strip_insignificant_zeros: false
+    human:
+      decimal_units:
+        format: "%n %u"
+        units:
+          billion: 十億
+          million: 百萬
+          quadrillion: 千兆
+          thousand: 千
+          trillion: 兆
+          unit: ''
+      format:
+        delimiter: ''
+        precision: 1
+        significant: false
+        strip_insignificant_zeros: false
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: 位元組
+            other: 位元組
+          gb: GB
+          kb: KB
+          mb: MB
+          tb: TB
+    percentage:
+      format:
+        delimiter: ''
+    precision:
+      format:
+        delimiter: ''
+  support:
+    array:
+      last_word_connector: " 和 "
+      two_words_connector: " 和 "
+      words_connector: "、"
+  user:
+    email: '電子信箱'
+    password: '密碼'
+    new_password: '新密碼'
+    password_confirmation: '密碼確認'
+    minimum_password_length_note: '至少需要 %{minimum_password_length} 個字'
+    sign_in: '登入'
+    sign_up: '註冊'
+    set_password: '設定密碼'
+    reset_password: '重設密碼'
+    reset_password_token: '重設密碼連結'
+    hello_user: '%{name} 您好！'
+    password_changed: '密碼已變更'
+    sign_up_page:
+      already_have_an_account: '已經註冊了帳號？'
+      confirmation_instructions_sent: '驗證信已寄出，請至信箱收取'
+    sign_in_page:
+      sign_in_with_facebook: '使用 Facebook 帳號登入'
+      lost_your_password: '忘記密碼？'
+      no_account: '沒有帳號？'
+    confirm_page:
+      bad_confirmation_token: '您使用的驗證連結無效或已過期'
+      no_email: '此電子郵件信箱未註冊'
+      resend_confirmation_instructions: '重寄驗證信'
+      confirmation_instructions_sent: '驗證信已寄出，請至信箱收取'
+      email_confirmed_you_can_now_sign_in: '電子信箱已驗證，您現在可以直接登入'
+      welcome_to_app: "歡迎使用 %{app_name}"
+      please_click_the_following_link: "在您登入前，請點擊以下按鈕來驗證您的 email："
+      confirm_my_email: "驗證 Email"
+      unlock_my_account: "解鎖我的帳號"
+      if_link_failure_then_copy_the_url_and_paste_it_into_browser: "如果您按一下連結後無法開啟網頁，請複製以下網址，並貼到新瀏覽器視窗中前往："
+    reset_password_page:
+      please_click_the_following_link: '請前往以下連結來設定新密碼：'
+      your_password_will_not_change_unless_you_create_a_new_one: "在您設定新密碼前，您的帳號將不會有任何變動。若您並沒有要求設定新密碼，請忽略本郵件。"
+      if_link_failure_then_copy_the_url_and_paste_it_into_browser: "如果您按一下連結後無法開啟網頁，請複製以下網址，並貼到新瀏覽器視窗中前往："
+      your_password_has_been_changed: '提醒您，您的密碼已經變更成功。'
+    unlock_page:
+      your_account_has_been_locked: '因為您的帳號登入失敗的次數過多，目前已暫時被鎖定。'
+      please_click_the_following_link: '請前往以下連結來解鎖您的帳號：'
+      if_link_failure_then_copy_the_url_and_paste_it_into_browser: "如果您按一下連結後無法開啟網頁，請複製以下網址，並貼到新瀏覽器視窗中前往："
+
+  errors:
+    format: "%{attribute}%{message}"
+    messages:
+      accepted: 必須是可被接受的
+      blank: 不能是空白字元
+      present: 必須是空白
+      confirmation: 兩次輸入須一致
+      empty: 不能留空
+      equal_to: 必須等於 %{count}
+      even: 必須是偶數
+      exclusion: 是被保留的關鍵字
+      greater_than: 必須大於 %{count}
+      greater_than_or_equal_to: 必須大於或等於 %{count}
+      inclusion: 沒有包含在列表中
+      invalid: 是無效的
+      less_than: 必須小於 %{count}
+      less_than_or_equal_to: 必須小於或等於 %{count}
+      not_a_number: 不是數字
+      not_an_integer: 必須是整數
+      odd: 必須是奇數
+      taken: 已經被使用
+      too_long:
+        one: 過長（最長是一個字）
+        other: 過長（最長是 %{count} 個字）
+      too_short:
+        one: 過短（最短是一個字）
+        other: 過短（最短是 %{count} 個字）
+      wrong_length:
+        one: 字數錯誤 (必須是一個字)
+        other: 字數錯誤 (必須是 %{count} 個字)
+      other_than: 不可以是 %{count} 個字
+    template:
+      body: 以下欄位發生問題：
+      header:
+        one: 有 1 個錯誤發生使得「%{model}」無法被儲存。
+        other: 有 %{count} 個錯誤發生使得「%{model}」無法被儲存。
+  helpers:
+    select:
+      prompt: 請選擇
+    submit:
+      create: 新增%{model}
+      submit: 儲存%{model}
+      update: 更新%{model}
