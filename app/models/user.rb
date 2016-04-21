@@ -68,6 +68,7 @@ class User < ApplicationRecord
   validates :default_account, presence: true, on: :update
   validate :default_account_is_not_a_syncing_one, on: :update
 
+  before_create :generate_default_account_uid
   after_create :create_default_account
   before_validation :check_password
 
@@ -111,10 +112,15 @@ class User < ApplicationRecord
 
   private
 
+  def generate_default_account_uid
+    # We generate the uid of the default account here, then do the actual
+    # account creation with `create_default_account` on the after_create
+    # callback
+    self.default_account_uid = "#{id}-#{SecureRandom.uuid}"
+  end
+
   def create_default_account
-    self.default_account = Account.new(user_id: id, uid: "#{id}-#{SecureRandom.uuid}", name: 'default')
-    self.default_account.save!
-    self.save!
+    Account.create!(user_id: id, uid: default_account_uid, name: 'default')
   end
 
   def check_password
