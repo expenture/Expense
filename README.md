@@ -964,4 +964,5 @@ Non-API features, such as browsable web pages of this app, are specified in feat
 - [![Travis](https://img.shields.io/travis/expenture/Expense.svg)](https://travis-ci.org/expenture/Expense)
 - [![Coveralls](https://img.shields.io/coveralls/expenture/Expense.svg)](https://coveralls.io/github/expenture/Expense)
 - [![Code Climate](https://img.shields.io/codeclimate/github/expenture/Expense.svg)](https://codeclimate.com/github/expenture/Expense)
+- [![Codacy](https://img.shields.io/codacy/ef578c9c49b44dd8baee65460542fc9f.svg)](https://www.codacy.com/app/me_71/Expense)
 - [![Gemnasium](https://img.shields.io/gemnasium/expenture/Expense.svg)](https://gemnasium.com/github.com/expenture/Expense)

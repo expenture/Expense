@@ -95,6 +95,9 @@ GEM
     clockwork (1.2.0)
       activesupport
       tzinfo
+    codacy-coverage (0.3.1)
+      rest-client (~> 1.8)
+      simplecov (>= 0.10.0)
     codeclimate-test-reporter (0.5.0)
       simplecov (>= 0.7.1, < 1.0.0)
     coderay (1.1.1)
@@ -372,6 +375,7 @@ DEPENDENCIES
   byebug
   capybara
   clockwork (~> 1.2.0)
+  codacy-coverage
   codeclimate-test-reporter
   coveralls
   database_cleaner

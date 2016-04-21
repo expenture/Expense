@@ -101,6 +101,7 @@ group :development, :test do
   gem 'simplecov', require: false
   gem 'coveralls', require: false
   gem 'codeclimate-test-reporter', require: false
+  gem 'codacy-coverage', require: false
   gem 'webmock', require: false
   gem 'timecop'
 end

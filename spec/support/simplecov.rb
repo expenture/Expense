@@ -1,11 +1,13 @@
 require 'simplecov'
 require 'coveralls'
 require 'codeclimate-test-reporter'
+require 'codacy-coverage'
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
   SimpleCov::Formatter::HTMLFormatter,
   Coveralls::SimpleCov::Formatter,
-  CodeClimate::TestReporter::Formatter
+  CodeClimate::TestReporter::Formatter,
+  Codacy::Formatter
 ])
 
 SimpleCov.profiles.define :app do
