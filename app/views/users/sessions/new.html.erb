@@ -15,7 +15,7 @@
       <%= f.submit t('sign_in', scope: :user), class: 'btn btn-rounded btn-primary btn-block' %>
       <% if ENV['FB_APP_ID'].present? %>
         <hr/>
-        <a id="sign-in-with-facebook-link" href="<%= user_omniauth_authorize_path(:facebook) %>" class="btn btn-rounded btn-info btn-fb btn-block">
+        <a id="sign-in-with-facebook-link" href="<%= user_facebook_omniauth_authorize_path %>" class="btn btn-rounded btn-info btn-fb btn-block">
           <%= t('sign_in_page.sign_in_with_facebook', scope: :user) %>
         </a>
       <% end %>

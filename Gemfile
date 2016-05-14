@@ -42,8 +42,8 @@ gem 'sidekiq-unique-jobs'
 gem 'clockwork', '~> 1.2.0'
 
 # User authentication
-gem 'devise', '~> 4.0.0.rc1'
-gem 'doorkeeper', github: 'ashishtajane/doorkeeper', branch: 'fix_issue_774'
+gem 'devise', '~> 4.1.0'
+gem 'doorkeeper', '~> 4.0.0.rc3'
 gem 'omniauth-facebook'
 
 # Controller helpers
