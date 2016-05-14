@@ -37,9 +37,9 @@ gem 'rest-client'
 gem 'rails-settings-cached', github: 'Neson/rails-settings-cached'
 
 # Job runner and clock
-gem 'sidekiq', '~> 3.4.2'
+gem 'sidekiq', '~> 4.1.2'
 gem 'sidekiq-unique-jobs'
-gem 'clockwork', '~> 1.2.0'
+gem 'clockwork', '~> 2.0.0'
 
 # User authentication
 gem 'devise', '~> 4.1.0'

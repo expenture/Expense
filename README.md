@@ -90,7 +90,7 @@ There're a few API endpoints for other service to send data into this app:
 
 Most APIs provided by this app are RESTful JSON APIs, and OAuth 2.0 is used for authentication.
 
-> Note: **URL query parameters**, **form-data** or **raw body with JSON** are all available ways for passing parameters for a request. Also, the OAuth access token can be hand over using HTTP the `Authorization` header (`Authorization: Bearer <access_token>`) instead of the `access_token` query parameter. Examples in this documentation might use any of the above ways for clarity, but you have the freedom to choice which method to use while making API requests.
+> Note: **URL query parameters**, **form-data** or **raw body with JSON** are all available ways for passing parameters for a request. Also, the OAuth access token can be hand over using HTTP the `Authorization` header (`Authorization: Bearer <access_token>`) instead of the `access_token` query parameter. Examples in this documentation might use any of the above ways for clarity, but you are free to choice which method to use while making API requests.
 
 ### Conventions
 
@@ -948,11 +948,11 @@ The specs of this app are written in RSpec tests placing in the project's `./spe
 
 #### Module Specs
 
-This is the module level unit test. Covering models, services and more, they are filed under the corresponding `models`, `services` directory under the project's `./spec` directory, same as the structure in the project's `./app` directory.
+This is the module level unit test. Covering models, services and more, they are filed under the corresponding `models`, `objects`, `services` and `synchronizers` directory under the project's `./spec` directory, same as the structure in the project's `./app` directory.
 
 #### Request Specs
 
-Request specs specified all the surface accessible APIs of this app. They're organized by their API path in the `requests` directory.
+Request specs specified all the surface accessible APIs of this app. They're organized by their API path in the `requests` directory. We aim for 100% test coverage on all opened request APIs.
 
 #### Feature Specs
 

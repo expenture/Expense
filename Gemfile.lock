@@ -79,11 +79,9 @@ GEM
       rack (>= 1.0.0)
       rack-test (>= 0.5.4)
       xpath (~> 2.0)
-    celluloid (0.16.0)
-      timers (~> 4.0.0)
     choice (0.2.0)
     cliver (0.3.2)
-    clockwork (1.2.1)
+    clockwork (2.0.0)
       activesupport
       tzinfo
     codacy-coverage (1.0.0)
@@ -145,7 +143,6 @@ GEM
     hirb-unicode (0.0.5)
       hirb (~> 0.5)
       unicode-display_width (~> 0.1.1)
-    hitimes (1.2.4)
     htmlentities (4.3.4)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
@@ -302,12 +299,10 @@ GEM
     safe_yaml (1.0.4)
     shoulda-matchers (3.1.1)
       activesupport (>= 4.0.0)
-    sidekiq (3.4.2)
-      celluloid (~> 0.16.0)
+    sidekiq (4.1.2)
+      concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
-      json (~> 1.0)
       redis (~> 3.2, >= 3.2.1)
-      redis-namespace (~> 1.5, >= 1.5.2)
     sidekiq-unique-jobs (4.0.17)
       sidekiq (>= 2.6)
       thor
@@ -336,8 +331,6 @@ GEM
     thread_safe (0.3.5)
     tilt (2.0.3)
     timecop (0.8.1)
-    timers (4.0.4)
-      hitimes
     timezone (0.99.2)
     tins (1.6.0)
     tool (0.2.3)
@@ -369,7 +362,7 @@ DEPENDENCIES
   awesome_print
   byebug
   capybara
-  clockwork (~> 1.2.0)
+  clockwork (~> 2.0.0)
   codacy-coverage
   codeclimate-test-reporter
   coveralls
@@ -414,7 +407,7 @@ DEPENDENCIES
   rspec-rails
   rtesseract
   shoulda-matchers
-  sidekiq (~> 3.4.2)
+  sidekiq (~> 4.1.2)
   sidekiq-unique-jobs
   simplecov
   sinatra!
