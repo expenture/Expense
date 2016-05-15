@@ -17,6 +17,9 @@ An expense managing application to make life more easier and free. This is the A
   - [Authentication Related APIs](#authentication-related-apis)
     - [User Registration](#user-registration)
     - [User Authentication (OAuth)](#user-authentication)
+  - [Authentication Management APIs](#authentication-management-apis)
+    - [Authorized Applications Management](#authorized-applications-management)
+    - [Current Application Management](#current-application-management)
   - [General APIs](#general-apis)
     - [Account Management](#account-management)
     - [Transaction Management](#transaction-management)
@@ -266,7 +269,7 @@ The `client_id` and `client_secret` are credentials to verify the client (namely
 
 > You can create an OAuth Application in the console (`$ bin/console`) like this: `OAuthApplication.create(name: 'My New App')`.
 
-If you want to create an OAuth Application on the fly (normally for mobile/desktop app clients, a OAuth Application as a device), pass the params `client_uid`, `client_type` and `client_name` instead of `client_id` and `client_secret` like this:
+If you want to <span id="api-guide-create-oauth-application-on-the-fly">create an OAuth Application on the fly</span> (normally for mobile/desktop app clients, a OAuth Application as a device), pass the params `client_uid`, `client_type` and `client_name` instead of `client_id` and `client_secret` like this:
 
 ```http
 POST /oauth/token?
@@ -322,6 +325,84 @@ the response will be like:
 }
 ```
 
+### Authentication Management APIs
+
+APIs in this section requires a valid access token, otherwise you will receive a `401 Unauthorized` error.
+
+#### Authorized Applications Management
+
+List and revoke authorization to applications (i.e. OAuth clients).
+
+##### Listing Accessible Accounts
+
+```http
+GET /me/authorized_oauth_applications
+```
+
+Sample response:
+
+```json
+{
+  oauth_applications: [
+    {
+      "uid": "a217f91fe6c429bf84fcd65f15c6a36b0960a52ec0e68541d19896309b8c54e4",
+      "name": "Hi Application"
+    },
+    {
+      "uid": "e865a5c5-77b0-4a99-9fea-04bd47e75e60-e865a5c5-77b0-4a99-9fea-04bd47e75e60",
+      "name": "User's iPhone 5S",
+      "type": "ios_device"
+    }
+  ]
+}
+```
+
+##### Revoke Authorization To An Application
+
+This will revoke all issued access tokens upon the specified application (i.e. sign out for that application).
+
+```http
+DELETE /me/authorized_oauth_applications/{oauth_application_uid}
+```
+
+##### Revoke Authorization To The Current Application
+
+This will revoke all issued access tokens upon the current application (i.e. sign out the current application/session).
+
+```http
+DELETE /current_oauth_application
+```
+
+#### Current Application Management
+
+These API works if the current OAuth Application is owned by the current user. A general use case is to update information of the user's device, [created as an OAuth Application while requesting the access token](#api-guide-create-oauth-application-on-the-fly). If the current OAuth Application is not owned by the current user, you will receive a `403 Forbidden` error.
+
+```http
+PATCH /current_oauth_application
+Content-Type: application/json
+
+{
+  "oauth_application": {
+    "name": "My iPhone 5S",
+    "type": "ios_device",
+    "contact_code": "dd010fac304ca246..."
+  }
+}
+```
+
+Sample response:
+
+```json
+{
+  "oauth_application": {
+    "name": "My iPhone 5S",
+    "type": "ios_device"
+  }
+}
+```
+
+If the `type` is `"ios_device"`, the `contact_code` shall be the APNs device token, or if it is `"android_device"`, the `contact_code` is expected to be the GCM device token, it will be used to send push notifications from the server. For security reasons, you will never get the `contact_code` again from the server.
+
 ### General APIs
 
 Accessing APIs in this section requires a valid access token, otherwise a `401 Unauthorized` error will be returned.
@@ -349,26 +430,28 @@ GET /me/accounts
 Sample response:
 
 ```json
-accounts: [
-  {
-    "uid": "9aa5d2b6-a3c9-4d0e-891e-b43f40d2546d",
-    "name": "default",
-    "type": "cash",
-    "currency": "TWD",
-    "balance": 8000000,
-    "default": true,
-    "syncing": false
-  },
-  {
-    "uid": "4a58cb98-59ac-4401-9ff0-2d0887e31250",
-    "name": "悠遊卡",
-    "type": "cash",
-    "currency": "TWD",
-    "balance": 5000000,
-    "default": false,
-    "syncing": true
-  }
-]
+{
+  accounts: [
+    {
+      "uid": "9aa5d2b6-a3c9-4d0e-891e-b43f40d2546d",
+      "name": "default",
+      "type": "cash",
+      "currency": "TWD",
+      "balance": 8000000,
+      "default": true,
+      "syncing": false
+    },
+    {
+      "uid": "4a58cb98-59ac-4401-9ff0-2d0887e31250",
+      "name": "悠遊卡",
+      "type": "cash",
+      "currency": "TWD",
+      "balance": 5000000,
+      "default": false,
+      "syncing": true
+    }
+  ]
+}
 ```
 
 > Note that the `balance` attribute is represented in 1,000/1 degrees ([ref](#value-unit)).

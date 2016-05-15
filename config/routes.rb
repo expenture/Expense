@@ -17,7 +17,11 @@ Rails.application.routes.draw do
     get 'users/sessions/current_user', to: 'users/sessions#show_current_user'
   end
 
+  resource :current_oauth_application, only: [:show, :update, :destroy], defaults: { format: :json }
+
   namespace :me, defaults: { format: :json } do
+    resources :authorized_oauth_applications, only: [:index, :destroy]
+
     resources :accounts, only: [:index, :update, :destroy] do
       post :_clean, to: 'accounts#clean'
       post :_merge, to: 'accounts#merge'

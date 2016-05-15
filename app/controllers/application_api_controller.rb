@@ -12,6 +12,10 @@ class ApplicationAPIController < ActionController::API
     @current_user ||= doorkeeper_token && User.find(doorkeeper_token.resource_owner_id)
   end
 
+  def current_oauth_application
+    @current_oauth_application ||= doorkeeper_token && doorkeeper_token.application
+  end
+
   def render_error(e)
     @error = Error.new(e)
     render template: :error, status: @error.status
