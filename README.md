@@ -232,15 +232,17 @@ This app implements [OAuth 2.0](http://oauth.net/2/) for authentication. Most of
 
 ##### Resource Owner Password Credentials Grant Flow
 
-This grant flow uses the user's account credentials to grant access and get an access token ([spec](https://github.com/expenture/Expense/blob/master/spec/requests/oauth/token_spec.rb)). The API endpoint is `POST /oauth/token`, and two types of credentials are supported:
+This grant flow uses the user's account credentials to grant access and get an access token ([spec](https://github.com/expenture/Expense/blob/master/spec/requests/oauth/token_spec.rb)). The API endpoint is `POST /oauth/token`.
 
-###### Using Email And Password
+> If you made 20+ unsuccessful attempts, the user's account will be locked and cannot be logged in within a maximum time of 3 hours.
 
-Pass the user's email as the username and the password with the request like this:
+To grant for an access token, you need to pass `client_id` and `client_secret` with the user's email as the username and the password with the request like this:
 
 ```http
 POST /oauth/token?
      grant_type=password&
+     client_id={client_id}&
+     client_secret={client_secret}&
      username={email}&
      password={password}
 ```
@@ -260,7 +262,23 @@ Sample response:
 
 > The `grant_type` parameter is fixed to value `password` to use this grant flow.
 
-After 20+ unsuccessful attempts, the user's account will be locked and cannot be logged in within a maximum time of 3 hours.
+The `client_id` and `client_secret` are credentials to verify the client (namely, the OAuth Application). These credentials are necessary, because all access tokens should be issued with an client, so that users can manage their authorized clients, view access logs and revoke access later.
+
+> You can create an OAuth Application in the console (`$ bin/console`) like this: `OAuthApplication.create(name: 'My New App')`.
+
+If you want to create an OAuth Application on the fly (normally for mobile/desktop app clients, a OAuth Application as a device), pass the params `client_uid`, `client_type` and `client_name` instead of `client_id` and `client_secret` like this:
+
+```http
+POST /oauth/token?
+     grant_type=password&
+     client_uid="14f93c7c-676e-465f-b1e2-360a901a04fa"
+     client_type="ios_device"&
+     client_name="User's iPhone 5S"&
+     username="user@example.com"&
+     password="abcd1234"
+```
+
+> `client_uid` is a pre-generated uid to prevent creating duplicated OAuth Applications.
 
 ###### Using An Facebook Access Token
 
@@ -269,6 +287,8 @@ To let users sign in with Facebook, a vaild Facebook access token is also availa
 ```http
 POST /oauth/token?
      grant_type=password&
+     client_id={client_id}&
+     client_secret={client_secret}&
      username=facebook:access_token&
      password={facebook_access_token}
 ```

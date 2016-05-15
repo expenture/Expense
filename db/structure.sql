@@ -164,7 +164,7 @@ ALTER SEQUENCE oauth_access_grants_id_seq OWNED BY oauth_access_grants.id;
 CREATE TABLE oauth_access_tokens (
     id integer NOT NULL,
     resource_owner_id integer,
-    application_id integer,
+    application_id integer NOT NULL,
     token text NOT NULL,
     refresh_token text,
     expires_in integer,
@@ -207,7 +207,9 @@ CREATE TABLE oauth_applications (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     owner_id integer,
-    owner_type character varying
+    owner_type character varying,
+    type character varying,
+    contact_code character varying
 );
 
 
@@ -1159,6 +1161,6 @@ ALTER TABLE ONLY oauth_access_tokens
 
 SET search_path TO "$user", public;
 
-INSERT INTO schema_migrations (version) VALUES ('20160219134605'), ('20160221210444'), ('20160221210951'), ('20160224142347'), ('20160224153424'), ('20160226144407'), ('20160228064613'), ('20160301184459'), ('20160313182018'), ('20160314001457'), ('20160314114631'), ('20160323223854');
+INSERT INTO schema_migrations (version) VALUES ('20160219134605'), ('20160221210444'), ('20160221210951'), ('20160224142347'), ('20160224153424'), ('20160226144407'), ('20160228064613'), ('20160301184459'), ('20160313182018'), ('20160314001457'), ('20160314114631'), ('20160323223854'), ('20160515034624'), ('20160515043500');
 
 

@@ -160,3 +160,46 @@ Doorkeeper.configure do
   # WWW-Authenticate Realm (default "Doorkeeper").
   realm ENV['APP_NAME']
 end
+
+# Override the PasswordAccessTokenRequest class to enforce client validation
+# and allow application creating on the fly
+module Doorkeeper
+  module OAuth
+    class PasswordAccessTokenRequest
+      def initialize(server, credentials, resource_owner, parameters = {})
+        @server          = server
+        @resource_owner  = resource_owner
+        @credentials     = credentials
+        @parameters      = parameters
+        @original_scopes = parameters[:scope]
+
+        if credentials
+          @client = Application.by_uid_and_secret credentials.uid,
+                                                  credentials.secret
+        end
+      end
+
+      def validate_client
+        if !client &&
+           params[:client_uid] &&
+           params[:client_type] &&
+           params[:client_name]
+          @client = OAuthApplication.where(uid: params[:client_uid], owner: resource_owner).first_or_create do |new_oauth_application|
+            new_oauth_application.type = params[:client_type]
+            new_oauth_application.name = params[:client_name]
+          end
+        end
+
+        !!client && client.persisted?
+      end
+
+      def params
+        @parameters
+      end
+    end
+  end
+
+  class Application
+    self.inheritance_column = nil
+  end
+end

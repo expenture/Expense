@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 feature "User Authentication", type: :feature do
+  let(:oauth_client) { create(:oauth_application) }
+
   feature "User Registration" do
     scenario "User Registration With Email" do
       host = default_url_options[:host]
@@ -15,6 +17,8 @@ feature "User Authentication", type: :feature do
 
       page.driver.post "/oauth/token", {
         grant_type: :password,
+        client_id: oauth_client.uid,
+        client_secret: oauth_client.secret,
         username: "someone@somewhere.com",
         password: "password"
       }.to_json, 'CONTENT_TYPE' => 'application/json'
@@ -27,6 +31,8 @@ feature "User Authentication", type: :feature do
 
       page.driver.post "/oauth/token", {
         grant_type: :password,
+        client_id: oauth_client.uid,
+        client_secret: oauth_client.secret,
         username: "someone@somewhere.com",
         password: "password"
       }.to_json, 'CONTENT_TYPE' => 'application/json'

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160323223854) do
+ActiveRecord::Schema.define(version: 20160515043500) do
 
   create_table "account_identifiers", force: :cascade do |t|
     t.integer  "user_id",                        null: false
@@ -62,7 +62,7 @@ ActiveRecord::Schema.define(version: 20160323223854) do
 
   create_table "oauth_access_tokens", force: :cascade do |t|
     t.integer  "resource_owner_id"
-    t.integer  "application_id"
+    t.integer  "application_id",    null: false
     t.text     "token",             null: false
     t.text     "refresh_token"
     t.integer  "expires_in"
@@ -84,6 +84,8 @@ ActiveRecord::Schema.define(version: 20160323223854) do
     t.datetime "updated_at"
     t.integer  "owner_id"
     t.string   "owner_type"
+    t.string   "type"
+    t.string   "contact_code"
     t.index ["owner_id", "owner_type"], name: "index_oauth_applications_on_owner_id_and_owner_type"
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end

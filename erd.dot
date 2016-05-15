@@ -10,6 +10,7 @@ fontsize = "13";
 fontname = "Arial BoldMT";
 node[ shape  =  "Mrecord" , fontsize  =  "10" , fontname  =  "ArialMT" , margin  =  "0.07,0.05" , penwidth  =  "1.0"];
 edge[ fontname  =  "ArialMT" , fontsize  =  "7" , dir  =  "both" , arrowsize  =  "0.9" , penwidth  =  "1.0" , labelangle  =  "32" , labeldistance  =  "1.8"];
+rankdir = "TB";
 label = "Expense domain model\n\n";
 m_Account [label = <<table border="0" align="center" cellspacing="0.5" cellpadding="0" width="134">
   <tr><td align="center" valign="bottom" width="130"><font face="Arial BoldMT" point-size="11">Account</font></td></tr>
@@ -228,7 +229,7 @@ m_VirtualTransaction [color = "grey60", fontcolor = "grey60", label = <<table bo
   m_User -> m_OAuthAccessGrant [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "1"];
   m_OAuthApplication -> m_OAuthAccessGrant [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "2"];
   m_User -> m_OAuthAccessToken [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "1"];
-  m_OAuthApplication -> m_OAuthAccessToken [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "2"];
+  m_OAuthApplication -> m_OAuthAccessToken [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "2"];
   m_User -> m_OAuthApplication [arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "1"];
   m_User -> m_Account [arrowsize = "0.6", arrowhead = "dotnormal", arrowtail = "odot", weight = "3"];
   m_User -> m_Transaction [style = "dotted", arrowsize = "0.6", arrowhead = "odotnormal", arrowtail = "odot", weight = "1", constraint = "false"];

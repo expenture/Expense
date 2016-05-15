@@ -25,4 +25,14 @@ class OAuthApplication < Doorkeeper::Application
   belongs_to :user, foreign_key: :owner_id, optional: true
   has_many :oauth_access_grant, foreign_key: :application_id
   has_many :oauth_access_token, foreign_key: :application_id
+
+  validates :uid, uniqueness: true
+
+  before_validation :set_default_redirect_uri
+
+  private
+
+  def set_default_redirect_uri
+    self.redirect_uri ||= 'urn:ietf:wg:oauth:2.0:oob'
+  end
 end
