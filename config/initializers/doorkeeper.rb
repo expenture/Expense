@@ -180,10 +180,7 @@ module Doorkeeper
       end
 
       def validate_client
-        if !client &&
-           params[:client_uid] &&
-           params[:client_type] &&
-           params[:client_name]
+        if !client && params[:client_uid]
           @client = OAuthApplication.where(uid: params[:client_uid], owner: resource_owner).first_or_create do |new_oauth_application|
             new_oauth_application.type = params[:client_type]
             new_oauth_application.name = params[:client_name]

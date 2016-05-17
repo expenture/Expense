@@ -1,4 +1,4 @@
-class CurrentOAuthApplicationsController < ApplicationAPIController
+class CurrentOAuthApplicationController < ApplicationAPIController
   before_action :doorkeeper_authorize!
 
   def show

@@ -72,6 +72,14 @@ class User < ApplicationRecord
   after_create :create_default_account
   before_validation :check_password
 
+  def profile_picture_url
+    external_profile_picture_url
+  end
+
+  def cover_photo_url
+    external_cover_photo_url
+  end
+
   def transaction_category_set
     @transaction_category_set ||= TransactionCategorySet.new(self)
   end

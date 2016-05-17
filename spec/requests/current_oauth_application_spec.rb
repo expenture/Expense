@@ -1,6 +1,6 @@
 require "rails_helper"
 
-describe "Current OAuth Application Management" do
+describe "Current OAuth Application Management API" do
   it_behaves_like "requiring a valid access token", [
     [:get, '/current_oauth_application']
   ]

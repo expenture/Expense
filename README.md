@@ -10,39 +10,9 @@ An expense managing application to make life more easier and free. This is the A
   - [WebHook And Callback Endpoints](#webhook-and-callback-endpoints)
 - [API Guide](#api-guide)
   - [Conventions](#conventions)
-    - [HTTP Methods](#http-methods)
-    - [JSON Schema](#json-schema)
-    - [Errors And The Error Object](#errors-and-the-error-object)
-    - [Value Unit](#value-unit)
   - [Authentication Related APIs](#authentication-related-apis)
-    - [User Registration](#user-registration)
-    - [User Authentication (OAuth)](#user-authentication)
-  - [Authentication Management APIs](#authentication-management-apis)
-    - [Authorized Applications Management](#authorized-applications-management)
-    - [Current Application Management](#current-application-management)
   - [General APIs](#general-apis)
-    - [Account Management](#account-management)
-    - [Transaction Management](#transaction-management)
-    - [Transaction Category Set Management](#transaction-category-set-management)
-    - [Synchronizer Management](#synchronizer-management)
-    - [Account Identifier Management](#account-identifier-management)
 - [Application Architecture](#application-architecture)
-  - [Environment Variables](#environment-variables)
-  - [Domain Model ERD Diagram](#domain-model-erd-diagram)
-  - [The Settings Model](#the-settings-model)
-  - [Objects](#objects-value-objects-parameter-objects-etc)
-    - [Transaction Category Set](#transactioncategoryset-transaction-categorizing)
-  - [Service Modules](#service-modules)
-  - [Backing Services](#backing-services)
-  - [Account Organizing Service](#account-organizing-service)
-  - [Synchronizers](#synchronizers)
-    - [Collector](#collector)
-    - [Parser](#parser)
-    - [Organizer](#organizer)
-  - [Specs](#specs)
-    - [Module Specs](#module-specs)
-    - [Request Specs](#request-specs)
-    - [Feature Specs](#feature-specs)
 - [Badges](#badges)
 
 
@@ -95,6 +65,27 @@ Most APIs provided by this app are RESTful JSON APIs, and OAuth 2.0 is used for 
 
 > Note: **URL query parameters**, **form-data** or **raw body with JSON** are all available ways for passing parameters for a request. Also, the OAuth access token can be hand over using HTTP the `Authorization` header (`Authorization: Bearer <access_token>`) instead of the `access_token` query parameter. Examples in this documentation might use any of the above ways for clarity, but you are free to choice which method to use while making API requests.
 
+**Table of Contents**
+
+- [Conventions](#conventions)
+  - [HTTP Methods](#http-methods)
+  - [JSON Schema](#json-schema)
+  - [Errors And The Error Object](#errors-and-the-error-object)
+  - [Value Unit](#value-unit)
+- [Authentication Related APIs](#authentication-related-apis)
+  - [User Registration](#user-registration)
+  - [User Authentication (OAuth)](#user-authentication)
+- [Authentication Management APIs](#authentication-management-apis)
+  - [Authorized Applications Management](#authorized-applications-management)
+  - [Current Application Management](#current-application-management)
+- [General APIs](#general-apis)
+  - [User Profile And Settings](#user-profile-and-settings)
+  - [Account Management](#account-management)
+  - [Transaction Management](#transaction-management)
+  - [Transaction Category Set Management](#transaction-category-set-management)
+  - [Synchronizer Management](#synchronizer-management)
+  - [Account Identifier Management](#account-identifier-management)
+
 ### Conventions
 
 #### HTTP Methods
@@ -142,6 +133,8 @@ The returned resource will be wrapped in a object, with their type as the key:
 }
 ```
 
+> Note: OAuth APIs does not follow this convention, they sticks to the [OAuth 2.0 Spec](https://tools.ietf.org/html/rfc6749#section-4.2.2) instead.
+
 #### Errors And The Error Object
 
 APIs provided by this app uses conventional HTTP status codes to indicate errors:
@@ -184,6 +177,8 @@ If the response is considered to have an error, a `error` object will be returne
 The `status` of the error object is the HTTP code. The `code` is an error code and the `message` is a friendly error message. Common `code`s are:
 
 - `bad_attributes` - The request attributes is invalid.
+
+> Note: OAuth APIs does not follow this convention, they sticks to the [OAuth 2.0 Spec](https://tools.ietf.org/html/rfc6749#section-4.2.2.1) instead.
 
 #### Value Unit
 
@@ -406,6 +401,37 @@ If the `type` is `"ios_device"`, the `contact_code` shall be the APNs device tok
 ### General APIs
 
 Accessing APIs in this section requires a valid access token, otherwise a `401 Unauthorized` error will be returned.
+
+#### User Profile And Settings
+
+Get and sets the current user's profile/settings.
+
+```http
+GET /me
+```
+
+```http
+PATCH /me
+Content-Type: application/json
+
+{
+  "user": {
+    "name": "My Name",
+    ...
+  }
+}
+```
+
+Sample response:
+
+```json
+{
+  "user": {
+    "name": "My Name",
+    ...
+  }
+}
+```
 
 #### Account Management
 
@@ -881,6 +907,25 @@ Content-Type: application/json
 ## Application Architecture
 
 This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devise](https://github.com/plataformatec/devise), [Doorkeeper](https://github.com/doorkeeper-gem/doorkeeper/), [Jbuilder](https://github.com/rails/jbuilder) and many others. Tests are done by [RSpec](http://rspec.info/). The architecture of this app is briefly explained in the sections below:
+
+**Table of Contents**
+
+- [Environment Variables](#environment-variables)
+- [Domain Model ERD Diagram](#domain-model-erd-diagram)
+- [The Settings Model](#the-settings-model)
+- [Objects](#objects-value-objects-parameter-objects-etc)
+  - [Transaction Category Set](#transactioncategoryset-transaction-categorizing)
+- [Service Modules](#service-modules)
+- [Backing Services](#backing-services)
+- [Account Organizing Service](#account-organizing-service)
+- [Synchronizers](#synchronizers)
+  - [Collector](#collector)
+  - [Parser](#parser)
+  - [Organizer](#organizer)
+- [Specs](#specs)
+  - [Module Specs](#module-specs)
+  - [Request Specs](#request-specs)
+  - [Feature Specs](#feature-specs)
 
 ### Environment Variables
 

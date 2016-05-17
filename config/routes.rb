@@ -17,7 +17,12 @@ Rails.application.routes.draw do
     get 'users/sessions/current_user', to: 'users/sessions#show_current_user'
   end
 
-  resource :current_oauth_application, only: [:show, :update, :destroy], defaults: { format: :json }
+  resource :current_oauth_application, only: [:show, :update, :destroy],
+                                       controller: 'current_oauth_application',
+                                       defaults: { format: :json }
+  resource :me, only: [:show, :update],
+                controller: 'me',
+                defaults: { format: :json }
 
   namespace :me, defaults: { format: :json } do
     resources :authorized_oauth_applications, only: [:index, :destroy]
