@@ -338,7 +338,7 @@ Sample response:
 
 ```json
 {
-  oauth_applications: [
+  "oauth_applications": [
     {
       "uid": "a217f91fe6c429bf84fcd65f15c6a36b0960a52ec0e68541d19896309b8c54e4",
       "name": "Hi Application"
@@ -457,7 +457,7 @@ Sample response:
 
 ```json
 {
-  accounts: [
+  "accounts": [
     {
       "uid": "9aa5d2b6-a3c9-4d0e-891e-b43f40d2546d",
       "name": "default",
@@ -480,11 +480,11 @@ Sample response:
 }
 ```
 
-> Note that the `balance` attribute is represented in 1,000/1 degrees ([ref](#value-unit)).
+> Note that the `balance` attribute is [represented in 1,000/1 degrees](#value-unit).
 
 ##### Creating An Account
 
-Creates a new account for current authorised user.
+Creates a new account for the current authorised user.
 
 ```http
 PUT /me/accounts/{generated_unique_id}
@@ -526,7 +526,13 @@ Deletes a specified account that is owned by the current authorised user.
 DELETE /me/accounts/{account_uid}
 ```
 
-> Note: The default account and [syncing accounts](#api-guide-syncing-accounts) cannot be deleted.
+> Note: The default account and [syncing accounts](#api-guide-syncing-accounts) cannot be deleted. To delete syncing accounts, you need to delete the syncer.
+
+When you delete an account, all the transactions in that account will be deleted as well.
+
+Accounts and transactions follows an "soft deletion" strategy, which means that records in the database will only be mark as deleted, so you can still retrieve the deleted accounts: `GET /me/accounts?deleted=true` (will return only the deleted accounts).
+
+> Note: There is no way for completely deleting accounts/transactions, because there would be no simple mobile synchronization strategy if we cannot query deleted records.
 
 ##### Cleaning An Account
 
@@ -610,6 +616,18 @@ This API is [Paginatable](http://www.rubydoc.info/github/Neson/api_helper/master
 
 The response format is same as `GET /me/transactions`.
 
+##### Get Data Of A Transaction
+
+```http
+GET /me/accounts/transactions/{uid}
+```
+
+or
+
+```http
+GET /me/accounts/{account_uid}/transactions/{uid}
+```
+
 ##### Creating A Transaction
 
 Creats a new transaction on a account that is accessible by the current authorised user.
@@ -619,7 +637,25 @@ PUT /me/accounts/{account_uid}/transactions/{uid}
 Content-Type: application/json
 
 {
-  "transaction": <transaction_attrs>
+  "transaction": {
+    "description": "An expense",
+    "amount": 100000,
+    ...
+  }
+}
+```
+
+or
+
+```http
+PUT /me/transactions/{uid}
+Content-Type: application/json
+
+{
+  "transaction": {
+    "account_uid": "{account_uid}",
+    ...
+  }
 }
 ```
 
@@ -629,14 +665,29 @@ If you're creating a transaction on [syncing accounts](#api-guide-syncing-accoun
 
 ##### Updating A Transaction
 
-Updates a transaction on a account that is accessible by the current authorised user.
+Updates a transaction that is accessible by the current authorised user.
 
 ```http
 PATCH /me/accounts/{account_uid}/transactions/{uid}
 Content-Type: application/json
 
 {
-  "transaction": <transaction_attrs>
+  "transaction": {
+    ...
+  }
+}
+```
+
+or
+
+```http
+PATCH /me/transactions/{uid}
+Content-Type: application/json
+
+{
+  "transaction": {
+    ...
+  }
 }
 ```
 
@@ -648,7 +699,15 @@ Deletes a transaction from a account that is accessible by the current authorise
 DELETE /me/accounts/{account_uid}/transactions/{uid}
 ```
 
+or
+
+```http
+DELETE /me/transactions/{uid}
+```
+
 > Note: User can not delete on-record transactions from a syncing account (i.e. accounts that are managed by syncers). More details about syncers are described under the [Synchronizer Management](#synchronizer-management) section later.
+
+Transactions follows an "soft deletion" strategy, which means that records in the database will only be mark as deleted, so you can still retrieve deleted transactions by setting `deleted` to `true` in the request: `GET /me/transactions?deleted=true` (will return only the deleted transactions).
 
 ##### Separating A Transaction
 
@@ -658,6 +717,20 @@ The API used to create virtual transactions for separating a transaction is same
 
 ```http
 PUT /me/accounts/{account_uid}/transactions/{uid}
+Content-Type: application/json
+
+{
+  "transaction": {
+    "separate_transaction_uid": "523c2b1b-82b4-406a-b7b6-4a5e79aedd45",
+    ...
+  }
+}
+```
+
+or
+
+```http
+PUT /me/transactions/{uid}
 Content-Type: application/json
 
 {
@@ -913,6 +986,7 @@ This app is built on top of [Ruby on Rails](http://rubyonrails.org), with [Devis
 - [Environment Variables](#environment-variables)
 - [Domain Model ERD Diagram](#domain-model-erd-diagram)
 - [The Settings Model](#the-settings-model)
+- [Soft Delete](#soft-delete)
 - [Objects](#objects-value-objects-parameter-objects-etc)
   - [Transaction Category Set](#transactioncategoryset-transaction-categorizing)
 - [Service Modules](#service-modules)
@@ -944,6 +1018,10 @@ Available environment variable, "ENVs", should be listed in `.env.sample` with t
 The `Settings` model is a way to store key-value settings in the database. This functionality is provided by [rails-settings-cached](https://github.com/Neson/rails-settings-cached).
 
 Note that making direct changes to `Settings` is not recommended. While doing this, the values aren't validated before saving, this may breake the app. A better way is to call the *set settings* method defined in other class or modules, and let them manage the settings for you. (For example, use `TransactionCategorySet.hash = { ... }` to set the default category set instead of calling `Settings.transaction_category_set = ...`.)
+
+### Soft Delete
+
+Some data, such as accounts and transactions, can only be soft-deleted. The soft-delete functionality on models is provided by [Paranoia](https://github.com/rubysherpas/paranoia).
 
 ### Objects: Value Objects, Parameter Objects, etc.
 

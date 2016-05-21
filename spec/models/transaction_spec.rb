@@ -6,6 +6,15 @@ RSpec.describe Transaction, type: :model do
   describe "a normal transaction instance" do
     subject(:transaction) { create(:transaction, account: account, amount: -100_000) }
 
+    describe "account_uid attribute" do
+      it "should be immutable" do
+        expect do
+          transaction.account_uid = create(:account).uid
+          transaction.save!
+        end.to raise_error
+      end
+    end
+
     context "after created" do
       it "updates the account balance" do
         expect(account.balance).to eq(0)

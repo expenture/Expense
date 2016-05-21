@@ -27,10 +27,11 @@
 
 class Account < ApplicationRecord
   self.inheritance_column = :kind
+  acts_as_paranoid
 
   belongs_to :user
   has_many :transactions,
-           primary_key: :uid, foreign_key: :account_uid
+           primary_key: :uid, foreign_key: :account_uid, dependent: :destroy
   has_many :account_identifiers,
            primary_key: :uid, foreign_key: :account_uid
 

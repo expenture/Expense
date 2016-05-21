@@ -33,6 +33,27 @@ describe "User's Account Management API" do
       expect(json['accounts'].last['balance']).to be_a(Integer)
       expect(json['accounts'].last['default']).to be_in([true, false])
     end
+
+    context "deleted set to true" do
+      it "returns only deleted records" do
+        user.accounts.create!(uid: "#{user.id}-account-1", name: 'My Account')
+        user.accounts.create!(uid: "#{user.id}-account-2", name: 'My Account')
+        user.accounts.create!(uid: "#{user.id}-deleted-account-1", name: 'My Deleted Account').destroy
+        user.accounts.create!(uid: "#{user.id}-deleted-account-2", name: 'My Deleted Account').destroy
+
+        get '/me/accounts?deleted=true', authorization_header
+
+        deleted_accounts_deleted_at = json['accounts'].map { |a| a['deleted_at'] }
+        expect(deleted_accounts_deleted_at).not_to include(nil)
+
+        deleted_account_uids = json['accounts'].map { |a| a['uid'] }
+
+        expect(deleted_account_uids).not_to include("#{user.id}-account-1")
+        expect(deleted_account_uids).not_to include("#{user.id}-account-2")
+        expect(deleted_account_uids).to include("#{user.id}-deleted-account-1")
+        expect(deleted_account_uids).to include("#{user.id}-deleted-account-2")
+      end
+    end
   end
 
   describe "PUT /me/accounts/{account_uid}" do

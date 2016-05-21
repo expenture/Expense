@@ -47,6 +47,7 @@
 
 class Transaction < ApplicationRecord
   self.inheritance_column = :kind
+  acts_as_paranoid
 
   scope :for_statistics, -> { where(ignore_in_statistics: false) }
   scope :virtual, -> { where.not(separate_transaction_uid: nil) }
@@ -70,7 +71,7 @@ class Transaction < ApplicationRecord
     on_record.possible_copy(amount, datetime, party_type: party_type, party_code: party_code)
   }
 
-  belongs_to :account,
+  belongs_to :account, -> { with_deleted },
              primary_key: :uid, foreign_key: :account_uid
   has_one :user, through: :account, autosave: false
   has_many :separating_transactions, class_name: 'VirtualTransaction',
@@ -86,13 +87,15 @@ class Transaction < ApplicationRecord
   validates :account, :uid, :amount, :datetime, presence: true
   validate :separate_transaction_uid_is_valid,
            :not_separating_a_virtual_transaction
-  validate :immutable_separate_transaction_uid, on: :update
+  validate :immutable_account_uid,
+           :immutable_separate_transaction_uid, on: :update
   validate :record_transaction_uid_must_be_nil_if_on_record,
            :record_transaction_is_valid_if_record_transaction_uid_is_set
   validate :immutable_on_record, on: :update
 
   after_initialize :init_on_record
-  before_validation :set_kind, :set_default_date, :standardize_attrs
+  before_validation :init_on_record, :set_kind, :set_default_date,
+                    :standardize_attrs
   before_validation :set_attributes_for_virtual_transaction,
                     :set_separated_if_having_virtual_transaction,
                     :set_ignore_in_statistics_for_separated_transaction
@@ -143,6 +146,7 @@ class Transaction < ApplicationRecord
 
   def init_on_record
     return unless on_record.nil?
+    return unless account
     return if virtual?
     if account.is_a?(SyncingAccount)
       self.on_record = false
@@ -172,6 +176,11 @@ class Transaction < ApplicationRecord
     return if separate_transaction.blank?
     return unless separate_transaction.virtual?
     errors.add(:separate_transaction_uid, 'is pointed to a virtual transaction, can\'t separate a virtual transaction')
+  end
+
+  def immutable_account_uid
+    return unless account_uid_changed?
+    errors.add(:immutable_account_uid, 'is immutable')
   end
 
   def immutable_separate_transaction_uid
@@ -212,6 +221,7 @@ class Transaction < ApplicationRecord
   def set_attributes_for_virtual_transaction
     return unless virtual?
     self.on_record = nil
+    return unless separate_transaction
     self.account_uid ||= separate_transaction.account_uid
   end
 

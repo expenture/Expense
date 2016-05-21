@@ -6,6 +6,14 @@ GIT
       rails (>= 4.0.0)
 
 GIT
+  remote: git://github.com/rubysherpas/paranoia.git
+  revision: 1741c25ddb96c05835af69f99b4531b5c95b6875
+  branch: core
+  specs:
+    paranoia (2.2.0.alpha)
+      activerecord (>= 4.0, < 5.1)
+
+GIT
   remote: git://github.com/sinatra/sinatra.git
   revision: b7dbfc4cfa1ad7236b2d5160ac4d6e3e0b45822d
   branch: master
@@ -171,7 +179,7 @@ GEM
     method_source (0.8.2)
     mime-types (2.99.1)
     mini_portile2 (2.0.0)
-    minitest (5.8.4)
+    minitest (5.9.0)
     multi_json (1.12.0)
     multi_xml (0.5.5)
     multipart-post (2.0.0)
@@ -388,6 +396,7 @@ DEPENDENCIES
   nokogiri
   omniauth-facebook
   omnicat-bayes
+  paranoia!
   pg
   poltergeist
   pry-byebug

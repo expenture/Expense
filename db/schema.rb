@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160515043500) do
+ActiveRecord::Schema.define(version: 20160520195919) do
 
   create_table "account_identifiers", force: :cascade do |t|
     t.integer  "user_id",                        null: false
@@ -41,6 +41,8 @@ ActiveRecord::Schema.define(version: 20160515043500) do
     t.string   "synchronizer_uid"
     t.datetime "created_at",                        null: false
     t.datetime "updated_at",                        null: false
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_accounts_on_deleted_at"
     t.index ["kind"], name: "index_accounts_on_kind"
     t.index ["synchronizer_uid"], name: "index_accounts_on_synchronizer_uid"
     t.index ["type"], name: "index_accounts_on_type"
@@ -199,8 +201,10 @@ ActiveRecord::Schema.define(version: 20160515043500) do
     t.datetime "manually_edited_at"
     t.datetime "created_at",                                   null: false
     t.datetime "updated_at",                                   null: false
+    t.datetime "deleted_at"
     t.index ["account_uid"], name: "index_transactions_on_account_uid"
     t.index ["category_code"], name: "index_transactions_on_category_code"
+    t.index ["deleted_at"], name: "index_transactions_on_deleted_at"
     t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"
     t.index ["kind"], name: "index_transactions_on_kind"
     t.index ["manually_edited_at"], name: "index_transactions_on_manually_edited_at"

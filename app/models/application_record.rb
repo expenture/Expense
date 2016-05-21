@@ -8,4 +8,8 @@ class ApplicationRecord < ActiveRecord::Base
   def updated_at_as_i
     updated_at && updated_at.to_i * 1000
   end
+
+  def deleted_at_as_i
+    deleted_at && deleted_at.to_i * 1000
+  end
 end

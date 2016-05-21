@@ -24,9 +24,6 @@ gem 'sinatra', github: 'sinatra/sinatra', branch: 'master', require: false
 # Wrapper for the standard Ruby OpenSSL library
 gem 'encryptor'
 
-# Use Capistrano for deployment
-# gem 'capistrano-rails', group: :development
-
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
 gem 'rack-cors'
 
@@ -45,6 +42,9 @@ gem 'clockwork', '~> 2.0.0'
 gem 'devise', '~> 4.1.0'
 gem 'doorkeeper', '~> 4.0.0.rc3'
 gem 'omniauth-facebook'
+
+# Model addons
+gem 'paranoia', github: 'rubysherpas/paranoia', branch: 'core'
 
 # Controller helpers
 gem 'api_helper', '~> 0.1.2'

@@ -86,7 +86,8 @@ CREATE TABLE accounts (
     balance integer DEFAULT 0 NOT NULL,
     synchronizer_uid character varying,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -462,6 +463,7 @@ CREATE TABLE transactions (
     manually_edited_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
     CONSTRAINT on_record_type_and_value_match CHECK (((((kind)::text = 'not_on_record'::text) AND (on_record = false)) OR (((kind)::text <> 'not_on_record'::text) AND (on_record = true)))),
     CONSTRAINT only_virtual_transaction_can_have_separate_transaction_uid CHECK (((((kind)::text <> 'virtual'::text) AND (separate_transaction_uid IS NULL)) OR (((kind)::text = 'virtual'::text) AND (separate_transaction_uid IS NOT NULL)))),
     CONSTRAINT virtual_transaction_can_not_be_seperated CHECK ((((kind)::text <> 'virtual'::text) OR (((kind)::text = 'virtual'::text) AND (separated = false))))
@@ -771,6 +773,13 @@ CREATE INDEX index_account_identifiers_on_user_id ON account_identifiers USING b
 
 
 --
+-- Name: index_accounts_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_deleted_at ON accounts USING btree (deleted_at);
+
+
+--
 -- Name: index_accounts_on_kind; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -988,6 +997,13 @@ CREATE INDEX index_transactions_on_category_code ON transactions USING btree (ca
 
 
 --
+-- Name: index_transactions_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_deleted_at ON transactions USING btree (deleted_at);
+
+
+--
 -- Name: index_transactions_on_ignore_in_statistics; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1161,6 +1177,6 @@ ALTER TABLE ONLY oauth_access_tokens
 
 SET search_path TO "$user", public;
 
-INSERT INTO schema_migrations (version) VALUES ('20160219134605'), ('20160221210444'), ('20160221210951'), ('20160224142347'), ('20160224153424'), ('20160226144407'), ('20160228064613'), ('20160301184459'), ('20160313182018'), ('20160314001457'), ('20160314114631'), ('20160323223854'), ('20160515034624'), ('20160515043500');
+INSERT INTO schema_migrations (version) VALUES ('20160219134605'), ('20160221210444'), ('20160221210951'), ('20160224142347'), ('20160224153424'), ('20160226144407'), ('20160228064613'), ('20160301184459'), ('20160313182018'), ('20160314001457'), ('20160314114631'), ('20160323223854'), ('20160515034624'), ('20160515043500'), ('20160520195839'), ('20160520195919');
 
 

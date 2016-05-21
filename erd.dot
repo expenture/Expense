@@ -19,6 +19,7 @@ m_Account [label = <<table border="0" align="center" cellspacing="0.5" cellpaddi
 <table border="0" align="left" cellspacing="2" cellpadding="0" width="134">
   <tr><td align="left" width="130" port="balance">balance <font face="Arial ItalicMT" color="grey60">integer ∗</font></td></tr>
   <tr><td align="left" width="130" port="currency">currency <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+  <tr><td align="left" width="130" port="deleted_at">deleted_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
   <tr><td align="left" width="130" port="name">name <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
   <tr><td align="left" width="130" port="synchronizer_uid">synchronizer_uid <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="type">type <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
@@ -62,7 +63,7 @@ m_OAuthAccessToken [label = <<table border="0" align="center" cellspacing="0.5" 
 </table>
 |
 <table border="0" align="left" cellspacing="2" cellpadding="0" width="134">
-  <tr><td align="left" width="130" port="application_id">application_id <font face="Arial ItalicMT" color="grey60">integer</font></td></tr>
+  <tr><td align="left" width="130" port="application_id">application_id <font face="Arial ItalicMT" color="grey60">integer ∗</font></td></tr>
   <tr><td align="left" width="130" port="expires_in">expires_in <font face="Arial ItalicMT" color="grey60">integer</font></td></tr>
   <tr><td align="left" width="130" port="refresh_token">refresh_token <font face="Arial ItalicMT" color="grey60">text U</font></td></tr>
   <tr><td align="left" width="130" port="resource_owner_id">resource_owner_id <font face="Arial ItalicMT" color="grey60">integer</font></td></tr>
@@ -76,12 +77,14 @@ m_OAuthApplication [label = <<table border="0" align="center" cellspacing="0.5" 
 </table>
 |
 <table border="0" align="left" cellspacing="2" cellpadding="0" width="134">
+  <tr><td align="left" width="130" port="contact_code">contact_code <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="name">name <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
   <tr><td align="left" width="130" port="owner_id">owner_id <font face="Arial ItalicMT" color="grey60">integer</font></td></tr>
   <tr><td align="left" width="130" port="owner_type">owner_type <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="redirect_uri">redirect_uri <font face="Arial ItalicMT" color="grey60">text ∗</font></td></tr>
   <tr><td align="left" width="130" port="scopes">scopes <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
   <tr><td align="left" width="130" port="secret">secret <font face="Arial ItalicMT" color="grey60">string ∗</font></td></tr>
+  <tr><td align="left" width="130" port="type">type <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="uid">uid <font face="Arial ItalicMT" color="grey60">string ∗ U</font></td></tr>
 </table>
 >];
@@ -153,6 +156,7 @@ m_Transaction [label = <<table border="0" align="center" cellspacing="0.5" cellp
   <tr><td align="left" width="130" port="amount">amount <font face="Arial ItalicMT" color="grey60">integer ∗</font></td></tr>
   <tr><td align="left" width="130" port="category_code">category_code <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="datetime">datetime <font face="Arial ItalicMT" color="grey60">datetime ∗</font></td></tr>
+  <tr><td align="left" width="130" port="deleted_at">deleted_at <font face="Arial ItalicMT" color="grey60">datetime</font></td></tr>
   <tr><td align="left" width="130" port="description">description <font face="Arial ItalicMT" color="grey60">text</font></td></tr>
   <tr><td align="left" width="130" port="external_image_url">external_image_url <font face="Arial ItalicMT" color="grey60">string</font></td></tr>
   <tr><td align="left" width="130" port="ignore_in_statistics">ignore_in_statistics <font face="Arial ItalicMT" color="grey60">boolean ∗</font></td></tr>

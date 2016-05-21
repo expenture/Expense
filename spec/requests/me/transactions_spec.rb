@@ -2,6 +2,7 @@ require "rails_helper"
 
 describe "User's Transactions Listing API" do
   let(:user) { create(:user, :confirmed) }
+  let(:account) { user.accounts.create!(uid: 'account_uid', name: "My Account") }
   let(:access_token) { create(:oauth_access_token, resource_owner_id: user.id) }
   let(:api_authorization) do
     {
@@ -45,11 +46,305 @@ describe "User's Transactions Listing API" do
                       'amount' => ['amount', -2000000]
                     }
 
-    it "sends a list of transactions" do
+    it "returns a list of transactions" do
       get '/me/transactions', api_authorization
 
       expect(response).to be_success
       expect(json).to have_key('transactions')
+    end
+
+    context "deleted set to true" do
+      before do
+        Timecop.travel 10.years.ago
+        12.times do |i|
+          if i < 5
+            user.accounts.first.transactions.create!(uid: "deleted-transaction-#{i + 1}", amount: (i - 2) * 1_000_000).destroy
+          else
+            user.accounts.last.transactions.create!(uid: "deleted-transaction-#{i + 1}", amount: (i - 2) * 1_000_000).destroy
+          end
+        end
+        Timecop.return
+      end
+
+      it "returns only deleted records" do
+        get '/me/transactions?deleted=true&per_page=100', api_authorization
+
+        deleted_transaction_uids = json['transactions'].map { |t| t['uid'] }
+        expect(deleted_transaction_uids).to contain_exactly(*(1..12).to_a.map { |i| "deleted-transaction-#{i}" })
+
+        deleted_transactions_deleted_at = json['transactions'].map { |t| t['deleted_at'] }
+        expect(deleted_transactions_deleted_at).not_to include(nil)
+      end
+
+      it "can be sorted as deleted_at" do
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-1').update!(deleted_at: 1.year.ago)
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-2').update!(deleted_at: 5.years.ago)
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-3').update!(deleted_at: 10.days.ago)
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-4').update!(deleted_at: 1.hour.ago)
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-5').update!(deleted_at: 1.day.ago)
+
+        get '/me/transactions?deleted=true&per_page=5&sort=-deleted_at', api_authorization
+
+        transaction_uids = json['transactions'].map { |t| t['uid'] }
+        expect(transaction_uids).to eq([
+          'deleted-transaction-4',
+          'deleted-transaction-5',
+          'deleted-transaction-3',
+          'deleted-transaction-1',
+          'deleted-transaction-2'
+        ])
+      end
+    end
+  end
+
+  describe "GET /me/transactions/{transaction_uid}" do
+    let(:transaction) { create(:transaction, account: account) }
+    subject(:request) do
+      get "/me/transactions/#{transaction.uid}", api_authorization
+    end
+
+    it "returns the data of the transaction" do
+      request
+      expect(response.status).to eq(200)
+      expect(json['transaction']['description']).to eq(transaction.description)
+      expect(json['transaction']['amount']).to eq(transaction.amount)
+    end
+
+    context "requesting a transaction that belongs to an inaccessible account" do
+      let(:transaction) { create(:transaction) }
+
+      it "returns an error with status 404" do
+        request
+        expect(response.status).to eq(404)
+        expect(json).to have_key('error')
+        expect(json).not_to have_key('transaction')
+      end
+    end
+  end
+
+  describe "PUT /me/transactions/{transaction_uid}" do
+    let(:transaction_uid) { 'test_transaction_uid' }
+
+    subject do
+      put "/me/transactions/#{transaction_uid}", api_authorization.merge(
+        params: {
+          transaction: {
+            'account_uid' => account.uid,
+            'amount' => -120_000,
+            'description' => 'Fish And Chips',
+            'category_code' => 'meal'
+          }
+        }
+      )
+    end
+
+    context "the transaction does not exists" do
+      it "creates a new transaction and returns 201" do
+        subject
+
+        expect(response).to be_success
+        expect(response.status).to eq(201)
+
+        transaction = account.transactions.find_by(uid: transaction_uid)
+        expect(transaction).to be_on_record
+        expect(transaction.amount).to eq(-120_000)
+        expect(transaction.manually_edited).to eq(true)
+      end
+    end
+
+    context "the transaction already exists" do
+      before do
+        account.transactions.create!(uid: transaction_uid, amount: 5_000_000)
+      end
+
+      it "replaces the account with new attributes and returns 200" do
+        subject
+
+        expect(response).to be_success
+        expect(response.status).to eq(200)
+
+        transaction = account.transactions.find_by(uid: transaction_uid)
+        expect(transaction).to be_on_record
+        expect(transaction.amount).to eq(-120_000)
+        expect(transaction.manually_edited).to eq(true)
+      end
+
+      it "updates the TransactionCategorizationCase" do
+        subject
+
+        tcc = TransactionCategorizationCase.find_by(user: user, the_transaction: Transaction.last)
+        expect(tcc).not_to be_blank
+        expect(tcc.words).to include('Fish')
+        expect(tcc.category_code).to eq('meal')
+      end
+    end
+
+    context "with invalid params" do
+      subject do
+        put "/me/transactions/#{transaction_uid}", api_authorization.merge(
+          params: {
+            transaction: {
+              'account_uid' => nil, # missing account_uid
+              'amount' => -120_000,
+              'description' => 'Fish And Chips',
+              'category_code' => 'meal'
+            }
+          }
+        )
+      end
+
+      it "returns an error with 400" do
+        subject
+
+        expect(response).not_to be_success
+        expect(response.status).to eq(400)
+        expect(json).to have_key('error')
+      end
+    end
+
+    context "creating transactions on an syncing account" do
+      let(:account) { create(:account, :syncing, user: user) }
+
+      it "creates a not-on-record transaction and returns its data" do
+        subject
+
+        transaction = account.transactions.find_by(uid: transaction_uid)
+        expect(transaction).not_to be_on_record
+
+        expect(json['transaction']['on_record']).to eq(false)
+        expect(transaction.manually_edited).to eq(true)
+      end
+    end
+
+    context "creating virtual transactions" do
+      let(:separated_transaction) { account.transactions.create!(uid: SecureRandom.uuid, amount: 1_000_000) }
+      subject do
+        put "/me/transactions/#{transaction_uid}", api_authorization.merge(
+          params: {
+            transaction: {
+              'separate_transaction_uid' => separated_transaction.uid,
+              'amount' => -120_000,
+              'description' => 'Fish And Chips',
+              'category_code' => 'meal'
+            }
+          }
+        )
+      end
+
+      it "creates a virtual transaction returns its data" do
+        subject
+
+        transaction = account.transactions.find_by(uid: transaction_uid)
+        expect(transaction.manually_edited).to eq(true)
+
+        expect(json['transaction']['separate_transaction_uid']).to eq(separated_transaction.uid)
+        expect(json['transaction']['virtual']).to eq(true)
+      end
+
+      it "makes the separated transaction marked as separated" do
+        expect(separated_transaction.separated).to eq(false)
+
+        subject
+
+        separated_transaction.reload
+        expect(separated_transaction.separated).to eq(true)
+      end
+
+      it "makes the separated transaction to be ignore_in_statistics" do
+        expect(separated_transaction.ignore_in_statistics).to eq(false)
+
+        subject
+
+        separated_transaction.reload
+        expect(separated_transaction.ignore_in_statistics).to eq(true)
+      end
+
+      context "the specified separated transaction doesn't exists" do
+        before do
+          separated_transaction.destroy!
+        end
+
+        it "returns an error with status 400" do
+          subject
+
+          expect(response).not_to be_success
+          expect(response.status).to eq(400)
+
+          expect(json).to have_key('error')
+        end
+      end
+    end
+  end
+
+  describe "PATCH /me/transactions/{transaction_uid}" do
+    let(:transaction) do
+      account.transactions.create!(uid: SecureRandom.uuid, amount: -5_000_000)
+    end
+
+    subject do
+      patch "/me/transactions/#{transaction.uid}", api_authorization.merge(
+        params: {
+          transaction: {
+            'amount' => 120_000,
+            'description' => 'Fish And Chips',
+            'category_code' => 'meal'
+          }
+        }
+      )
+    end
+
+    it "returns 200 and updates the transaction attributes" do
+      subject
+
+      expect(response).to be_success
+      expect(response.status).to eq(200)
+
+      transaction.reload
+
+      expect(transaction.amount).to eq(120_000)
+    end
+
+    it "updates the TransactionCategorizationCase" do
+      subject
+
+      tcc = TransactionCategorizationCase.find_by(user: user, the_transaction: Transaction.last)
+      expect(tcc).not_to be_blank
+      expect(tcc.words).to include('Fish')
+      expect(tcc.category_code).to eq('meal')
+    end
+  end
+
+  describe "DELETE /me/transactions/{transaction_uid}" do
+    let(:transaction) do
+      account.transactions.create!(uid: SecureRandom.uuid, amount: -5_000_000)
+    end
+
+    subject do
+      delete "/me/transactions/#{transaction.uid}", api_authorization
+    end
+
+    it "successfully destroys the specified transaction" do
+      subject
+
+      expect(response).to be_success
+
+      expect(Transaction.find_by(uid: transaction.uid)).to be_nil
+    end
+
+    context "the specified transaction is a synced transaction" do
+      let(:account) { create(:syncing_account, user: user) }
+      let(:transaction) do
+        account.transactions.create!(uid: SecureRandom.uuid, amount: -5_000_000, on_record: true)
+      end
+
+      it "returns a error with status 400 and does not destroy the specified transaction" do
+        subject
+
+        expect(response).not_to be_success
+        expect(response.status).to eq(400)
+
+        expect(Transaction.find_by(uid: transaction.uid)).not_to be_blank
+      end
     end
   end
 end

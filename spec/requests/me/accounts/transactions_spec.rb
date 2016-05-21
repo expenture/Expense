@@ -47,6 +47,74 @@ describe "User's Account Transaction Management API" do
       expect(response).to be_success
       expect(json).to have_key('transactions')
     end
+
+    context "deleted set to true" do
+      before do
+        Timecop.travel 10.years.ago
+        12.times do |i|
+          if i < 5
+            account.transactions.create!(uid: "deleted-transaction-#{i + 1}", amount: (i - 2) * 1_000_000).destroy
+          else
+            another_account.transactions.create!(uid: "deleted-transaction-#{i + 1}", amount: (i - 2) * 1_000_000).destroy
+          end
+        end
+        Timecop.return
+      end
+
+      it "returns only deleted records" do
+        get "/me/accounts/#{account.uid}/transactions?deleted=true&per_page=100", api_authorization
+
+        deleted_transaction_uids = json['transactions'].map { |t| t['uid'] }
+        expect(deleted_transaction_uids).to contain_exactly(*(1..5).to_a.map { |i| "deleted-transaction-#{i}" })
+
+        deleted_transactions_deleted_at = json['transactions'].map { |t| t['deleted_at'] }
+        expect(deleted_transactions_deleted_at).not_to include(nil)
+      end
+
+      it "can be sorted as deleted_at" do
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-1').update!(deleted_at: 1.year.ago)
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-2').update!(deleted_at: 5.years.ago)
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-3').update!(deleted_at: 10.days.ago)
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-4').update!(deleted_at: 1.hour.ago)
+        Transaction.with_deleted.find_by(uid: 'deleted-transaction-5').update!(deleted_at: 1.day.ago)
+
+        get "/me/accounts/#{account.uid}/transactions?deleted=true&per_page=5&sort=-deleted_at", api_authorization
+
+        transaction_uids = json['transactions'].map { |t| t['uid'] }
+        expect(transaction_uids).to eq([
+          'deleted-transaction-4',
+          'deleted-transaction-5',
+          'deleted-transaction-3',
+          'deleted-transaction-1',
+          'deleted-transaction-2'
+        ])
+      end
+    end
+  end
+
+  describe "GET /me/accounts/{account_uid}/transactions/{transaction_uid}" do
+    let(:transaction) { create(:transaction, account: account) }
+    subject(:request) do
+      get "/me/accounts/#{transaction.account_uid}/transactions/#{transaction.uid}", api_authorization
+    end
+
+    it "returns the data of the transaction" do
+      request
+      expect(response.status).to eq(200)
+      expect(json['transaction']['description']).to eq(transaction.description)
+      expect(json['transaction']['amount']).to eq(transaction.amount)
+    end
+
+    context "requesting a transaction that belongs to an inaccessible account" do
+      let(:transaction) { create(:transaction) }
+
+      it "returns an error with status 404" do
+        request
+        expect(response.status).to eq(404)
+        expect(json).to have_key('error')
+        expect(json).not_to have_key('transaction')
+      end
+    end
   end
 
   describe "PUT /me/accounts/{account_uid}/transactions/{transaction_uid}" do

@@ -53,7 +53,9 @@ json.manually_edited transaction.manually_edited?
 if time_format == 'integer'
   json.created_at transaction.created_at_as_i
   json.updated_at transaction.updated_at_as_i
+  json.deleted_at transaction.deleted_at_as_i if transaction.deleted_at
 else
   json.created_at transaction.created_at
   json.updated_at transaction.updated_at
+  json.deleted_at transaction.deleted_at if transaction.deleted_at
 end

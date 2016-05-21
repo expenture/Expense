@@ -2,15 +2,15 @@ class Me::AccountsController < ApplicationAPIController
   before_action :doorkeeper_authorize!
 
   def index
-    @accounts = current_user.accounts
+    @accounts = scoped_accounts
   end
 
   def update
     if request.put?
-      @account = current_user.accounts.find_or_initialize_by(uid: params[:id])
+      @account = scoped_accounts.find_or_initialize_by(uid: params[:id])
       @account.assign_attributes(empty_account_params.merge(account_params.to_h))
     elsif request.patch?
-      @account = current_user.accounts.find_by!(uid: params[:id])
+      @account = scoped_accounts.find_by!(uid: params[:id])
       @account.assign_attributes(account_params)
     end
 
@@ -25,7 +25,7 @@ class Me::AccountsController < ApplicationAPIController
   end
 
   def destroy
-    @account = current_user.accounts.find_by!(uid: params[:id])
+    @account = scoped_accounts.find_by!(uid: params[:id])
 
     if @account.destroy
       render
@@ -36,13 +36,13 @@ class Me::AccountsController < ApplicationAPIController
   end
 
   def clean
-    @account = current_user.accounts.find_by!(uid: params[:account_id])
+    @account = scoped_accounts.find_by!(uid: params[:account_id])
     AccountOrganizingService.clean(@account)
   end
 
   def merge
-    @account = current_user.accounts.find_by!(uid: params[:account_id])
-    @source_account = current_user.accounts.find_by!(uid: params.require(:source_account_uid))
+    @account = scoped_accounts.find_by!(uid: params[:account_id])
+    @source_account = scoped_accounts(with_deleted: true).find_by!(uid: params.require(:source_account_uid))
     AccountOrganizingService.merge(@source_account, @account)
     current_user.account_identifiers.where(account_uid: @source_account.uid).update_all(account_uid: @account.uid)
   end
@@ -63,6 +63,16 @@ class Me::AccountsController < ApplicationAPIController
   end
 
   private
+
+  def scoped_accounts(with_deleted: false)
+    if with_deleted
+      current_user.accounts.with_deleted
+    elsif params[:deleted]
+      current_user.accounts.only_deleted
+    else
+      current_user.accounts
+    end
+  end
 
   def account_params
     params.require(:account).permit(permitted_account_param_names)

@@ -19,7 +19,9 @@ json.synchronizer_uid account.synchronizer_uid
 if time_format == 'integer'
   json.created_at account.created_at_as_i
   json.updated_at account.updated_at_as_i
+  json.deleted_at account.deleted_at_as_i if account.deleted_at
 else
   json.created_at account.created_at
   json.updated_at account.updated_at
+  json.deleted_at account.deleted_at if account.deleted_at
 end
