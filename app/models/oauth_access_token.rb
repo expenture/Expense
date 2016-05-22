@@ -4,7 +4,7 @@
 #
 # *id*::                <tt>integer, not null, primary key</tt>
 # *resource_owner_id*:: <tt>integer</tt>
-# *application_id*::    <tt>integer</tt>
+# *application_id*::    <tt>integer, not null</tt>
 # *token*::             <tt>text, not null</tt>
 # *refresh_token*::     <tt>text</tt>
 # *expires_in*::        <tt>integer</tt>

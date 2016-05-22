@@ -4,7 +4,7 @@ RSpec.describe Account, type: :model do
   describe "instance" do
     subject(:account) { create(:account) }
 
-    its(:kind) { is_expected.to eq(nil) }
+    its(:type) { is_expected.to eq(nil) }
     its(:class) { is_expected.to eq(Account) }
 
     context "set as default by the user" do
@@ -33,7 +33,7 @@ RSpec.describe Account, type: :model do
         Account.find(a.id)
       end
 
-      its(:kind) { is_expected.to eq('syncing') }
+      its(:type) { is_expected.to eq('syncing') }
       its(:class) { is_expected.to eq(SyncingAccount) }
 
       it "can't be destroyed" do

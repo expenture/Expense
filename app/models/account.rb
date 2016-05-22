@@ -5,17 +5,19 @@
 # *id*::               <tt>integer, not null, primary key</tt>
 # *user_id*::          <tt>integer, not null</tt>
 # *uid*::              <tt>string, not null</tt>
-# *kind*::             <tt>string</tt>
-# *type*::             <tt>string, default("cash"), not null</tt>
+# *type*::             <tt>string</tt>
+# *kind*::             <tt>string, default("cash"), not null</tt>
 # *name*::             <tt>string, not null</tt>
 # *currency*::         <tt>string, default("TWD"), not null</tt>
 # *balance*::          <tt>integer, default(0), not null</tt>
 # *synchronizer_uid*:: <tt>string</tt>
 # *created_at*::       <tt>datetime, not null</tt>
 # *updated_at*::       <tt>datetime, not null</tt>
+# *deleted_at*::       <tt>datetime</tt>
 #
 # Indexes
 #
+#  index_accounts_on_deleted_at        (deleted_at)
 #  index_accounts_on_kind              (kind)
 #  index_accounts_on_synchronizer_uid  (synchronizer_uid)
 #  index_accounts_on_type              (type)
@@ -26,7 +28,6 @@
 #++
 
 class Account < ApplicationRecord
-  self.inheritance_column = :kind
   acts_as_paranoid
 
   belongs_to :user
@@ -35,10 +36,10 @@ class Account < ApplicationRecord
   has_many :account_identifiers,
            primary_key: :uid, foreign_key: :account_uid
 
-  validates :user, :uid, :type, :name, :currency, :balance, presence: true
+  validates :user, :uid, :kind, :name, :currency, :balance, presence: true
   validates :uid, uniqueness: true
 
-  before_save :set_kind
+  before_save :set_type
 
   def default?
     return false unless persisted?
@@ -47,7 +48,7 @@ class Account < ApplicationRecord
   end
 
   def syncing?
-    kind == 'syncing'
+    type == 'syncing'
   end
 
   def destroy
@@ -61,9 +62,9 @@ class Account < ApplicationRecord
 
   private
 
-  def set_kind
+  def set_type
     if synchronizer_uid.present?
-      self.kind = 'syncing'
+      self.type = 'syncing'
     end
   end
 

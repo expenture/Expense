@@ -79,8 +79,8 @@ CREATE TABLE accounts (
     id integer NOT NULL,
     user_id integer NOT NULL,
     uid character varying NOT NULL,
-    kind character varying,
-    type character varying DEFAULT 'cash'::character varying NOT NULL,
+    type character varying,
+    kind character varying DEFAULT 'cash'::character varying NOT NULL,
     name character varying NOT NULL,
     currency character varying DEFAULT 'TWD'::character varying NOT NULL,
     balance integer DEFAULT 0 NOT NULL,
@@ -441,7 +441,7 @@ CREATE TABLE transactions (
     id integer NOT NULL,
     uid character varying NOT NULL,
     account_uid character varying NOT NULL,
-    kind character varying,
+    type character varying,
     amount integer NOT NULL,
     description text,
     category_code character varying,
@@ -464,9 +464,9 @@ CREATE TABLE transactions (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    CONSTRAINT on_record_type_and_value_match CHECK (((((kind)::text = 'not_on_record'::text) AND (on_record = false)) OR (((kind)::text <> 'not_on_record'::text) AND (on_record = true)))),
-    CONSTRAINT only_virtual_transaction_can_have_separate_transaction_uid CHECK (((((kind)::text <> 'virtual'::text) AND (separate_transaction_uid IS NULL)) OR (((kind)::text = 'virtual'::text) AND (separate_transaction_uid IS NOT NULL)))),
-    CONSTRAINT virtual_transaction_can_not_be_seperated CHECK ((((kind)::text <> 'virtual'::text) OR (((kind)::text = 'virtual'::text) AND (separated = false))))
+    CONSTRAINT on_record_type_and_value_match CHECK (((((type)::text = 'not_on_record'::text) AND (on_record = false)) OR (((type)::text <> 'not_on_record'::text) AND (on_record = true)))),
+    CONSTRAINT only_virtual_transaction_can_have_separate_transaction_uid CHECK (((((type)::text <> 'virtual'::text) AND (separate_transaction_uid IS NULL)) OR (((type)::text = 'virtual'::text) AND (separate_transaction_uid IS NOT NULL)))),
+    CONSTRAINT virtual_transaction_can_not_be_seperated CHECK ((((type)::text <> 'virtual'::text) OR (((type)::text = 'virtual'::text) AND (separated = false))))
 );
 
 
@@ -1011,13 +1011,6 @@ CREATE INDEX index_transactions_on_ignore_in_statistics ON transactions USING bt
 
 
 --
--- Name: index_transactions_on_kind; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_transactions_on_kind ON transactions USING btree (kind);
-
-
---
 -- Name: index_transactions_on_manually_edited_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1057,6 +1050,13 @@ CREATE INDEX index_transactions_on_separated ON transactions USING btree (separa
 --
 
 CREATE INDEX index_transactions_on_synchronizer_parsed_data_uid ON transactions USING btree (synchronizer_parsed_data_uid);
+
+
+--
+-- Name: index_transactions_on_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_type ON transactions USING btree (type);
 
 
 --
@@ -1177,6 +1177,6 @@ ALTER TABLE ONLY oauth_access_tokens
 
 SET search_path TO "$user", public;
 
-INSERT INTO schema_migrations (version) VALUES ('20160219134605'), ('20160221210444'), ('20160221210951'), ('20160224142347'), ('20160224153424'), ('20160226144407'), ('20160228064613'), ('20160301184459'), ('20160313182018'), ('20160314001457'), ('20160314114631'), ('20160323223854'), ('20160515034624'), ('20160515043500'), ('20160520195839'), ('20160520195919');
+INSERT INTO schema_migrations (version) VALUES ('20160219134605'), ('20160221210444'), ('20160221210951'), ('20160224142347'), ('20160224153424'), ('20160226144407'), ('20160228064613'), ('20160301184459'), ('20160313182018'), ('20160314001457'), ('20160314114631'), ('20160323223854'), ('20160515034624'), ('20160515043500');
 
 

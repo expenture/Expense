@@ -9,7 +9,7 @@ RSpec.describe SyncedTransaction, type: :model do
       Transaction.find(t.id)
     end
 
-    its(:kind) { is_expected.to eq('synced') }
+    its(:type) { is_expected.to eq('synced') }
     its(:class) { is_expected.to eq(SyncedTransaction) }
 
     it "has immutable amount" do

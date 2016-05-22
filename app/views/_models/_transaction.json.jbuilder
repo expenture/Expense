@@ -1,7 +1,7 @@
 json.errors transaction.errors if transaction.errors.present?
 
-# Kind: normal, synced, virtual or not_on_record
-json.kind transaction.kind || 'normal'
+# Type: normal, synced, virtual or not_on_record
+json.type transaction.type || 'normal'
 
 # IDs
 json.account_uid transaction.account_uid

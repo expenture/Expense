@@ -142,7 +142,7 @@ RSpec.describe Transaction, type: :model do
       create(:transaction, account: account, amount: -100_000, separate_transaction_uid: separated_transaction.uid)
     end
 
-    its(:kind) { should eq('virtual') }
+    its(:type) { should eq('virtual') }
     # A virtual transaction will not be considered to be on_record or not,
     # so its on_record value must be nil
     its(:on_record) { is_expected.to be_nil }
@@ -248,7 +248,7 @@ RSpec.describe Transaction, type: :model do
   describe "instance that is a not-on-record transaction" do
     subject(:transaction) { create(:transaction, account: account, amount: -100_000, on_record: false) }
 
-    its(:kind) { should eq('not_on_record') }
+    its(:type) { should eq('not_on_record') }
 
     describe "record_transaction_uid" do
       it "can be set" do

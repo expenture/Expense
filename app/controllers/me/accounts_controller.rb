@@ -83,6 +83,6 @@ class Me::AccountsController < ApplicationAPIController
   end
 
   def permitted_account_param_names
-    %w(type name currency balance)
+    %w(kind name currency balance)
   end
 end

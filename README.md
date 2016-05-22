@@ -162,7 +162,7 @@ If the response is considered to have an error, a `error` object will be returne
   },
   "account": {
     "uid": "a991c2e2-2999-a136-3f05-db20c3c455d2",
-    "type": "cash",
+    "kind": "cash",
     "name": null,
     ...
     "errors": {
@@ -461,7 +461,7 @@ Sample response:
     {
       "uid": "9aa5d2b6-a3c9-4d0e-891e-b43f40d2546d",
       "name": "default",
-      "type": "cash",
+      "kind": "cash",
       "currency": "TWD",
       "balance": 8000000,
       "default": true,
@@ -470,7 +470,7 @@ Sample response:
     {
       "uid": "4a58cb98-59ac-4401-9ff0-2d0887e31250",
       "name": "悠遊卡",
-      "type": "cash",
+      "kind": "cash",
       "currency": "TWD",
       "balance": 5000000,
       "default": false,
@@ -493,7 +493,7 @@ Content-Type: application/json
 {
   "account": {
     "name": "My Wallet",
-    "type": "cash",
+    "kind": "cash",
     "currency": "TWD",
     "balance": 1000000
   }
@@ -511,7 +511,7 @@ Content-Type: application/json
 {
   "account": {
     "name": "My Old Wallet",
-    "type": "cash",
+    "kind": "cash",
     "currency": "TWD",
     "balance": 0
   }

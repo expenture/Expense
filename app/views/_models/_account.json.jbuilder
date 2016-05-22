@@ -1,11 +1,14 @@
 json.errors account.errors if account.errors.present?
 
+# Type: normal or syncing
+json.type account.type || 'normal'
+
 # IDs
 json.user_id account.user_id
 json.uid account.uid
 
 # Basic information
-json.type account.type
+json.kind account.kind
 json.name account.name
 json.currency account.currency
 json.balance account.balance

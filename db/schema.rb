@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160520195919) do
+ActiveRecord::Schema.define(version: 20160515043500) do
 
   create_table "account_identifiers", force: :cascade do |t|
     t.integer  "user_id",                        null: false
@@ -33,8 +33,8 @@ ActiveRecord::Schema.define(version: 20160520195919) do
   create_table "accounts", force: :cascade do |t|
     t.integer  "user_id",                           null: false
     t.string   "uid",                               null: false
-    t.string   "kind"
-    t.string   "type",             default: "cash", null: false
+    t.string   "type"
+    t.string   "kind",             default: "cash", null: false
     t.string   "name",                              null: false
     t.string   "currency",         default: "TWD",  null: false
     t.integer  "balance",          default: 0,      null: false
@@ -179,7 +179,7 @@ ActiveRecord::Schema.define(version: 20160520195919) do
   create_table "transactions", force: :cascade do |t|
     t.string   "uid",                                          null: false
     t.string   "account_uid",                                  null: false
-    t.string   "kind"
+    t.string   "type"
     t.integer  "amount",                                       null: false
     t.text     "description"
     t.string   "category_code"
@@ -206,13 +206,13 @@ ActiveRecord::Schema.define(version: 20160520195919) do
     t.index ["category_code"], name: "index_transactions_on_category_code"
     t.index ["deleted_at"], name: "index_transactions_on_deleted_at"
     t.index ["ignore_in_statistics"], name: "index_transactions_on_ignore_in_statistics"
-    t.index ["kind"], name: "index_transactions_on_kind"
     t.index ["manually_edited_at"], name: "index_transactions_on_manually_edited_at"
     t.index ["on_record"], name: "index_transactions_on_on_record"
     t.index ["record_transaction_uid"], name: "index_transactions_on_record_transaction_uid"
     t.index ["separate_transaction_uid"], name: "index_transactions_on_separate_transaction_uid"
     t.index ["separated"], name: "index_transactions_on_separated"
     t.index ["synchronizer_parsed_data_uid"], name: "index_transactions_on_synchronizer_parsed_data_uid"
+    t.index ["type"], name: "index_transactions_on_type"
     t.index ["uid"], name: "index_transactions_on_uid", unique: true
   end
 

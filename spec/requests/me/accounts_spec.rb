@@ -27,7 +27,7 @@ describe "User's Account Management API" do
       expect(json).to have_key('accounts')
       expect(json['accounts'].length).to eq(user.accounts.length)
       expect(json['accounts'].last['uid']).to be_a(String)
-      expect(json['accounts'].last['type']).to be_a(String)
+      expect(json['accounts'].last['kind']).to be_a(String)
       expect(json['accounts'].last['name']).to be_a(String)
       expect(json['accounts'].last['currency']).to be_a(String)
       expect(json['accounts'].last['balance']).to be_a(Integer)
@@ -64,7 +64,7 @@ describe "User's Account Management API" do
         params: {
           account: {
             'name' => 'Test New Account',
-            'type' => 'custom_type',
+            'kind' => 'custom_type',
             'currency' => 'USD',
             'balance' => 8_000_000
           }
@@ -82,7 +82,7 @@ describe "User's Account Management API" do
         account = user.accounts.find_by(uid: account_uid)
 
         expect(account.name).to eq('Test New Account')
-        expect(account.type).to eq('custom_type')
+        expect(account.kind).to eq('custom_type')
         expect(account.currency).to eq('USD')
         expect(account.balance).to eq(8_000_000)
       end
@@ -102,7 +102,7 @@ describe "User's Account Management API" do
         account = user.accounts.find_by(uid: account_uid)
 
         expect(account.name).to eq('Test New Account')
-        expect(account.type).to eq('custom_type')
+        expect(account.kind).to eq('custom_type')
         expect(account.currency).to eq('USD')
         expect(account.balance).to eq(8_000_000)
       end
@@ -139,7 +139,7 @@ describe "User's Account Management API" do
         params: {
           account: {
             'name' => 'Test Account',
-            'type' => 'custom_type',
+            'kind' => 'custom_type',
             'currency' => 'USD',
             'balance' => 8_000_000
           }
@@ -156,7 +156,7 @@ describe "User's Account Management API" do
       account.reload
 
       expect(account.name).to eq('Test Account')
-      expect(account.type).to eq('custom_type')
+      expect(account.kind).to eq('custom_type')
       expect(account.currency).to eq('USD')
       expect(account.balance).to eq(8_000_000)
     end

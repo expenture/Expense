@@ -143,7 +143,7 @@ class User < ApplicationRecord
 
   def default_account_is_not_a_syncing_one
     return unless default_account_uid_changed?
-    return unless default_account && default_account.kind == 'syncing'
+    return unless default_account && default_account.type == 'syncing'
     errors.add(:default_account_uid, 'can not be a syncing account')
   end
 

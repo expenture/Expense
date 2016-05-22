@@ -5,7 +5,7 @@
 # *id*::                           <tt>integer, not null, primary key</tt>
 # *uid*::                          <tt>string, not null</tt>
 # *account_uid*::                  <tt>string, not null</tt>
-# *kind*::                         <tt>string</tt>
+# *type*::                         <tt>string</tt>
 # *amount*::                       <tt>integer, not null</tt>
 # *description*::                  <tt>text</tt>
 # *category_code*::                <tt>string</tt>
@@ -27,26 +27,27 @@
 # *manually_edited_at*::           <tt>datetime</tt>
 # *created_at*::                   <tt>datetime, not null</tt>
 # *updated_at*::                   <tt>datetime, not null</tt>
+# *deleted_at*::                   <tt>datetime</tt>
 #
 # Indexes
 #
 #  index_transactions_on_account_uid                   (account_uid)
 #  index_transactions_on_category_code                 (category_code)
+#  index_transactions_on_deleted_at                    (deleted_at)
 #  index_transactions_on_ignore_in_statistics          (ignore_in_statistics)
-#  index_transactions_on_kind                          (kind)
 #  index_transactions_on_manually_edited_at            (manually_edited_at)
 #  index_transactions_on_on_record                     (on_record)
 #  index_transactions_on_record_transaction_uid        (record_transaction_uid)
 #  index_transactions_on_separate_transaction_uid      (separate_transaction_uid)
 #  index_transactions_on_separated                     (separated)
 #  index_transactions_on_synchronizer_parsed_data_uid  (synchronizer_parsed_data_uid)
+#  index_transactions_on_type                          (type)
 #  index_transactions_on_uid                           (uid) UNIQUE
 #--
 # == Schema Information End
 #++
 
 class Transaction < ApplicationRecord
-  self.inheritance_column = :kind
   acts_as_paranoid
 
   scope :for_statistics, -> { where(ignore_in_statistics: false) }
@@ -94,7 +95,7 @@ class Transaction < ApplicationRecord
   validate :immutable_on_record, on: :update
 
   after_initialize :init_on_record
-  before_validation :init_on_record, :set_kind, :set_default_date,
+  before_validation :init_on_record, :set_type, :set_default_date,
                     :standardize_attrs
   before_validation :set_attributes_for_virtual_transaction,
                     :set_separated_if_having_virtual_transaction,
@@ -119,7 +120,7 @@ class Transaction < ApplicationRecord
   end
 
   def synced?
-    kind == 'synced'
+    type == 'synced'
   end
 
   def manually_edited
@@ -234,13 +235,13 @@ class Transaction < ApplicationRecord
     self.ignore_in_statistics = has_a_actual_record? if on_record == false
   end
 
-  def set_kind
-    if account.present? && account.kind == 'syncing' && on_record?
-      self.kind = 'synced'
+  def set_type
+    if account.present? && account.type == 'syncing' && on_record?
+      self.type = 'synced'
     elsif on_record == false
-      self.kind = 'not_on_record'
+      self.type = 'not_on_record'
     elsif virtual?
-      self.kind = 'virtual'
+      self.type = 'virtual'
     end
   end
 

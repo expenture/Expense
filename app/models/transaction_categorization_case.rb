@@ -6,9 +6,9 @@
 # *user_id*::         <tt>integer</tt>
 # *words*::           <tt>string</tt>
 # *category_code*::   <tt>string</tt>
+# *transaction_uid*:: <tt>string</tt>
 # *created_at*::      <tt>datetime, not null</tt>
 # *updated_at*::      <tt>datetime, not null</tt>
-# *transaction_uid*:: <tt>string</tt>
 #
 # Indexes
 #

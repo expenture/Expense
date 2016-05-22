@@ -12,6 +12,8 @@
 # *updated_at*::   <tt>datetime</tt>
 # *owner_id*::     <tt>integer</tt>
 # *owner_type*::   <tt>string</tt>
+# *type*::         <tt>string</tt>
+# *contact_code*:: <tt>string</tt>
 #
 # Indexes
 #

@@ -5,7 +5,7 @@ RSpec.describe SyncingAccount, type: :model do
     let(:synchronizer) { create(:synchronizer) }
     subject(:syncing_account) { synchronizer.accounts.create!(uid: SecureRandom.uuid, name: 'A Syncing Account') }
 
-    its(:kind) { is_expected.to eq('syncing') }
+    its(:type) { is_expected.to eq('syncing') }
     its(:class) { is_expected.to eq(SyncingAccount) }
     its(:user_id) { is_expected.to eq(synchronizer.user_id) }
 
@@ -21,7 +21,7 @@ RSpec.describe SyncingAccount, type: :model do
         Transaction.find(t.id)
       end
 
-      its(:kind) { is_expected.to eq('synced') }
+      its(:type) { is_expected.to eq('synced') }
       its(:class) { is_expected.to eq(SyncedTransaction) }
     end
   end
