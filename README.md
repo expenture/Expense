@@ -556,7 +556,7 @@ POST /me/accounts/{account_uid}/_merge?source_account_uid={source_account_uid}
 
 Transactions are records of money movements into or out of an account. A transaction with negative amount represent expenses, while those with positive amount represent incomes.
 
-Transactions are listed under accounts. The account balance will update automatically after a transaction has been created, updated or deleted ([spec](https://github.com/expenture/Expense/blob/master/spec/models/transaction_spec.rb)).
+Transactions are listed under accounts. The account balance will update automatically after a normal (not vitural and on record) transaction has been created, updated or deleted ([spec](https://github.com/expenture/Expense/blob/master/spec/models/transaction_spec.rb)). If you don't want this (chances are that you are doing an offline sync, and the amount on the account is settled on other requests), pass the param `update_account = false` with the request.
 
 Transactions can be categorized by the `category_code` attribute. More details about how categorizing works is explained in the [Transaction Category Set Management](#transaction-category-set-management) section later.
 

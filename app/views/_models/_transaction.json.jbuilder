@@ -15,6 +15,7 @@ json.datetime transaction.datetime
 json.amount transaction.amount
 json.description transaction.description
 json.category_code transaction.category_code
+json.tags transaction.tags
 json.note transaction.note
 
 # Geographical location

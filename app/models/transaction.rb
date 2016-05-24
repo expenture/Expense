@@ -49,6 +49,9 @@
 
 class Transaction < ApplicationRecord
   acts_as_paranoid
+  # A temporary sign to declare that if the account (balance) should be updated
+  # when this transaction is saved/updated/destroyed (defaults to true)
+  attr_accessor :update_account
 
   scope :for_statistics, -> { where(ignore_in_statistics: false) }
   scope :virtual, -> { where.not(separate_transaction_uid: nil) }
@@ -141,6 +144,11 @@ class Transaction < ApplicationRecord
 
   def image_url
     external_image_url
+  end
+
+  def update_account
+    @update_account = true if @update_account.nil?
+    @update_account
   end
 
   private
@@ -246,18 +254,21 @@ class Transaction < ApplicationRecord
   end
 
   def update_account_on_create
+    return unless update_account
     return unless on_record?
     update_account_balance(:create)
     account.save!
   end
 
   def update_account_on_update
+    return unless update_account
     return unless on_record?
     update_account_balance(:update)
     account.save!
   end
 
   def update_account_on_destroy
+    return unless update_account
     return unless on_record?
     update_account_balance(:destroy)
     account.save!

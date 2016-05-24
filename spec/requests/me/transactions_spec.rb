@@ -150,6 +150,44 @@ describe "User's Transactions Listing API" do
         expect(transaction.amount).to eq(-120_000)
         expect(transaction.manually_edited).to eq(true)
       end
+
+      it "updates the account balance" do
+        account_balance_before = account.balance
+
+        subject
+
+        account.reload
+        account_balance_after = account.balance
+
+        expect(account_balance_before).not_to eq(account_balance_after)
+      end
+
+      context "update_account set to false" do
+        subject do
+          put "/me/transactions/#{transaction_uid}", api_authorization.merge(
+            params: {
+              update_account: false,
+              transaction: {
+                'account_uid' => account.uid,
+                'amount' => -120_000,
+                'description' => 'Fish And Chips',
+                'category_code' => 'meal'
+              }
+            }
+          )
+        end
+
+        it "does not update the account balance" do
+          account_balance_before = account.balance
+
+          subject
+
+          account.reload
+          account_balance_after = account.balance
+
+          expect(account_balance_before).to eq(account_balance_after)
+        end
+      end
     end
 
     context "the transaction already exists" do
@@ -167,6 +205,46 @@ describe "User's Transactions Listing API" do
         expect(transaction).to be_on_record
         expect(transaction.amount).to eq(-120_000)
         expect(transaction.manually_edited).to eq(true)
+      end
+
+      it "updates the account balance" do
+        account.reload
+        account_balance_before = account.balance
+
+        subject
+
+        account.reload
+        account_balance_after = account.balance
+
+        expect(account_balance_before).not_to eq(account_balance_after)
+      end
+
+      context "update_account set to false" do
+        subject do
+          put "/me/transactions/#{transaction_uid}", api_authorization.merge(
+            params: {
+              update_account: false,
+              transaction: {
+                'account_uid' => account.uid,
+                'amount' => -120_000,
+                'description' => 'Fish And Chips',
+                'category_code' => 'meal'
+              }
+            }
+          )
+        end
+
+        it "does not update the account balance" do
+          account.reload
+          account_balance_before = account.balance
+
+          subject
+
+          account.reload
+          account_balance_after = account.balance
+
+          expect(account_balance_before).to eq(account_balance_after)
+        end
       end
 
       it "updates the TransactionCategorizationCase" do
@@ -214,6 +292,17 @@ describe "User's Transactions Listing API" do
         expect(json['transaction']['on_record']).to eq(false)
         expect(transaction.manually_edited).to eq(true)
       end
+
+      it "does not update the account balance" do
+        account_balance_before = account.balance
+
+        subject
+
+        account.reload
+        account_balance_after = account.balance
+
+        expect(account_balance_before).to eq(account_balance_after)
+      end
     end
 
     context "creating virtual transactions" do
@@ -257,6 +346,20 @@ describe "User's Transactions Listing API" do
 
         separated_transaction.reload
         expect(separated_transaction.ignore_in_statistics).to eq(true)
+      end
+
+      it "does not update the account balance" do
+        separated_transaction
+
+        account.reload
+        account_balance_before = account.balance
+
+        subject
+
+        account.reload
+        account_balance_after = account.balance
+
+        expect(account_balance_before).to eq(account_balance_after)
       end
 
       context "the specified separated transaction doesn't exists" do
@@ -304,6 +407,49 @@ describe "User's Transactions Listing API" do
       expect(transaction.amount).to eq(120_000)
     end
 
+    it "updates the account balance" do
+      transaction
+
+      account.reload
+      account_balance_before = account.balance
+
+      subject
+
+      account.reload
+      account_balance_after = account.balance
+
+      expect(account_balance_before).not_to eq(account_balance_after)
+    end
+
+    context "update_account set to false" do
+      subject do
+        patch "/me/transactions/#{transaction.uid}", api_authorization.merge(
+          params: {
+            update_account: false,
+            transaction: {
+              'amount' => 120_000,
+              'description' => 'Fish And Chips',
+              'category_code' => 'meal'
+            }
+          }
+        )
+      end
+
+      it "does not update the account balance" do
+        transaction
+
+        account.reload
+        account_balance_before = account.balance
+
+        subject
+
+        account.reload
+        account_balance_after = account.balance
+
+        expect(account_balance_before).to eq(account_balance_after)
+      end
+    end
+
     it "updates the TransactionCategorizationCase" do
       subject
 
@@ -329,6 +475,64 @@ describe "User's Transactions Listing API" do
       expect(response).to be_success
 
       expect(Transaction.find_by(uid: transaction.uid)).to be_nil
+    end
+
+    it "updates the account balance" do
+      transaction
+
+      account.reload
+      account_balance_before = account.balance
+
+      subject
+
+      account.reload
+      account_balance_after = account.balance
+
+      expect(account_balance_before).not_to eq(account_balance_after)
+    end
+
+    context "update_account set to false (in URL)" do
+      subject do
+        delete "/me/transactions/#{transaction.uid}?update_account=false", api_authorization
+      end
+
+      it "does not update the account balance" do
+        transaction
+
+        account.reload
+        account_balance_before = account.balance
+
+        subject
+
+        account.reload
+        account_balance_after = account.balance
+
+        expect(account_balance_before).to eq(account_balance_after)
+      end
+    end
+
+    context "update_account set to false" do
+      subject do
+        delete "/me/transactions/#{transaction.uid}", api_authorization.merge(
+          params: {
+            update_account: false
+          }
+        )
+      end
+
+      it "does not update the account balance" do
+        transaction
+
+        account.reload
+        account_balance_before = account.balance
+
+        subject
+
+        account.reload
+        account_balance_after = account.balance
+
+        expect(account_balance_before).to eq(account_balance_after)
+      end
     end
 
     context "the specified transaction is a synced transaction" do

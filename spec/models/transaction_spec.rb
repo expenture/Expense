@@ -24,6 +24,23 @@ RSpec.describe Transaction, type: :model do
 
         expect(account.balance).to eq(-100_000)
       end
+
+      context "update_account set to false" do
+        subject(:transaction) do
+          t = build(:transaction, account: account, amount: -100_000, update_account: false)
+          t.update_account = false
+          t.save!
+        end
+
+        it "does not update the account balance" do
+          expect(account.balance).to eq(0)
+
+          transaction
+          account.reload
+
+          expect(account.balance).to eq(0)
+        end
+      end
     end
 
     context "after updated" do
@@ -44,6 +61,28 @@ RSpec.describe Transaction, type: :model do
 
         expect(account.balance).to eq(-500_000)
       end
+
+      context "update_account set to false" do
+        it "does not update the account balance" do
+          transaction
+
+          expect(account.balance).to eq(-100_000)
+
+          transaction.update_account = false
+
+          transaction.update_attributes(amount: 500_000)
+          transaction.save!
+          account.reload
+
+          expect(account.balance).to eq(-100_000)
+
+          transaction.update_attributes(amount: -500_000)
+          transaction.save!
+          account.reload
+
+          expect(account.balance).to eq(-100_000)
+        end
+      end
     end
 
     context "after destroyed" do
@@ -56,6 +95,20 @@ RSpec.describe Transaction, type: :model do
         account.reload
 
         expect(account.balance).to eq(0)
+      end
+
+      context "update_account set to false" do
+        it "does not update the account balance" do
+          transaction
+
+          expect(account.balance).to eq(-100_000)
+
+          transaction.update_account = false
+          transaction.destroy!
+          account.reload
+
+          expect(account.balance).to eq(-100_000)
+        end
       end
     end
 

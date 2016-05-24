@@ -32,6 +32,7 @@ class Me::TransactionsController < ApplicationAPIController
 
     if request.put?
       @transaction = resource_collection.find_or_initialize_by(uid: params[:id])
+      @transaction.update_account = request_update_account?
       @transaction.assign_attributes(empty_transaction_param_set.merge(transaction_params.to_h))
 
       # Set the default latitude/longitude base on the request location
@@ -51,6 +52,7 @@ class Me::TransactionsController < ApplicationAPIController
       end
     elsif request.patch?
       @transaction = resource_collection.find_by!(uid: params[:id])
+      @transaction.update_account = request_update_account?
       @transaction.assign_attributes(transaction_params)
     end
 
@@ -76,6 +78,7 @@ class Me::TransactionsController < ApplicationAPIController
 
   def destroy
     @transaction = resource_collection.find_by!(uid: params[:id])
+    @transaction.update_account = request_update_account?
 
     if @transaction.destroy
       render
@@ -117,5 +120,14 @@ class Me::TransactionsController < ApplicationAPIController
 
   def empty_transaction_param_set
     HashWithIndifferentAccess[permitted_transaction_param_names.map { |v| [v, nil] }]
+  end
+
+  def request_update_account?
+    if params[:update_account] == false ||
+       params[:update_account] == 'false'
+      return false
+    else
+      return true
+    end
   end
 end
